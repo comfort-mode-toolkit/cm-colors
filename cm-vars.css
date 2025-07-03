@@ -1,0 +1,7 @@
+
+.color-scheme {
+  --brand-red-text: rgb(232, 0, 0);
+  --brand-white-bg: rgb(255, 255, 255);
+  --text-secondary: rgb(0, 98, 198);
+  --brand-light-bg: rgb(240, 240, 240);
+}
