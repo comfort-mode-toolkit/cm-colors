@@ -1,0 +1,15 @@
+# Comfort Mode Configuration
+# Fill out your brand colors and run 'cm build' to generate accessible variants
+root:
+  # Paste your CSS variables here (from :root)
+  --brand-primary: "#0058a3"
+  --brand-bg: "#fff"
+  # etc.
+
+mappings:
+  # Map standard names to your variable names
+  --color-bg-normal: "--brand-bg"
+  --color-text-normal: "--brand-primary"
+  --color-bg-large: "--brand-bg"
+  --color-text-large: "--brand-primary"
+  # etc.

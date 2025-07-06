@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from typing import List, Dict, Tuple, Optional
 from helper import check_and_fix_contrast, calculate_contrast_ratio, get_contrast_level, calculate_delta_e_2000
+from processor import process_config
 
 # PDF generation imports
 try:
@@ -32,14 +33,15 @@ class AccessibleColorProcessor:
         # Create reports directory if it doesn't exist
         os.makedirs(report_dir, exist_ok=True)
         
-    def process_brand_palette(self, brand_palette: List[Dict]) -> List[Dict]:
+    def process_brand_palette(self, config) -> List[Dict]:
         """
         Main function: Process brand palette and generate accessible colors
         Returns processed palette with accessibility improvements
         """
+        color_scheme = process_config(config)
         processed_palette = []
         
-        for i, color_pair in enumerate(brand_palette):
+        for i, color_pair in enumerate(color_scheme):
             try:
                 # Extract color information
                 text_color = self._parse_color(color_pair['text']['color'])
@@ -437,31 +439,33 @@ class AccessibleColorProcessor:
         raise ValueError(f"Invalid color format: {color_value}")
 
 # Main processing function
-def process_brand_palette(brand_palette: List[Dict], css_file_path: str = "cm-vars.css", 
-                         report_dir: str = "reports") -> Dict:
+def process_brand_palette(config_path, css_file_path: str = "cm-vars.css", 
+                         report_dir: str = "reports",with_report=False) -> Dict:
     """
     Main function to process brand palette and generate accessible CSS with PDF report
     
     Args:
-        brand_palette: List of color pair dictionaries
+        config_path: Config path for css variables config
         css_file_path: Path to CSS file to update
         report_dir: Directory to save PDF report
-    
+        with_report: Flag to indicate if report generation is required
+
     Returns:
         Dictionary with processed results, CSS content, and report path
     """
     processor = AccessibleColorProcessor(css_file_path, report_dir)
     
     # Process the palette
-    processed_palette = processor.process_brand_palette(brand_palette)
-    
+    processed_palette = processor.process_brand_palette(config_path)
+
     # Update CSS file
     css_updated = processor.update_css_file(processed_palette)
     
     # Generate PDF report
-    report_path = processor.generate_pdf_report(processed_palette)
+    report_path = processor.generate_pdf_report(processed_palette) if with_report else None
     
-    return {
+    if report_path:
+        return {
         'processed_palette': processed_palette,
         'css_updated': css_updated,
         'css_content': processor.generate_accessible_css(processed_palette),
@@ -472,45 +476,14 @@ def process_brand_palette(brand_palette: List[Dict], css_file_path: str = "cm-va
             'avg_delta_e': sum(r['metrics']['delta_e'] for r in processed_palette) / len(processed_palette) if processed_palette else 0
         }
     }
-
-# Example usage
-if __name__ == "__main__":
-    # Example brand palette
-    example_palette = [
-        {
-            'text': {
-                'color': (255, 0, 0),  # Red text
-                'default': '--text-primary',
-                'custom': '--brand-red-text'
-            },
-            'bg': {
-                'color': (255, 255, 255),  # White background
-                'default': '--bg-primary',
-                'custom': '--brand-white-bg'
-            },
-            'type': 'normal'
-        },
-        {
-            'text': {
-                'color': (0, 100, 200),  # Blue text
-                'default': '--text-secondary',
-                'custom': None  # Will use default
-            },
-            'bg': {
-                'color': (240, 240, 240),  # Light gray background
-                'default': '--bg-secondary',
-                'custom': '--brand-light-bg'
-            },
-            'type': 'large'
+    else:
+            return {
+        'processed_palette': processed_palette,
+        'css_updated': css_updated,
+        'css_content': processor.generate_accessible_css(processed_palette),
+        'summary': {
+            'total_pairs': len(processed_palette),
+            'improved_pairs': sum(1 for r in processed_palette if r['metrics']['level_improved']),
+            'avg_delta_e': sum(r['metrics']['delta_e'] for r in processed_palette) / len(processed_palette) if processed_palette else 0
         }
-    ]
-    
-    # Process the palette
-    result = process_brand_palette(example_palette, "cm-vars.css", "reports")
-    
-    # Print results
-    print("=== PROCESSING COMPLETE ===")
-    print(f"CSS file updated: {result['css_updated']}")
-    print(f"PDF report saved: {result['report_path']}")
-    print(f"Total pairs processed: {result['summary']['total_pairs']}")
-    print(f"Average Delta E: {result['summary']['avg_delta_e']:.2f}")
+    }

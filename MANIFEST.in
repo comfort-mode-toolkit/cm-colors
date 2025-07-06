@@ -1,0 +1,7 @@
+include README.md
+include LICENSE
+include requirements.txt
+include MANIFEST.in
+recursive-include cm_colors *.py
+global-exclude __pycache__
+global-exclude *.py[co]
