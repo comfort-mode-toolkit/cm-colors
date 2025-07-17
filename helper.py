@@ -160,7 +160,6 @@ def oklch_to_rgb(oklch: Tuple[float, float, float]) -> Tuple[int, int, int]:
     
     return (r_8bit, g_8bit, b_8bit)
 
-# REPLACE THE EXISTING calculate_delta_e_2000 FUNCTION WITH THIS RIGOROUS VERSION
 def rgb_to_xyz(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
     """Convert RGB to XYZ color space with proper gamma correction"""
     r, g, b = [x / 255.0 for x in rgb]
@@ -208,7 +207,7 @@ def xyz_to_lab(xyz: Tuple[float, float, float]) -> Tuple[float, float, float]:
     fz = lab_transform(z)
     
     # Calculate LAB values
-    L = 116 * fy - 16
+    L = max(0, min(100, 116 * fy - 16))  # Clamp L to 0-100 range
     a = 500 * (fx - fy)
     b = 200 * (fy - fz)
     
@@ -224,6 +223,8 @@ def calculate_delta_e_2000(rgb1: Tuple[int, int, int], rgb2: Tuple[int, int, int
     Calculate Delta E 2000 color difference with full mathematical rigor
     Most perceptually accurate color difference formula
     """
+    if rgb1 == rgb2:
+        return 0.0
     # Convert RGB to LAB
     L1, a1, b1 = rgb_to_lab(rgb1)
     L2, a2, b2 = rgb_to_lab(rgb2)
@@ -325,249 +326,7 @@ def calculate_delta_e_2000(rgb1: Tuple[int, int, int], rgb2: Tuple[int, int, int
 def is_valid_rgb(rgb: Tuple[int, int, int]) -> bool:
     """Check if RGB values are valid (0-255)"""
     return all(0 <= value <= 255 for value in rgb)
-
-# REPLACE THE EXISTING CANDIDATE GENERATION FUNCTIONS WITH THESE ULTRA-STRICT VERSIONS
-def generate_lightness_candidates(rgb: Tuple[int, int, int], max_delta_e: float) -> List[Dict]:
-    """Generate lightness candidates using perfect OKLCH implementation"""
-    try:
-        oklch = rgb_to_oklch_safe(rgb)
-        l, c, h = oklch
-        
-        candidates = []
-        
-        # Ultra-fine grained steps with perfect mathematical precision
-        for direction in [-1, 1]:
-            for step in range(1, 301):  # Even more steps for maximum precision
-                # Use smaller increments for better precision
-                new_l = l + (direction * step * 0.003)  # 0.3% increments
-                
-                # Strict bounds checking
-                if not (0.0 <= new_l <= 1.0):
-                    break
-                
-                try:
-                    new_oklch = (new_l, c, h)
-                    new_rgb = oklch_to_rgb_safe(new_oklch)
-                    
-                    if not is_valid_rgb(new_rgb):
-                        continue
-                    
-                    # Use rigorous Delta E 2000 calculation
-                    delta_e = calculate_delta_e_2000(rgb, new_rgb)
-                    
-                    # Strict threshold enforcement
-                    if delta_e > max_delta_e:
-                        break
-                    
-                    # Only add if Delta E is meaningful and different
-                    if delta_e > 0.05 and new_rgb != rgb:  # Even stricter threshold
-                        candidates.append({
-                            'rgb': new_rgb,
-                            'oklch': new_oklch,
-                            'delta_e': delta_e,
-                            'adjustment_type': 'lightness_only',
-                            'priority': 1,
-                            'lightness_change': abs(new_l - l)
-                        })
-                
-                except Exception:
-                    continue
-        
-        return candidates
-    
-    except Exception:
-        return []
-
-def generate_lightness_chroma_candidates(rgb: Tuple[int, int, int], max_delta_e: float) -> List[Dict]:
-    """Generate lightness+chroma candidates using perfect OKLCH implementation"""
-    try:
-        oklch = rgb_to_oklch_safe(rgb)
-        l, c, h = oklch
-        
-        candidates = []
-        
-        # Ultra-conservative chroma steps with mathematical precision
-        chroma_steps = [-0.015, -0.01, -0.005, -0.002, 0.002, 0.005, 0.01, 0.015]
-        
-        for chroma_delta in chroma_steps:
-            new_c = max(0.0, c + chroma_delta)
-            
-            # Skip if chroma becomes too large (outside sRGB gamut)
-            if new_c > 0.5:
-                continue
-            
-            for direction in [-1, 1]:
-                for step in range(1, 151):  # Reduced range for chroma adjustments
-                    new_l = l + (direction * step * 0.005)  # 0.5% increments
-                    
-                    if not (0.0 <= new_l <= 1.0):
-                        break
-                    
-                    try:
-                        new_oklch = (new_l, new_c, h)
-                        new_rgb = oklch_to_rgb_safe(new_oklch)
-                        
-                        if not is_valid_rgb(new_rgb):
-                            continue
-                        
-                        delta_e = calculate_delta_e_2000(rgb, new_rgb)
-                        
-                        if delta_e > max_delta_e:
-                            break
-                        
-                        if delta_e > 0.05 and new_rgb != rgb:
-                            candidates.append({
-                                'rgb': new_rgb,
-                                'oklch': new_oklch,
-                                'delta_e': delta_e,
-                                'adjustment_type': 'lightness_chroma',
-                                'priority': 2,
-                                'lightness_change': abs(new_l - l),
-                                'chroma_change': abs(new_c - c)
-                            })
-                    
-                    except Exception:
-                        continue
-        
-        return candidates
-    
-    except Exception:
-        return []
-
-def generate_full_oklch_candidates(rgb: Tuple[int, int, int], max_delta_e: float) -> List[Dict]:
-    """Generate full OKLCH candidates using perfect mathematical implementation"""
-    try:
-        oklch = rgb_to_oklch_safe(rgb)
-        l, c, h = oklch
-        
-        candidates = []
-        
-        # Extremely conservative adjustments with perfect precision
-        hue_steps = [-3, -2, -1, 1, 2, 3]  # Maximum ±3 degrees for brand preservation
-        chroma_steps = [-0.02, -0.01, -0.005, 0.005, 0.01, 0.02]
-        
-        for hue_delta in hue_steps:
-            new_h = (h + hue_delta) % 360.0
-            
-            for chroma_delta in chroma_steps:
-                new_c = max(0.0, c + chroma_delta)
-                
-                # Skip if chroma becomes too large
-                if new_c > 0.4:
-                    continue
-                
-                for direction in [-1, 1]:
-                    for step in range(1, 101):  # Limited range for full adjustments
-                        new_l = l + (direction * step * 0.007)  # 0.7% increments
-                        
-                        if not (0.0 <= new_l <= 1.0):
-                            break
-                        
-                        try:
-                            new_oklch = (new_l, new_c, new_h)
-                            new_rgb = oklch_to_rgb_safe(new_oklch)
-                            
-                            if not is_valid_rgb(new_rgb):
-                                continue
-                            
-                            delta_e = calculate_delta_e_2000(rgb, new_rgb)
-                            
-                            if delta_e > max_delta_e:
-                                break
-                            
-                            if delta_e > 0.05 and new_rgb != rgb:
-                                candidates.append({
-                                    'rgb': new_rgb,
-                                    'oklch': new_oklch,
-                                    'delta_e': delta_e,
-                                    'adjustment_type': 'full_oklch',
-                                    'priority': 3,
-                                    'lightness_change': abs(new_l - l),
-                                    'chroma_change': abs(new_c - c),
-                                    'hue_change': min(abs(new_h - h), 360 - abs(new_h - h))
-                                })
-                        
-                        except Exception:
-                            continue
-        
-        return candidates
-    
-    except Exception:
-        return []
-
-# REPLACE THE EXISTING generate_accessible_color_robust FUNCTION WITH THIS PERFECT VERSION
-def generate_accessible_color_robust(text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int], large: bool = False) -> Tuple[int, int, int]:
-    """
-    Generate accessible color using perfect OKLCH implementation
-    Maximum brand preservation with mathematical rigor
-    """
-    # Check if already accessible
-    current_contrast = calculate_contrast_ratio(text_rgb, bg_rgb)
-    target_contrast = 7.0
-    min_contrast = 4.5 if not large else 3.0
-    
-    if current_contrast >= target_contrast:
-        return text_rgb
-    
-    # Ultra-strict Delta E progression with perfect precision
-    delta_e_sequence = [0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.7, 3.0, 3.5, 4.0, 5.0]
-    
-    best_candidate = None
-    best_contrast = current_contrast
-    
-    for max_delta_e in delta_e_sequence:
-        # Generate candidates using perfect OKLCH implementation
-        candidates = []
-        candidates.extend(generate_lightness_candidates(text_rgb, max_delta_e))
-        candidates.extend(generate_lightness_chroma_candidates(text_rgb, max_delta_e))
-        candidates.extend(generate_full_oklch_candidates(text_rgb, max_delta_e))
-        
-        # Sort by priority, then by delta-E, then by minimal changes
-        candidates.sort(key=lambda x: (
-            x['priority'], 
-            x['delta_e'],
-            x.get('hue_change', 0),  # Prefer minimal hue change
-            x.get('chroma_change', 0),  # Prefer minimal chroma change
-            x.get('lightness_change', 0)  # Prefer minimal lightness change
-        ))
-        
-        # Look for target contrast first
-        for candidate in candidates:
-            contrast = calculate_contrast_ratio(candidate['rgb'], bg_rgb)
-            
-            if contrast >= target_contrast:
-                return candidate['rgb']
-            
-            # Track best candidate
-            if contrast > best_contrast:
-                best_contrast = contrast
-                best_candidate = candidate
-        
-        # If we found minimum acceptable contrast with strict Delta E, use it
-        if best_candidate and best_contrast >= min_contrast and max_delta_e <= 2.5:
-            return best_candidate['rgb']
-    
-    # Final fallback
-    return best_candidate['rgb'] if best_candidate else text_rgb
-
-def check_and_fix_contrast(text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int], large: bool = False) -> Tuple[Tuple[int, int, int], Tuple[int, int, int]]:
-    """
-    Main function that checks contrast and fixes if necessary
-    Returns (text_color, bg_color) tuple - always returns the original background
-    """
-    # Calculate current contrast
-    current_contrast = calculate_contrast_ratio(text_rgb, bg_rgb)
-    target_contrast = 7.0
-    
-    # Check if already meets target
-    if current_contrast >= target_contrast:
-        return (text_rgb, bg_rgb)
-    
-    # Generate accessible text color
-    accessible_text = generate_accessible_color_robust(text_rgb, bg_rgb, large)
-    
-    return (accessible_text, bg_rgb)
-
+# ==== Tested until here ===
 
 def oklch_color_distance(oklch1: Tuple[float, float, float], oklch2: Tuple[float, float, float]) -> float:
     """
@@ -656,34 +415,3 @@ def oklch_to_rgb_safe(oklch: Tuple[float, float, float]) -> Tuple[int, int, int]
         L, C, H = oklch
         gray_value = max(0, min(255, round(L * 255)))
         return (gray_value, gray_value, gray_value)
-
-# Example usage and testing
-if __name__ == "__main__":
-    # Test cases
-    test_cases = [
-        ((255, 0, 0), (255, 255, 255), False),  # Red on white
-        ((0, 100, 0), (255, 255, 255), False),  # Dark green on white
-        ((0, 0, 255), (0, 0, 0), True),         # Blue on black (large text)
-        ((128, 128, 128), (255, 255, 255), False), # Gray on white
-    ]
-    
-    for text_rgb, bg_rgb, large in test_cases:
-        print(f"\nTesting: Text {text_rgb} on Background {bg_rgb} (Large: {large})")
-        
-        # Original contrast
-        original_contrast = calculate_contrast_ratio(text_rgb, bg_rgb)
-        original_level = get_contrast_level(original_contrast, large)
-        print(f"Original contrast: {original_contrast:.2f} ({original_level})")
-        
-        # Fixed colors
-        fixed_text, fixed_bg = check_and_fix_contrast(text_rgb, bg_rgb, large)
-        fixed_contrast = calculate_contrast_ratio(fixed_text, fixed_bg)
-        fixed_level = get_contrast_level(fixed_contrast, large)
-        
-        print(f"Fixed text color: {fixed_text}")
-        print(f"Fixed contrast: {fixed_contrast:.2f} ({fixed_level})")
-        
-        # Delta E calculation
-        if fixed_text != text_rgb:
-            delta_e = calculate_delta_e_2000(text_rgb, fixed_text)
-            print(f"Color difference (Delta E): {delta_e:.2f}")
