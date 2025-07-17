@@ -1,4 +1,0 @@
-# Core dependencies (none for basic functionality)
-
-# Optional dependencies for PDF reports
-reportlab>=3.6.0; extra == "pdf"

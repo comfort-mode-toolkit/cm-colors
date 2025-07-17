@@ -2,7 +2,7 @@
 
 **Mathematically Rigorous Accessible Color Science Library**
 
-An open-source library for improving color accessibility while preserving brand identity. Built with research-grade mathematical precision and practical accessibility tools.
+An open-source Python library for improving color accessibility while preserving brand identity. Built with research-grade mathematical precision and practical accessibility tools.
 
 ## ✨ What Makes CM-Colors Different
 
@@ -10,15 +10,15 @@ CM-Colors combines advanced color science with practical accessibility tools to 
 
 ### 🔬 **Mathematical Foundation**
 - **Delta E 2000**: Complete implementation for accurate perceptual color difference
-- **OKLCH Color Space**: Official OKLab matrices for perceptually uniform adjustments
+- **OKLCH Color Space**: Perceptually uniform color adjustments
 - **WCAG 2.1 Compliance**: Proper gamma correction and luminance calculations
 - **Research-Grade Precision**: Citation-quality implementations of color science standards
 
 ### 🎨 **Brand-Conscious Approach**
 - **Minimal Visual Impact**: Targets Delta E ≤ 2.0 when possible
-- **Hierarchical Optimization**: Tries lightness → chroma → hue adjustments
+- **Hierarchical Optimization**: Binary search + gradient descent for optimal results
 - **Perceptual Uniformity**: Changes feel natural to human vision
-- **Smart Fallbacks**: Guarantees at least WCAG AA compliance when physically possible
+- **Smart Fallbacks**: Guarantees WCAG compliance when physically possible
 
 ## 🚀 Quick Start
 
@@ -26,325 +26,286 @@ CM-Colors combines advanced color science with practical accessibility tools to 
 
 ```bash
 pip install cm-colors
-
-# For PDF report generation
-pip install cm-colors[pdf]
 ```
 
 ### Simple Usage
 
 ```python
-import cm_colors as cm
+from main import CMColors
 
-# Color space conversions with mathematical precision
-oklch = cm.to_oklch((255, 0, 100))  # RGB to OKLCH
-rgb = cm.to_rgb((0.6, 0.15, 350))   # OKLCH to RGB
+# Initialize the library
+cm = CMColors()
 
-# Accessibility analysis
-ratio = cm.contrast_ratio((33, 33, 33), (255, 255, 255))
-print(f"Contrast ratio: {ratio:.2f}")  # 12.63
+# Check contrast ratio
+ratio = cm.calculate_contrast((100, 100, 100), (255, 255, 255))
+print(f"Contrast ratio: {ratio:.2f}")  # 2.65
 
-# Improve colors for accessibility (when possible)
-accessible_text, accessible_bg = cm.make_accessible((100, 100, 100), (120, 120, 120))
+# Get WCAG compliance level
+level = cm.get_wcag_level(ratio)
+print(f"WCAG Level: {level}")  # FAIL
 
-# Perceptual color difference (Delta E 2000)
-difference = cm.color_distance((255, 0, 0), (255, 50, 50))
-print(f"Delta E 2000: {difference:.2f}")  # < 2.0 = barely perceptible
-```
+# Fix accessibility automatically
+accessible_text, bg = cm.ensure_accessible_colors((100, 100, 100), (255, 255, 255))
+print(f"Improved text color: {accessible_text}")  # Much darker for better contrast
 
-### Design System Processing
-
-```python
-from cm_colors import process_brand_palette
-
-# Define your brand palette
-brand_palette = [
-    {
-        'text': {
-            'color': (255, 0, 0),  # Your brand red
-            'default': '--text-primary',
-            'custom': '--brand-red-text'
-        },
-        'bg': {
-            'color': (255, 255, 255),  # White background
-            'default': '--bg-primary',
-            'custom': '--brand-white-bg'
-        },
-        'type': 'normal'  # 'normal' or 'large' for WCAG text size
-    }
-]
-
-# Process for accessibility - updates CSS and generates PDF report
-result = process_brand_palette(brand_palette)
-print(f"Improved {result['summary']['improved_pairs']} of {result['summary']['total_pairs']} color pairs")
-if result['summary']['avg_delta_e']:
-    print(f"Average brand preservation: Δε {result['summary']['avg_delta_e']:.1f}")
+# Calculate perceptual color difference
+delta_e = cm.calculate_delta_e_2000((255, 0, 0), (250, 5, 5))
+print(f"Delta E 2000: {delta_e:.2f}")  # Small perceptual difference
 ```
 
 ### Object-Oriented API
 
 ```python
-from cm_colors import CMColors
+from main import CMColors
 
 cm = CMColors()
 
-# Complete accessibility analysis
-analysis = cm.analyze_contrast((33, 33, 33), (200, 200, 200))
-print(analysis)
-# {
-#   'contrast_ratio': 5.74,
-#   'wcag_level': 'AA', 
-#   'passes_aa': True,
-#   'passes_aaa': False,
-#   'text_rgb': (33, 33, 33),
-#   'bg_rgb': (200, 200, 200)
-# }
+# Complete contrast analysis
+text_rgb = (100, 100, 100)
+bg_rgb = (255, 255, 255)
 
-# Generate accessible color variants
-variants = cm.generate_palette_variants((120, 80, 200), 5)
-for variant in variants:
-    print(f"RGB: {variant['rgb']}, Lightness: {variant['lightness']:.2f}")
+contrast = cm.calculate_contrast(text_rgb, bg_rgb)
+level = cm.get_wcag_level(contrast)
+print(f"Contrast: {contrast:.2f}, Level: {level}")
+
+# Ensure accessibility with minimal visual change
+accessible_text, _ = cm.ensure_accessible_colors(text_rgb, bg_rgb)
+print(f"Original: {text_rgb} → Accessible: {accessible_text}")
+
+# Check the improvement
+new_contrast = cm.calculate_contrast(accessible_text, bg_rgb)
+new_level = cm.get_wcag_level(new_contrast)
+print(f"New contrast: {new_contrast:.2f}, Level: {new_level}")
 ```
 
-## 🔬 The Science Behind the Improvements
+## 🔬 Color Space Conversions
 
-### OKLCH Color Space - Perceptually Uniform
+### OKLCH - Perceptually Uniform Color Space
 ```python
-# Precise gamma correction following sRGB specification (IEC 61966-2-1)
-def srgb_to_linear(channel):
-    if channel <= 0.04045:
-        return channel / 12.92  # Exact threshold from standard
-    else:
-        return pow((channel + 0.055) / 1.055, 2.4)  # Exact coefficients
+cm = CMColors()
 
-# Official OKLab transformation matrices from Björn Ottosson's research
-l_cone = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b
+# Convert RGB to OKLCH for better manipulation
+rgb_color = (123, 45, 200)  # Purple
+oklch = cm.rgb_to_oklch(rgb_color)
+print(f"OKLCH: L={oklch[0]:.3f}, C={oklch[1]:.3f}, H={oklch[2]:.1f}")
+
+# Convert back to RGB
+rgb_back = cm.oklch_to_rgb(oklch)
+print(f"RGB back: {rgb_back}")  # Should match original
+
+# OKLCH distance calculation
+oklch1 = cm.rgb_to_oklch((255, 100, 0))   # Orange
+oklch2 = cm.rgb_to_oklch((255, 150, 50))  # Lighter orange
+distance = cm.calculate_oklch_distance(oklch1, oklch2)
+print(f"OKLCH distance: {distance:.3f}")
 ```
+
+### LAB Color Space
+```python
+# Convert to CIELAB for Delta E calculations
+lab = cm.rgb_to_lab((255, 0, 0))
+print(f"LAB: L={lab[0]:.3f}, a={lab[1]:.3f}, b={lab[2]:.3f}")
+```
+
+## 🎯 Smart Accessibility Improvements
+
+### How We Minimize Brand Impact
+CM-Colors uses optimized algorithms to find the smallest acceptable change:
+
+1. **Binary Search on Lightness** - Fast convergence to optimal lightness
+2. **Gradient Descent in OKLCH** - Fine-tuning lightness and chroma
+3. **Delta E Constraints** - Ensures perceptual similarity when possible
+
+```python
+# The library automatically tries different approaches:
+# 1. Lightness-only adjustments (minimal impact)
+# 2. Lightness + chroma adjustments (moderate impact)  
+# 3. Full optimization when necessary
+
+accessible_color = cm.find_accessible_text_color((150, 150, 150), (255, 255, 255))
+print(f"Optimized accessible color: {accessible_color}")
+```
+
+### WCAG Compliance Levels
+```python
+# Check compliance for different text sizes
+normal_text_ratio = cm.calculate_contrast((75, 75, 75), (255, 255, 255))
+large_text_level = cm.get_wcag_level(normal_text_ratio, large_text=True)
+normal_text_level = cm.get_wcag_level(normal_text_ratio, large_text=False)
+
+print(f"Large text: {large_text_level}")    # Might pass AA
+print(f"Normal text: {normal_text_level}")  # Might fail
+```
+
+## 📊 Perceptual Color Difference
 
 ### Delta E 2000 - Human Vision Accuracy
 ```python
-# Complete implementation including all correction factors
-# Many libraries omit the complex T factor - we include everything
-T = (1 - 0.17 * cos(H_mean_prime - 30) + 
-     0.24 * cos(2 * H_mean_prime) + 
-     0.32 * cos(3 * H_mean_prime + 6) - 
-     0.20 * cos(4 * H_mean_prime - 63))
-```
+# Understanding perceptual differences
+colors = [
+    (255, 0, 0),    # Red
+    (250, 5, 5),    # Slightly different red
+    (255, 50, 50),  # Pink-ish red
+    (200, 0, 0)     # Dark red
+]
 
-### WCAG Compliance - Exact Standards
-```python
-# Relative luminance with exact WCAG 2.1 coefficients for photopic vision
-luminance = 0.2126 * r_linear + 0.7152 * g_linear + 0.0722 * b_linear
-```
-
-## 🎨 Smart Accessibility Improvements
-
-### How We Minimize Brand Impact
-CM-Colors uses a hierarchical approach, trying minimal changes first:
-
-1. **Lightness-only adjustments** (minimal visual impact)
-2. **Lightness + Chroma adjustments** (moderate impact)  
-3. **Full OKLCH adjustments** (when necessary for compliance)
-
-```python
-# Ultra-fine increments to find the smallest acceptable change
-for step in range(1, 301):
-    new_l = l + (direction * step * 0.003)  # 0.3% increments
-    if meets_contrast_requirement(new_color) and delta_e <= max_acceptable:
-        return new_color  # Found a good balance
-```
-
-### What Delta E Values Mean
-- **Δε < 1.0**: Changes invisible to human eye
-- **Δε 1.0-2.0**: Barely perceptible (our preference when possible)
-- **Δε 2.0-4.0**: Noticeable but often acceptable
-- **Δε > 4.0**: Significant visual change
-
-**Note**: We aim for minimal Delta E but prioritize accessibility compliance. Some color combinations (like white-on-white) cannot be made accessible while preserving the original colors.
-
-## 📊 What You Get
-
-### 1. **Updated CSS Variables**
-Your stylesheets are updated with improved colors:
-```css
-.color-scheme {
-  --brand-red-text: rgb(180, 0, 0);      /* Improved: Δε 1.8, Ratio: 4.52 */
-  --brand-white-bg: rgb(255, 255, 255);  /* Already accessible */
-}
-```
-
-### 2. **Detailed PDF Reports**
-Comprehensive accessibility reports including:
-- **Executive Summary**: Compliance status and improvement metrics
-- **Before/After Analysis**: Visual comparisons with measurements
-- **Brand Impact Scores**: Delta E values for each change
-- **WCAG Compliance Details**: AA/AAA levels for all text sizes
-- **Implementation Guide**: Exact color values and CSS updates
-- **Recommendations**: Prioritized suggestions for further improvements
-
-### 3. **Processing Results**
-```python
-{
-    'processed_palette': [...],      # Detailed results for each color pair
-    'css_updated': True,            # Success status
-    'css_content': '...',           # Generated CSS content
-    'report_path': 'reports/accessibility_report_20250105_143022.pdf',
-    'summary': {
-        'total_pairs': 5,
-        'improved_pairs': 3,        # Some may already be accessible
-        'failed_pairs': 0,          # Impossible cases (rare)
-        'avg_delta_e': 1.8          # Average brand impact
-    }
-}
+for i, color1 in enumerate(colors):
+    for color2 in colors[i+1:]:
+        delta_e = cm.calculate_delta_e_2000(color1, color2)
+        if delta_e < 1.0:
+            perception = "Invisible to human eye"
+        elif delta_e < 2.3:
+            perception = "Barely perceptible"
+        elif delta_e < 5.0:
+            perception = "Noticeable difference"
+        else:
+            perception = "Obvious difference"
+        
+        print(f"{color1} vs {color2}: Δε {delta_e:.2f} ({perception})")
 ```
 
 ## 🔧 API Reference
 
-### Core Functions
+### Core Methods
 
-| Function | Description | Returns |
-|----------|-------------|---------|
-| `to_oklch(rgb)` | RGB to OKLCH conversion | `(0.627, 0.225, 29.7)` |
-| `to_rgb(oklch)` | OKLCH to RGB conversion | `(255, 127, 80)` |
-| `contrast_ratio(text, bg)` | WCAG contrast calculation | `4.52` |
-| `make_accessible(text, bg)` | Improve colors when possible | `((180, 0, 0), (255, 255, 255))` |
-| `color_distance(rgb1, rgb2)` | Delta E 2000 difference | `1.8` |
-| `analyze_contrast(text, bg)` | Complete analysis | `{'wcag_level': 'AA', ...}` |
+| Method | Description | Returns |
+|--------|-------------|---------|
+| `calculate_contrast(text_rgb, bg_rgb)` | WCAG contrast ratio | `float` (1.0-21.0) |
+| `get_wcag_level(ratio, large_text=False)` | WCAG compliance level | `str` ("AAA", "AA", "FAIL") |
+| `ensure_accessible_colors(text, bg, large_text=False)` | Fix colors for accessibility | `Tuple[RGB, RGB]` |
+| `find_accessible_text_color(text, bg, large_text=False)` | Generate accessible text color | `RGB tuple` |
+| `rgb_to_oklch(rgb)` | RGB to OKLCH conversion | `(L, C, H)` tuple |
+| `oklch_to_rgb(oklch)` | OKLCH to RGB conversion | `(R, G, B)` tuple |
+| `rgb_to_lab(rgb)` | RGB to CIELAB conversion | `(L, a, b)` tuple |
+| `calculate_delta_e_2000(rgb1, rgb2)` | Perceptual color difference | `float` |
+| `calculate_oklch_distance(oklch1, oklch2)` | OKLCH space distance | `float` |
 
-### Input Formats
+### Input Validation
+All methods validate input parameters:
+- **RGB values**: Must be integers 0-255
+- **OKLCH values**: L (0-1), C (≥0), H (0-360)
+- **Invalid inputs**: Raise `ValueError` with descriptive messages
+
+## 🎯 Real-World Examples
+
+### Design System Audit
 ```python
-# RGB tuples
-color = (255, 0, 100)
-
-# Hex strings  
-color = "#ff0064"
-
-# CSS rgb() strings
-color = "rgb(255, 0, 100)"
-
-# OKLCH tuples (lightness, chroma, hue)
-oklch = (0.6, 0.15, 350)
+def audit_design_system(color_pairs):
+    """Audit an entire design system for accessibility."""
+    cm = CMColors()
+    results = []
+    
+    for pair in color_pairs:
+        text, bg = pair['text'], pair['background']
+        contrast = cm.calculate_contrast(text, bg)
+        level = cm.get_wcag_level(contrast)
+        
+        if level == "FAIL":
+            accessible_text, _ = cm.ensure_accessible_colors(text, bg)
+            delta_e = cm.calculate_delta_e_2000(text, accessible_text)
+            
+            results.append({
+                'original': text,
+                'accessible': accessible_text,
+                'improvement': f"{contrast:.2f} → {cm.calculate_contrast(accessible_text, bg):.2f}",
+                'visual_impact': f"Δε {delta_e:.2f}"
+            })
+    
+    return results
 ```
 
-### Limitations & Considerations
-- **Impossible Cases**: Some combinations (like white text on white background) cannot be made accessible while preserving the original intent
-- **Subjective Perception**: Delta E 2.0 is "barely perceptible" for most people, but perception varies
-- **Color Gamut**: Some OKLCH colors may be outside the sRGB gamut and will be clamped
-- **Context Matters**: Accessibility requirements may vary based on your specific use case
-
-## 🎯 Real-World Use Cases
-
-### **Design Systems**
+### Brand Color Optimization
 ```python
-# Audit entire design system
-design_tokens = load_design_tokens()
-improvements = []
-for token in design_tokens:
-    result = cm.analyze_contrast(token.text, token.bg)
-    if not result['passes_aa']:
-        improved = cm.make_accessible(token.text, token.bg)
-        improvements.append({
-            'token': token.name,
-            'original_ratio': result['contrast_ratio'],
-            'improved_colors': improved
-        })
+def optimize_brand_palette(brand_colors, backgrounds):
+    """Generate accessible variants of brand colors."""
+    cm = CMColors()
+    optimized_palette = {}
+    
+    for color_name, rgb in brand_colors.items():
+        variants = {}
+        for bg_name, bg_rgb in backgrounds.items():
+            accessible = cm.find_accessible_text_color(rgb, bg_rgb)
+            delta_e = cm.calculate_delta_e_2000(rgb, accessible)
+            
+            variants[bg_name] = {
+                'color': accessible,
+                'contrast': cm.calculate_contrast(accessible, bg_rgb),
+                'brand_preservation': f"Δε {delta_e:.2f}"
+            }
+        
+        optimized_palette[color_name] = variants
+    
+    return optimized_palette
 ```
 
-### **Brand Guidelines**
+## 🔬 Advanced Usage
+
+### Internal Optimization Methods
+For advanced users, the library exposes internal optimization methods:
+
 ```python
-# Generate accessible brand palette variants
-brand_red = (205, 0, 50)
-variants = cm.generate_palette_variants(brand_red, lightness_steps=9)
-# Creates a range of lightness values for different use cases
+# Direct access to optimization algorithms
+cm = CMColors()
+
+# Binary search on lightness only
+result = cm._binary_search_lightness(
+    text_rgb=(100, 100, 100),
+    bg_rgb=(255, 255, 255),
+    delta_e_threshold=2.0,
+    target_contrast=7.0
+)
+
+# Gradient descent optimization
+result = cm._gradient_descent_oklch(
+    text_rgb=(100, 100, 100),
+    bg_rgb=(255, 255, 255),
+    delta_e_threshold=2.0,
+    target_contrast=7.0,
+    max_iter=50
+)
 ```
 
-### **Accessibility Auditing**
-```python
-# Batch process website colors
-violations = []
-for element in page_elements:
-    ratio = cm.contrast_ratio(element.text, element.bg)
-    if ratio < 4.5:  # WCAG AA threshold
-        try:
-            fixed = cm.make_accessible(element.text, element.bg)
-            violations.append({'element': element, 'fix': fixed, 'original_ratio': ratio})
-        except Exception:
-            violations.append({'element': element, 'unfixable': True})
+## 🚀 Installation & Setup
+
+### Requirements
+- Python 3.7+
+- Dependencies defined in `helper.py` and `accessible_palatte.py`
+
+### Project Structure
+```
+cm-colors/
+├── main.py                 # Main CMColors class
+├── helper.py              # Color space conversions, contrast calculations
+├── accessible_palatte.py  # Optimization algorithms
+└── README.md             # This file
 ```
 
-### **Educational & Research**
-```python
-# Study color perception differences
-colors = [(255, 0, 0), (255, 20, 20), (255, 40, 40)]
-for i, color1 in enumerate(colors):
-    for color2 in colors[i+1:]:
-        delta_e = cm.color_distance(color1, color2)
-        perceptibility = "Imperceptible" if delta_e < 1 else "Barely perceptible" if delta_e < 2 else "Noticeable"
-        print(f"Δε {delta_e:.2f}: {perceptibility}")
+### Development Setup
+```bash
+git clone https://github.com/your-username/cm-colors
+cd cm-colors
+python -m pip install -e .
 ```
 
 ## 🤝 Contributing
 
-We welcome contributions to advance accessible design! This project is **open source and will remain free forever**.
+We welcome contributions! Areas where we need help:
 
-### 🔍 **Areas Where We Need Help**
-- **🧪 Color Science**: Algorithm improvements and optimizations
-- **🔌 Integrations**: Figma plugins, Sketch extensions, CLI tools
-- **📚 Documentation**: Tutorials, examples, translations
-- **🧪 Testing**: Edge cases and real-world validation
-- **⚡ Performance**: Optimization for large design systems
+- **🧪 Algorithm Optimization**: Improve performance of color space conversions
+- **🔌 Integrations**: CLI tools, web APIs, design tool plugins  
+- **📚 Documentation**: More examples and tutorials
+- **🧪 Testing**: Edge cases and validation
 - **🌐 Accessibility**: Making our tools more accessible
-
-### 🚀 **Getting Started**
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/improvement`)
-3. Make your changes with tests
-4. Follow our code style (black, flake8)
-5. Submit a pull request with clear description
-
-## 📚 Installation & Requirements
-
-### **System Requirements**
-- Python 3.7+ (tested up to 3.11)
-- Optional: ReportLab for PDF generation
-
-### **Installation Options**
-```bash
-# Basic installation
-pip install cm-colors
-
-# With PDF reports  
-pip install cm-colors[pdf]
-
-# Development installation
-pip install cm-colors[dev]
-
-# From source
-git clone https://github.com/comfort-mode-toolkit/cm-colors
-cd cm-colors
-pip install -e .
-```
-
-## 🙏 Acknowledgments
-
-This project builds upon decades of color science research and accessibility advocacy:
-
-- **Björn Ottosson** for the OKLab color space research
-- **CIE Technical Committee** for Delta E 2000 standardization  
-- **W3C Accessibility Working Group** for WCAG standards
-- **Open source community** for scientific Python libraries
-- **Accessibility advocates** worldwide for their tireless work
 
 ## 📜 License
 
-**GNU v3 License** - This project is open source and will remain **free forever**. 
+**GNU General Public License v3.0** - This project is open source and will remain free forever.
 
-## 🔗 Links & Resources
+## 🔗 Resources
 
-- **📖 [Documentation](https://github.com/comfort-mode-toolkit/cm-colors#readme)**
-- **🐛 [Bug Reports](https://github.com/comfort-mode-toolkit/cm-colors/issues)**
+- **📖 [Full Documentation](https://github.com/comfort-mode-toolkit/cm-colors#readme)**
+- **🐛 [Report Issues](https://github.com/comfort-mode-toolkit/cm-colors/issues)**
 - **💻 [Source Code](https://github.com/comfort-mode-toolkit/cm-colors)**
-
 
 ---
 
