@@ -25,7 +25,7 @@ setuptools.setup(
         "Intended Audience :: Developers",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Multimedia :: Graphics",
-        "Topic :: Scientific/Engineering :: Color Science",
+        "Topic :: Scientific/Engineering",
     ],
     package_dir={"": "."}, # Look for packages in the current directory
     py_modules=["main", "helper", "accessible_palatte"], # List your .py files as modules
