@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="cm-colors",
-    version="0.0.1",
+    version="0.0.3",
     author="Lalitha A R",
     author_email="arlalithablogs@gmail.com",
     description="Mathematically Rigorous Accessible Color Science Library",
@@ -28,7 +28,7 @@ setuptools.setup(
         "Topic :: Scientific/Engineering",
     ],
     package_dir={"": "."}, # Look for packages in the current directory
-    py_modules=["main", "helper", "accessible_palatte"], # List your .py files as modules
+    py_modules=["cm_colors", "helper", "accessible_palatte"], # List your .py files as modules
     python_requires=">=3.7", # Minimum Python version required
 )
 

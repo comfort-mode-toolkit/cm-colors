@@ -1,4 +1,4 @@
-# main.py
+# cm_colors.py
 """
 CMColors - Mathematically Rigorous Accessible Color Science Library
 
@@ -15,7 +15,7 @@ from typing import Tuple, Optional
 # Assuming these files are in the same directory or accessible via PYTHONPATH
 from helper import (
     calculate_contrast_ratio,
-    get_contrast_level,
+    wcag_check,
     rgb_to_oklch_safe,
     oklch_to_rgb_safe,
     rgb_to_lab,
@@ -23,10 +23,11 @@ from helper import (
     is_valid_rgb,
     oklch_color_distance,
     validate_oklch,
+    
+
 )
 from accessible_palatte import (
     check_and_fix_contrast_optimized,
-    generate_accessible_color_optimized,
     binary_search_lightness,
     gradient_descent_oklch,
 )
@@ -59,23 +60,22 @@ class CMColors:
             raise ValueError("Invalid RGB values provided. Each component must be between 0 and 255.")
         return calculate_contrast_ratio(text_rgb, bg_rgb)
 
-    def get_wcag_level(self, contrast_ratio: float, large_text: bool = False) -> str:
+    def get_wcag_level(self, text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int], large_text: bool = False) -> str:
         """
-        Determines the WCAG contrast level (AAA, AA, FAIL) based on the contrast ratio
-        and whether the text is considered 'large'.
+        Determines the WCAG contrast level (AAA, AA, FAIL) based on the color pair and whether the text is considered 'large'.
 
         Args:
-            contrast_ratio (float): The calculated contrast ratio.
-            large_text (bool): True if the text is considered large (18pt or 14pt bold),
-                               False otherwise (default).
+            text_rgb (Tuple[int, int, int]): The RGB tuple for the text color (R, G, B).
+            bg_rgb (Tuple[int, int, int]): The RGB tuple for the background color (R, G, B).
+            large_text (bool): True if the text is considered large (18pt or 14pt bold), False otherwise (default).
 
         Returns:
             str: The WCAG compliance level ("AAA", "AA", or "FAIL").
         """
-        return get_contrast_level(contrast_ratio, large_text)
+        return wcag_check(text_rgb, bg_rgb, large_text)
 
     def ensure_accessible_colors(self, text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int],
-                                 large_text: bool = False) -> Tuple[Tuple[int, int, int], Tuple[int, int, int]]:
+                                 large_text: bool = False) -> Tuple[Tuple[int, int, int], Tuple[int, int, int],str,float,float]:
         """
         Checks the contrast between text and background colors and, if necessary,
         adjusts the text color to meet WCAG AAA requirements (or AA for large text)
@@ -87,37 +87,20 @@ class CMColors:
             text_rgb (Tuple[int, int, int]): The original RGB tuple for the text color.
             bg_rgb (Tuple[int, int, int]): The RGB tuple for the background color.
             large_text (bool): True if the text is considered large (18pt or 14pt bold),
-                               False otherwise (default).
+            False otherwise (default).
 
         Returns:
-            Tuple[Tuple[int, int, int], Tuple[int, int, int]]: A tuple containing
-            the (potentially adjusted) accessible text RGB and the original background RGB.
+                Tuple[Tuple[int, int, int], Tuple[int, int, int], str, float, float]:
+                A tuple containing:
+                - The (potentially adjusted) accessible text RGB.
+                - The original background RGB.
+                - The final WCAG compliance level ("AAA", "AA", or "FAIL").
+                - The initial contrast ratio before adjustment.
+                - The final contrast ratio after adjustment.
         """
         if not (is_valid_rgb(text_rgb) and is_valid_rgb(bg_rgb)):
             raise ValueError("Invalid RGB values provided. Each component must be between 0 and 255.")
         return check_and_fix_contrast_optimized(text_rgb, bg_rgb, large_text)
-
-    def find_accessible_text_color(self, text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int],
-                                   large_text: bool = False) -> Tuple[int, int, int]:
-        """
-        Generates an accessible text color that meets WCAG AAA requirements (or AA for large text)
-        relative to the background color, attempting to preserve the original color's hue
-        and minimize perceptual difference (Delta E 2000).
-
-        This function uses an optimized approach combining binary search and gradient descent.
-
-        Args:
-            text_rgb (Tuple[int, int, int]): The original RGB tuple for the text color.
-            bg_rgb (Tuple[int, int, int]): The RGB tuple for the background color.
-            large_text (bool): True if the text is considered large (18pt or 14pt bold),
-                               False otherwise (default).
-
-        Returns:
-            Tuple[int, int, int]: The accessible text RGB color.
-        """
-        if not (is_valid_rgb(text_rgb) and is_valid_rgb(bg_rgb)):
-            raise ValueError("Invalid RGB values provided. Each component must be between 0 and 255.")
-        return generate_accessible_color_optimized(text_rgb, bg_rgb, large_text)
 
     def rgb_to_oklch(self, rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
         """
@@ -230,24 +213,17 @@ if __name__ == "__main__":
     bg_color = (255, 255, 255)     # White
 
     print(f"Original Text Color: {text_color_orig}, Background Color: {bg_color}")
-    initial_contrast = cm_colors.calculate_contrast(text_color_orig, bg_color)
-    initial_level = cm_colors.get_wcag_level(initial_contrast)
-    print(f"Initial Contrast Ratio: {initial_contrast:.2f}, WCAG Level: {initial_level}")
 
-    accessible_text, _ = cm_colors.ensure_accessible_colors(text_color_orig, bg_color)
-    final_contrast = cm_colors.calculate_contrast(accessible_text, bg_color)
-    final_level = cm_colors.get_wcag_level(final_contrast)
-    print(f"Adjusted Text Color: {accessible_text}, Final Contrast Ratio: {final_contrast:.2f}, WCAG Level: {final_level}\n")
+    accessible_text, bg_color, wcag_level, initial_contrast, new_contrast = cm_colors.ensure_accessible_colors(text_color_orig, bg_color)
+
+    print(f"Adjusted Text Color: {accessible_text},\n Initial Contrast Ratio: {initial_contrast:.2f}, Final Contrast Ratio: {new_contrast:.2f},\n Final WCAG Level: {wcag_level}\n")
 
     # Example 2: Another contrast check (already good)
     text_color_good = (0, 0, 0) # Black
     bg_color_good = (255, 255, 255) # White
     print(f"Original Text Color: {text_color_good}, Background Color: {bg_color_good}")
-    initial_contrast_good = cm_colors.calculate_contrast(text_color_good, bg_color_good)
-    initial_level_good = cm_colors.get_wcag_level(initial_contrast_good)
-    print(f"Initial Contrast Ratio: {initial_contrast_good:.2f}, WCAG Level: {initial_level_good}")
-    accessible_text_good, _ = cm_colors.ensure_accessible_colors(text_color_good, bg_color_good)
-    print(f"Adjusted Text Color: {accessible_text_good} (should be same as original)\n")
+    accessible_text_good, bg_color_good, wcag_level_good, initial_contrast_good, new_contrast_good = cm_colors.ensure_accessible_colors(text_color_good, bg_color_good)
+    print(f"Adjusted Text Color: {accessible_text_good} (should be same as original)\n Initial Contrast Ratio: {initial_contrast_good:.2f}, Final Contrast Ratio: {new_contrast_good:.2f},\n Final WCAG Level: {wcag_level_good}\n")
 
 
     # Example 3: Color space conversions

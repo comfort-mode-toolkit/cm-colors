@@ -1,5 +1,5 @@
 from typing import Tuple, Optional
-from helper import rgb_to_oklch_safe, oklch_to_rgb_safe, calculate_delta_e_2000, is_valid_rgb, calculate_contrast_ratio
+from helper import rgb_to_oklch_safe, oklch_to_rgb_safe, calculate_delta_e_2000, is_valid_rgb, calculate_contrast_ratio,wcag_check
 
 def binary_search_lightness(text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int], 
                            delta_e_threshold: float = 2.0, target_contrast: float = 7.0, 
@@ -232,15 +232,17 @@ def generate_accessible_color_optimized(text_rgb: Tuple[int, int, int], bg_rgb: 
 
 
 def check_and_fix_contrast_optimized(text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int], 
-                                    large: bool = False) -> Tuple[Tuple[int, int, int], Tuple[int, int, int]]:
+                                    large: bool = False) -> Tuple[Tuple[int, int, int], Tuple[int, int, int],str,float,float]:
     """
-    Main function maintaining exact same interface and guarantees as original.
+    Main function to check and fix contrast using optimized methods.
     """
     current_contrast = calculate_contrast_ratio(text_rgb, bg_rgb)
     target_contrast = 7.0
     
     if current_contrast >= target_contrast:
-        return (text_rgb, bg_rgb)
-    
+        return (text_rgb, bg_rgb,'AAA', current_contrast, current_contrast)
+
     accessible_text = generate_accessible_color_optimized(text_rgb, bg_rgb, large)
-    return (accessible_text, bg_rgb)
+    wcag_level = wcag_check(accessible_text, bg_rgb)
+    new_contrast= calculate_contrast_ratio(accessible_text, bg_rgb)
+    return (accessible_text, bg_rgb, wcag_level, current_contrast, new_contrast)

@@ -45,6 +45,14 @@ def get_contrast_level(contrast_ratio: float, large: bool = False) -> str:
         else:
             return "FAIL"
 
+def wcag_check(text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int], large: bool = False) -> str:
+    """
+    Check WCAG contrast level for given text and background colors.
+    Returns 'AAA', 'AA', or 'FAIL'.
+    """
+    contrast_ratio = calculate_contrast_ratio(text_rgb, bg_rgb)
+    return get_contrast_level(contrast_ratio, large)
+
 def rgb_to_oklch(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
     """
     Convert RGB to OKLCH color space with full mathematical rigor
