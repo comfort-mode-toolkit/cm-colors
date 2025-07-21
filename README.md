@@ -4,6 +4,8 @@
 
 An open-source Python library for improving color accessibility while preserving brand identity. Built with research-grade mathematical precision and practical accessibility tools.
 
+> Maintainer's Note: I know the README sounds kinda arrogant and it kinda is lol ( generated using AI ). I am working on the functional aspect so if anyone wishes to edit the README, please create a PR
+
 ## What Makes CM-Colors Different
 
 CM-Colors combines advanced color science with practical accessibility tools to help you improve color contrast while minimizing visual impact on your brand.
