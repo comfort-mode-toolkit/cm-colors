@@ -1,4 +1,4 @@
-# CM-Colors 🎨✨
+<img width="1189" height="1110" alt="example" src="https://github.com/user-attachments/assets/a8076f66-bb32-491c-ae4d-2803a596fb11" /># CM-Colors 🎨✨
 
 **You do your style, we make it accessible** 
 *(Our color wizard can work miracles, but even magic has limits - don't expect us to make neon yellow on white look good!)*
@@ -50,9 +50,10 @@ print(f"Now it passes: {level} level!")
 That's it. Seriously.
 
 ## Real Examples (Because Seeing is Believing)
-<img width="500" height="200" alt="Screenshot 2025-07-22 8 33 18 AM" alt="an image showing side by side comparision of before and after change of colors" src="https://github.com/user-attachments/assets/16b76986-316a-404b-8519-a1754b078071" />
+The % shows the change in contrast ratio
 
-Thanks to [@nirvaankohli](https://github.com/nirvaankohli)
+<img width="1189" height="1110" alt="an image showing side by side comparision of before and after change of colors" src="https://github.com/user-attachments/assets/4ce92c65-cd27-4bae-8756-bbbe9bf70a91"  />
+
 
 
 <!--```python
