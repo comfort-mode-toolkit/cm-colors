@@ -1,4 +1,4 @@
-<img width="1189" height="1110" alt="example" src="https://github.com/user-attachments/assets/a8076f66-bb32-491c-ae4d-2803a596fb11" /># CM-Colors 🎨✨
+# CM-Colors 🎨✨
 
 **You do your style, we make it accessible** 
 *(Our color wizard can work miracles, but even magic has limits - don't expect us to make neon yellow on white look good!)*
