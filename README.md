@@ -136,7 +136,7 @@ print(f"Current level: {level}")  # "AA", "AAA", or "FAIL"
 
 ## For the Color Science Geeks 🤓
 
-If you want to dive deep into the mathematical wizardry behind this (Delta E 2000, OKLCH color spaces, gradient descent optimization), check out our [full technical documentation #wip](link-to-detailed-docs) where we get very nerdy about color perception and optimization algorithms.
+If you want to dive deep into the mathematical wizardry behind this (Delta E 2000, OKLCH color spaces, gradient descent optimization), check out our [full technical documentation](https://github.com/comfort-mode-toolkit/cm-colors/blob/main/Technical%20README.md) where we get very nerdy about color perception and optimization algorithms.
 
 ## Installation & Setup
 
