@@ -10,7 +10,7 @@ Before we get into the technical stuff, here's what we're going for:
 - **Accessibility first**: Every change should make the web more readable for more people
 - **Developer-friendly**: If it's hard to use, people won't use it (and accessibility loses)
 - **Keep it simple**: Complex APIs scare people away from doing the right thing
-- **Preserve aesthetics**: Nobody wants their beautiful designs ruined by accessibility tools
+- **Preserve aesthetics**: Design and Access can coexist
 
 ## Quick Start (I Just Want to Fix Something Small)
 
