@@ -1,0 +1,77 @@
+/* example colors for extraction */
+
+/* Selector Tests */
+.class-name {
+    color: #000;
+}
+
+#id-name {
+    color: #000;
+}
+
+div {
+    color: #000;
+}
+
+.multi #selector {
+    color: #000;
+}
+
+/* Simple valid tests */
+.simple-hex {
+    color: #000;
+    background-color: #fff;
+}
+
+.simple-rgb {
+    color: rgb(0, 128, 255);
+    background-color: rgba(255, 255, 0);
+}
+
+.simple-rgba {
+    color: rgba(255, 0, 0, 0.5);
+    background-color: rgba(0, 255, 0, 1);
+}
+
+.named-colors {
+    color: teal;
+    background-color: gold;
+}
+
+/* Mixed valid and irrelevant properties */
+.mixed-props {
+    color: navy;
+    border: 2px solid #000;
+}
+
+/* Ignore malformed colors */
+.malformed-hex {
+    color: #12; /* invalid hex */
+    background-color: #abcd; /* valid hex */
+}
+
+.malformed-rgb {
+    color: rgb(300, 0, 0); /* out of range value */
+    background-color: rgb(0,0); /* incomplete */
+}
+
+/* Multiple color properties (take last declared) */
+.multiple-colors {
+    color: red;
+    color: blue;
+    background-color: black;
+    background-color: white;
+}
+
+/* Irrelevant CSS (should be ignored) */
+.no_colors {
+    padding: 10px;
+    margin: 5px;
+}
+
+/* Comments between properties */
+.comments-between {
+    color: green; /* comment */
+    /* another comment */
+    background-color: #111; /* last comment */
+}
