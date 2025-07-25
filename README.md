@@ -36,8 +36,8 @@ from cm_colors import CMColors
 cm = CMColors()
 
 # Your original colors
-text_color = (100, 100, 100)  # Some gray text
-bg_color = (255, 255, 255)    # White background
+text_color = (95, 120, 135)  # dark bluish gray text
+bg_color = (230, 240, 245)    # pale blue
 
 # ✨ The magic happens here ✨
 accessible_text,_,level,_,_ = cm.ensure_accessible_colors(text_color, bg_color)
