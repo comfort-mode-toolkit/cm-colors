@@ -5,6 +5,18 @@
 
 Ever picked perfect colors for your portfolio website, only to have someone tell you they can't read your text? Yeah, that's an accessibility problem, and it's more common than you think.
 
+> ⚠️ **Notice: Upcoming Breaking Changes**  
+>  
+> We’re currently restructuring `cm-colors`—main APIs are being renamed and improved for clarity and consistency.  
+> During this process, contributions may break or need to be updated to match the new structure.  
+> If you’re looking to contribute, please hold off for a bit or check in with us about compatibility.  
+>
+> Please check out the progress [here](https://github.com/comfort-mode-toolkit/cm-colors/issues/14). Please comment on the issue if you want to help or have questions!
+> 
+> We appreciate your interest and contributions—thanks for helping make `cm-colors` better!
+
+
+
 ## What's This About?
 
 **The Problem**: You spend hours choosing the perfect shade of dusty rose for your headings and soft lavender for your background. It looks *chef's kiss* aesthetic... but people with visual impairments (or honestly, anyone trying to read it on their phone in sunlight) can't see it properly.
