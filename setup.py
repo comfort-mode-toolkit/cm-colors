@@ -5,15 +5,15 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="cm-colors",
-    version="0.0.3",
+    version="0.0.4",
     author="Lalitha A R",
     author_email="arlalithablogs@gmail.com",
-    description="Mathematically Rigorous Accessible Color Science Library",
+    description="You do your style, we make it accessible",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/comfort-mode-toolkit/cm-colors",
     project_urls={
-        "Documentation": "https://github.com/comfort-mode-toolkit/cm-colors",
+        "Documentation": "https://comfort-mode-toolkit.readthedocs.io/en/latest/cm_colors/installation.html",
         "Bug Reports": "https://github.com/comfort-mode-toolkit/cm-colors/issues",
         "Source": "https://github.com/comfort-mode-toolkit/cm-colors",
     },
