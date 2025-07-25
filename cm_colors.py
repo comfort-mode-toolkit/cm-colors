@@ -206,6 +206,7 @@ class CMColors:
 
 # Example Usage (for testing or direct script execution)
 if __name__ == "__main__":
+    from css_parser import extract_colors
     cm_colors = CMColors()
 
     # Example 1: Check and fix contrast
@@ -254,4 +255,10 @@ if __name__ == "__main__":
     oklch_1 = cm_colors.rgb_to_oklch((255, 100, 0)) # Orange
     oklch_2 = cm_colors.rgb_to_oklch((255, 150, 50)) # Lighter orange
     oklch_dist = cm_colors.calculate_oklch_distance(oklch_1, oklch_2)
-    print(f"OKLCH distance between {oklch_1} and {oklch_2}: {oklch_dist:.3f}")
+    print(f"OKLCH distance between {oklch_1} and {oklch_2}: {oklch_dist:.3f}\n")
+
+    # Example 6: Extract colors from CSS
+    css_file = "test.css"
+
+    extracted_colors = extract_colors(css_file)
+    print(f"Extracted colors from {css_file}: {extracted_colors}")
