@@ -11,22 +11,27 @@ License: GNU General Public License v3.0
 
 from typing import Tuple, Optional
 
-# Import functions from helper.py and accessible_palatte.py
-# Assuming these files are in the same directory or accessible via PYTHONPATH
-from helper import (
-    calculate_contrast_ratio,
-    wcag_check,
-    rgb_to_oklch_safe,
-    oklch_to_rgb_safe,
+from color_metrics import (
     rgb_to_lab,
     calculate_delta_e_2000,
-    is_valid_rgb,
     oklch_color_distance,
-    validate_oklch,
-    
 
 )
-from accessible_palatte import (
+
+from conversions import (
+    rgb_to_oklch_safe,
+    oklch_to_rgb_safe,
+    valid_rgb,
+    valid_oklch
+)
+
+from contrast import (
+    calculate_contrast_ratio,
+    wcag_check
+
+)
+
+from cm_colors.core.optimisation import (
     check_and_fix_contrast_optimized,
     binary_search_lightness,
     gradient_descent_oklch,
@@ -37,7 +42,6 @@ class CMColors:
     CMColors provides a comprehensive API for color accessibility and manipulation.
     All core functionalities are exposed as methods of this class.
     """
-
     def __init__(self):
         """
         Initializes the CMColors instance.
@@ -45,36 +49,8 @@ class CMColors:
         """
         pass
 
-    def calculate_contrast(self, text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int]) -> float:
-        """
-        Calculates the WCAG contrast ratio between two RGB colors.
 
-        Args:
-            text_rgb (Tuple[int, int, int]): The RGB tuple for the text color (R, G, B).
-            bg_rgb (Tuple[int, int, int]): The RGB tuple for the background color (R, G, B).
-
-        Returns:
-            float: The calculated contrast ratio.
-        """
-        if not (is_valid_rgb(text_rgb) and is_valid_rgb(bg_rgb)):
-            raise ValueError("Invalid RGB values provided. Each component must be between 0 and 255.")
-        return calculate_contrast_ratio(text_rgb, bg_rgb)
-
-    def get_wcag_level(self, text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int], large_text: bool = False) -> str:
-        """
-        Determines the WCAG contrast level (AAA, AA, FAIL) based on the color pair and whether the text is considered 'large'.
-
-        Args:
-            text_rgb (Tuple[int, int, int]): The RGB tuple for the text color (R, G, B).
-            bg_rgb (Tuple[int, int, int]): The RGB tuple for the background color (R, G, B).
-            large_text (bool): True if the text is considered large (18pt or 14pt bold), False otherwise (default).
-
-        Returns:
-            str: The WCAG compliance level ("AAA", "AA", or "FAIL").
-        """
-        return wcag_check(text_rgb, bg_rgb, large_text)
-
-    def ensure_accessible_colors(self, text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int],
+    def tune_colors(self, text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int],
                                  large_text: bool = False) -> Tuple[Tuple[int, int, int], Tuple[int, int, int],str,float,float]:
         """
         Checks the contrast between text and background colors and, if necessary,
@@ -93,14 +69,46 @@ class CMColors:
                 Tuple[Tuple[int, int, int], Tuple[int, int, int], str, float, float]:
                 A tuple containing:
                 - The (potentially adjusted) accessible text RGB.
-                - The original background RGB.
-                - The final WCAG compliance level ("AAA", "AA", or "FAIL").
+                - True if it passes atleast AA, False otherwise.
+                If detail=True,
+                
                 - The initial contrast ratio before adjustment.
                 - The final contrast ratio after adjustment.
         """
-        if not (is_valid_rgb(text_rgb) and is_valid_rgb(bg_rgb)):
+        if not (valid_rgb(text_rgb) and valid_rgb(bg_rgb)):
             raise ValueError("Invalid RGB values provided. Each component must be between 0 and 255.")
         return check_and_fix_contrast_optimized(text_rgb, bg_rgb, large_text)
+
+
+    def contrast_ratio(self, text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int]) -> float:
+        """
+        Calculates the WCAG contrast ratio between two RGB colors.
+
+        Args:
+            text_rgb (Tuple[int, int, int]): The RGB tuple for the text color (R, G, B).
+            bg_rgb (Tuple[int, int, int]): The RGB tuple for the background color (R, G, B).
+
+        Returns:
+            float: The calculated contrast ratio.
+        """
+        if not (valid_rgb(text_rgb) and valid_rgb(bg_rgb)):
+            raise ValueError("Invalid RGB values provided. Each component must be between 0 and 255.")
+        return calculate_contrast_ratio(text_rgb, bg_rgb)
+
+    def wcag_level(self, text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int], large_text: bool = False) -> str:
+        """
+        Determines the WCAG contrast level (AAA, AA, FAIL) based on the color pair and whether the text is considered 'large'.
+
+        Args:
+            text_rgb (Tuple[int, int, int]): The RGB tuple for the text color (R, G, B).
+            bg_rgb (Tuple[int, int, int]): The RGB tuple for the background color (R, G, B).
+            large_text (bool): True if the text is considered large (18pt or 14pt bold), False otherwise (default).
+
+        Returns:
+            str: The WCAG compliance level ("AAA", "AA", or "FAIL").
+        """
+        return wcag_check(text_rgb, bg_rgb, large_text)
+
 
     def rgb_to_oklch(self, rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
         """
@@ -114,7 +122,7 @@ class CMColors:
             Tuple[float, float, float]: The OKLCH tuple (Lightness, Chroma, Hue).
                                         Lightness is 0-1, Chroma is 0-~0.4, Hue is 0-360.
         """
-        if not is_valid_rgb(rgb):
+        if not valid_rgb(rgb):
             raise ValueError("Invalid RGB values provided. Each component must be between 0 and 255.")
         return rgb_to_oklch_safe(rgb)
 
@@ -128,7 +136,7 @@ class CMColors:
         Returns:
             Tuple[int, int, int]: The RGB tuple (R, G, B).
         """
-        if not validate_oklch(oklch):
+        if not valid_oklch(oklch):
             raise ValueError("Invalid OKLCH values provided. Lightness 0-1, Chroma >=0, Hue 0-360.")
         return oklch_to_rgb_safe(oklch)
 
@@ -142,11 +150,12 @@ class CMColors:
         Returns:
             Tuple[float, float, float]: The LAB tuple (Lightness, a*, b*).
         """
-        if not is_valid_rgb(rgb):
+        if not valid_rgb(rgb):
             raise ValueError("Invalid RGB values provided. Each component must be between 0 and 255.")
         return rgb_to_lab(rgb)
 
-    def calculate_delta_e_2000(self, rgb1: Tuple[int, int, int], rgb2: Tuple[int, int, int]) -> float:
+
+    def delta_e(self, rgb1: Tuple[int, int, int], rgb2: Tuple[int, int, int]) -> float:
         """
         Calculates the Delta E 2000 color difference between two RGB colors.
         Delta E 2000 is a perceptually uniform measure of color difference.
@@ -159,11 +168,11 @@ class CMColors:
             float: The Delta E 2000 value. A value less than 2.3 is generally
                    considered imperceptible to the average human eye.
         """
-        if not (is_valid_rgb(rgb1) and is_valid_rgb(rgb2)):
+        if not (valid_rgb(rgb1) and valid_rgb(rgb2)):
             raise ValueError("Invalid RGB values provided. Each component must be between 0 and 255.")
         return calculate_delta_e_2000(rgb1, rgb2)
 
-    def calculate_oklch_distance(self, oklch1: Tuple[float, float, float], oklch2: Tuple[float, float, float]) -> float:
+    def oklch_distance(self, oklch1: Tuple[float, float, float], oklch2: Tuple[float, float, float]) -> float:
         """
         Calculates the perceptual distance between two OKLCH colors.
         This provides a more accurate measure of perceived difference than Euclidean
@@ -176,12 +185,12 @@ class CMColors:
         Returns:
             float: The perceptual distance between the two OKLCH colors.
         """
-        if not (validate_oklch(oklch1) and validate_oklch(oklch2)):
+        if not (valid_oklch(oklch1) and valid_oklch(oklch2)):
             raise ValueError("Invalid OKLCH values provided. Lightness 0-1, Chroma >=0, Hue 0-360.")
         return oklch_color_distance(oklch1, oklch2)
 
     # Exposing the internal optimized functions for advanced use, if needed
-    # These are generally called by ensure_accessible_colors and find_accessible_text_color
+    # These are generally called by tune_colors()
     def _binary_search_lightness(self, text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int],
                                  delta_e_threshold: float = 2.0, target_contrast: float = 7.0,
                                  large_text: bool = False) -> Optional[Tuple[int, int, int]]:
@@ -189,7 +198,7 @@ class CMColors:
         Internal method: Performs a binary search on the lightness component in OKLCH
         to find a color that meets contrast while minimizing Delta E.
         """
-        if not (is_valid_rgb(text_rgb) and is_valid_rgb(bg_rgb)):
+        if not (valid_rgb(text_rgb) and valid_rgb(bg_rgb)):
             raise ValueError("Invalid RGB values provided. Each component must be between 0 and 255.")
         return binary_search_lightness(text_rgb, bg_rgb, delta_e_threshold, target_contrast, large_text)
 
@@ -200,13 +209,13 @@ class CMColors:
         Internal method: Performs gradient descent optimization in OKLCH space
         for lightness and chroma to find a color meeting contrast and Delta E criteria.
         """
-        if not (is_valid_rgb(text_rgb) and is_valid_rgb(bg_rgb)):
+        if not (valid_rgb(text_rgb) and valid_rgb(bg_rgb)):
             raise ValueError("Invalid RGB values provided. Each component must be between 0 and 255.")
         return gradient_descent_oklch(text_rgb, bg_rgb, delta_e_threshold, target_contrast, large_text, max_iter)
 
 # Example Usage (for testing or direct script execution)
 if __name__ == "__main__":
-    from css_parser import extract_colors
+    from cli.css_parser import extract_colors
     cm_colors = CMColors()
 
     # Example 1: Check and fix contrast

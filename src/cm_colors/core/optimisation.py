@@ -1,5 +1,7 @@
 from typing import Tuple, Optional
-from helper import rgb_to_oklch_safe, oklch_to_rgb_safe, calculate_delta_e_2000, is_valid_rgb, calculate_contrast_ratio,wcag_check
+from conversions import rgb_to_oklch_safe, oklch_to_rgb_safe, is_valid_rgb
+from contrast import calculate_contrast_ratio,get_wcag_level
+from color_metrics import calculate_delta_e_2000
 
 def binary_search_lightness(text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int], 
                            delta_e_threshold: float = 2.0, target_contrast: float = 7.0, 
@@ -172,7 +174,7 @@ def gradient_descent_oklch(text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, in
         return None
 
 
-def generate_accessible_color_optimized(text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int], 
+def generate_accessible_color(text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int], 
                                        large: bool = False) -> Tuple[int, int, int]:
     """
     Main optimization function: Binary search first, then gradient descent.
@@ -180,9 +182,9 @@ def generate_accessible_color_optimized(text_rgb: Tuple[int, int, int], bg_rgb: 
     """
     # Check if already accessible
     current_contrast = calculate_contrast_ratio(text_rgb, bg_rgb)
-    target_contrast = 7.0
-    min_contrast = 4.5 if not large else 3.0
-    
+    target_contrast = 4.5 if large else 7.0
+    min_contrast = 3.0 if large else 4.5
+
     if current_contrast >= target_contrast:
         return text_rgb
     
@@ -231,18 +233,41 @@ def generate_accessible_color_optimized(text_rgb: Tuple[int, int, int], bg_rgb: 
     return best_candidate if best_candidate else text_rgb
 
 
-def check_and_fix_contrast_optimized(text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int], 
-                                    large: bool = False) -> Tuple[Tuple[int, int, int], Tuple[int, int, int],str,float,float]:
+def check_and_fix_contrast(text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int], 
+                                    large: bool = False, detail: bool = False) -> Tuple[Tuple[int, int, int], Tuple[int, int, int],str,float,float]:
     """
     Main function to check and fix contrast using optimized methods.
     """
     current_contrast = calculate_contrast_ratio(text_rgb, bg_rgb)
-    target_contrast = 7.0
+    target_contrast = 4.5 if large else 7.0
     
     if current_contrast >= target_contrast:
-        return (text_rgb, bg_rgb,'AAA', current_contrast, current_contrast)
+        if not detail:
+            return text_rgb,True
+        else:
+            return {'color':text_rgb,
+                    'level':'AAA',
+                    'initial_contrast':current_contrast,
+                    'final_contrast':current_contrast,
+                    'status':'Great job, your pair was accessible without any change, the color has not changed'}
 
-    accessible_text = generate_accessible_color_optimized(text_rgb, bg_rgb, large)
-    wcag_level = wcag_check(accessible_text, bg_rgb)
+    accessible_text = generate_accessible_color(text_rgb, bg_rgb, large)
+    wcag_level = get_wcag_level(accessible_text, bg_rgb)
     new_contrast= calculate_contrast_ratio(accessible_text, bg_rgb)
-    return (accessible_text, bg_rgb, wcag_level, current_contrast, new_contrast)
+    improvment_percentage = round(((new_contrast - current_contrast) / current_contrast) * 100)
+
+    if not detail:
+        return accessible_text, True
+    else:
+
+        if wcag_level == 'FAIL':
+            status = f'Please choose a different color, your pair is not accessible with a contrast ratio of {new_contrast:.2f}.'
+        else:
+            status = f'Your pair was not accessible, but now it is {wcag_level} compliant with a contrast ratio of {new_contrast:.2f}.'
+        return {
+            'color': accessible_text,
+            'level': wcag_level,
+            'initial_contrast': current_contrast,
+            'final_contrast': new_contrast,
+            'status': status
+        }
