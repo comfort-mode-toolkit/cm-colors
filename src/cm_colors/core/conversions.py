@@ -298,3 +298,62 @@ def is_valid_oklch(oklch: Tuple[float, float, float]) -> bool:
     
     return True
 
+def parse_color_to_rgb(color):
+    """Parse a color input (string or tuple) to an RGB tuple.
+
+    Args:
+        color (str or tuple): Color input, can be a hex string, RGB string, or RGB tuple.
+
+    Returns:
+        Tuple[int, int, int]: RGB tuple (r, g, b).
+
+    Raises:
+        ValueError: If the input color format is invalid.
+    """
+    if isinstance(color, tuple) and len(color) == 3:
+        if all(isinstance(x, int) for x in color):
+            return color
+        else:
+            raise ValueError(f"Invalid RGB tuple: {color}")
+    elif isinstance(color, list) and len(color) == 3:
+        if all(isinstance(x, int) for x in color):
+            return tuple(color)
+        else:
+            raise ValueError(f"Invalid RGB list: {color}")
+    if isinstance(color, str):
+
+        color = color.strip().lower()
+        if color.startswith('#'):
+            return hex_to_rgb(color)
+        elif color.startswith('rgb(') and color.endswith(')'):
+            # if rgb strip the tag to return as int tuple
+            rgb_values = color[4:-1].split(',')
+            rgb_values = [x.strip() for x in rgb_values]
+            if len(rgb_values) != 3:
+                raise ValueError(f"Invalid RGB string: {color}")
+            try:
+                return tuple(int(x.strip()) for x in rgb_values)
+            except ValueError:
+                raise ValueError(f"Invalid RGB values in string: {color}")
+        else:
+            raise ValueError(f"Invalid color string: {color}")
+    elif isinstance(color, tuple) and len(color) == 3:
+        if all(isinstance(x, int) for x in color):
+            return color
+        else:
+            raise ValueError(f"Invalid RGB tuple: {color}")
+    else:
+        raise ValueError(f"Unsupported color format: {color}")
+
+def rgbint_to_string(rgb: Tuple[int, int, int]) -> str:
+    """Convert an RGB tuple to a CSS rgb() string.
+
+    Args:
+        rgb (Tuple[int, int, int]): RGB tuple (r, g, b).
+
+    Returns:
+        str: CSS rgb() string, e.g. 'rgb(255, 0, 0)'.
+    """
+    if not is_valid_rgb(rgb):
+        raise ValueError(f"Invalid RGB values: {rgb}")
+    return f"rgb({rgb[0]}, {rgb[1]}, {rgb[2]})"
