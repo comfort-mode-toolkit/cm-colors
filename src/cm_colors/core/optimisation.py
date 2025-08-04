@@ -233,87 +233,65 @@ def generate_accessible_color(text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int,
     return best_candidate if best_candidate else text_rgb
 
 
-def check_and_fix_contrast(text, bg, large: bool = False, verbose: int = 0):
+def check_and_fix_contrast(text, bg, large: bool = False, details: bool = False):
     """Main function to check and fix contrast using optimized methods.
 
      Args:
         text: Text color (any valid hex, rgb string or rgb tuple)
         bg: Background color (any valid hex, rgb string or rgb tuple)  
         large: True for large text (18pt+ or 14pt+ bold), False for normal text
-        verbose: 0=simple, 1=designer details, 2=full technical analysis
-        
+        details: If True, returns detailed report, else just (tuned_color, is_accessible)
+
     Returns:
-        verbose=0: (tuned_color, accessible with atleast 4.5)
-        verbose=1,2: AccessibilityResult with insights
+        details = False: (tuned_color, accessible with atleast 4.5)
+        details = True: a dict with detailed report
     """
+    
     text_rgb = parse_color_to_rgb(text)
     bg_rgb = parse_color_to_rgb(bg)
+
+    if not (is_valid_rgb(text_rgb) and is_valid_rgb(bg_rgb)):
+            raise ValueError("Invalid RGB values provided. Each component must be between 0 and 255.")
+    
     current_contrast = calculate_contrast_ratio(text_rgb, bg_rgb)
     target_contrast = 4.5 if large else 7.0
     
     if current_contrast >= target_contrast:
-        # TODO: Doens't account for verbose 1 or 2 yet 
-        if verbose == 0:
+        if not details:
             return text, True
         else:
-            return Improv1(
-                text=text,
-                text_tuned=text,
-                bg=bg,
-                large=large,
-                wcag_level=wcag_level,
-                improvement_percentage=0,
-                status=True
-                message='Perfect! Your pair is already accessible with a contrast ratio of {:.2f}.'.format(current_contrast)
-            )
+            return {
+                'text': text,
+                'tuned_text': text,
+                'bg': bg,
+                'large': large,
+                'wcag_level': 'AAA',
+                'improvement_percentage': 0,
+                'status': True,
+                'message': 'Perfect! Your pair is already accessible with a contrast ratio of {:.2f}.'.format(current_contrast)
+            }
 
     accessible_text = generate_accessible_color(text_rgb, bg_rgb, large)
     wcag_level = get_wcag_level(accessible_text, bg_rgb)
 
     new_contrast= calculate_contrast_ratio(accessible_text, bg_rgb)
-    improvment_percentage = round((((new_contrast - current_contrast) / current_contrast) * 100),2)
+    improvement_percentage = round((((new_contrast - current_contrast) / current_contrast) * 100),2)
     accessible_text = rgbint_to_string(accessible_text)
 
-    if verbose == 0:
-        return accessible_text, True
+    if not details:
+        return accessible_text, True if wcag_level != 'FAIL' else False
     else:
-
         if wcag_level == 'FAIL':
-            status = f'Please choose a different color, your pair is not accessible with a contrast ratio of {new_contrast:.2f}.'
+            message = f'Please choose a different color, your pair is not accessible with a contrast ratio of {new_contrast:.2f}.'
         else:
-            status = f'Your pair was not accessible, but now it is {wcag_level} compliant with a contrast ratio of {new_contrast:.2f}.'
+            message = f'Your pair was not accessible, but now it is {wcag_level} compliant with a contrast ratio of {new_contrast:.2f}.'
         return {
-            'color': accessible_text,
-            'level': wcag_level,
-            'initial_contrast': current_contrast,
-            'final_contrast': new_contrast,
-            'status': status
+            'text': accessible_text,
+            'tuned_text': accessible_text,
+            'bg': bg,
+            'large': large,
+            'wcag_level': wcag_level,
+            'improvement_percentage': improvement_percentage,
+            'status': True if wcag_level != 'FAIL' else False,
+            'message': message,
         }
-
-class ImprovBase:
-    """Class to encapsulate accessibility results with detailed insights."""
-    def __init__(self,text,text_tuned,bg,large,wcag_level,improvement_percentage,status:bool):
-        self.text = text
-        self.text_tuned = text_tuned
-        self.bg = bg
-        self.large = large
-        self.improvement_percentage = improvement_percentage
-        self.wcag_level = wcag_level
-        self.status = status
-
-class Improv1(ImprovBase):
-    """Improv1 class for simple accessibility results."""
-    def __init__(self, text, text_tuned, bg, large, wcag_level,improvement_percentage,status,message):
-        super().__init__(text, text_tuned, bg, large, wcag_level,improvement_percentage,status)
-        self.message = message
-
-class Improv2(ImprovBase):
-    """Improv2 class for detailed accessibility results."""
-    def __init__(self, text, text_tuned, bg, large, wcag_level,improvement_percentage,status,message):
-        super().__init__(text, text_tuned, bg, large, wcag_level,improvement_percentage,status)
-        self.message = message
-        self.delta_e = calculate_delta_e_2000(parse_color_to_rgb(text), parse_color_to_rgb(text_tuned))
-        self.initial_contrast = calculate_contrast_ratio(parse_color_to_rgb(text), parse_color_to_rgb(bg))
-        self.final_contrast = calculate_contrast_ratio(parse_color_to_rgb(text_tuned), parse_color_to_rgb(bg))
-
-
