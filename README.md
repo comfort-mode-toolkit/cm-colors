@@ -5,7 +5,7 @@
 
 Ever picked perfect colors for your portfolio website, only to have someone tell you they can't read your text? Yeah, that's an accessibility problem, and it's more common than you think.
 
-> ⚠️ **Notice: Upcoming Breaking Changes**  
+> ⚠️ **Notice: Upcoming Breaking Changes**   
 > _Current version 0.0.4 on pypi / pip is up and fully functional. The changes will only affect the next release._
 > 
 > We’re currently restructuring `cm-colors`—main APIs are being renamed and improved for clarity and consistency.  
