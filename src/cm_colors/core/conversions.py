@@ -312,38 +312,81 @@ def parse_color_to_rgb(color):
     """
     if isinstance(color, tuple) and len(color) == 3:
         if all(isinstance(x, int) for x in color):
+            # Validate RGB tuple values are in range 0-255
+            for i, value in enumerate(color):
+                if value < 0:
+                    raise ValueError(f"RGB values cannot be negative. Got {value} for {'RGB'[i]} component.")
+                if value > 255:
+                    raise ValueError(f"RGB values must be between 0-255. Got {value} for {'RGB'[i]} component.")
             return color
         else:
-            raise ValueError(f"Invalid RGB tuple: {color}")
+            raise ValueError(f"RGB tuple must contain only integers. Got: {color}")
     elif isinstance(color, list) and len(color) == 3:
         if all(isinstance(x, int) for x in color):
+            # Validate RGB list values are in range 0-255
+            for i, value in enumerate(color):
+                if value < 0:
+                    raise ValueError(f"RGB values cannot be negative. Got {value} for {'RGB'[i]} component.")
+                if value > 255:
+                    raise ValueError(f"RGB values must be between 0-255. Got {value} for {'RGB'[i]} component.")
             return tuple(color)
         else:
-            raise ValueError(f"Invalid RGB list: {color}")
-    if isinstance(color, str):
-
+            raise ValueError(f"RGB list must contain only integers. Got: {color}")
+    elif isinstance(color, str):
         color = color.strip().lower()
         if color.startswith('#'):
-            return hex_to_rgb(color)
-        elif color.startswith('rgb(') and color.endswith(')'):
-            # if rgb strip the tag to return as int tuple
-            rgb_values = color[4:-1].split(',')
-            rgb_values = [x.strip() for x in rgb_values]
-            if len(rgb_values) != 3:
-                raise ValueError(f"Invalid RGB string: {color}")
             try:
-                return tuple(int(x.strip()) for x in rgb_values)
-            except ValueError:
-                raise ValueError(f"Invalid RGB values in string: {color}")
+                return hex_to_rgb(color)
+            except ValueError as e:
+                # Check for invalid hex characters
+                hex_part = color[1:] if len(color) > 1 else ""
+                if len(hex_part) not in [3, 6]:
+                    raise ValueError(f"Hex color must be 3 or 6 characters after '#'. Got '{color}' with {len(hex_part)} characters.")
+                invalid_chars = [c for c in hex_part if c not in '0123456789abcdef']
+                if invalid_chars:
+                    raise ValueError(f"Hex color contains invalid characters: {', '.join(set(invalid_chars))}. Valid characters are 0-9 and A-F.")
+                raise ValueError(f"Invalid hex color format: '{color}'")
+        elif color.startswith('rgb(') and color.endswith(')'):
+            # Extract RGB values from rgb() string
+            rgb_content = color[4:-1]
+            rgb_values = rgb_content.split(',')
+            
+            if len(rgb_values) != 3:
+                raise ValueError(f"RGB string must have exactly 3 values separated by commas. Got {len(rgb_values)} values in '{color}'.")
+            
+            try:
+                parsed_values = []
+                for i, value_str in enumerate(rgb_values):
+                    value_str = value_str.strip()
+                    try:
+                        value = int(value_str)
+                        if value < 0:
+                            raise ValueError(f"RGB values cannot be negative. Got {value} for {'RGB'[i]} component in '{color}'.")
+                        if value > 255:
+                            raise ValueError(f"RGB values must be between 0-255. Got {value} for {'RGB'[i]} component in '{color}'.")
+                        parsed_values.append(value)
+                    except ValueError as ve:
+                        if "cannot be negative" in str(ve) or "must be between 0-255" in str(ve):
+                            raise ve
+                        raise ValueError(f"Invalid numeric value '{value_str}' for {'RGB'[i]} component in '{color}'. Must be an integer between 0-255.")
+                
+                return tuple(parsed_values)
+            except ValueError as ve:
+                if "RGB values" in str(ve):
+                    raise ve
+                raise ValueError(f"Invalid RGB string format: '{color}'. Expected format: 'rgb(r, g, b)' where r, g, b are integers 0-255.")
         else:
-            raise ValueError(f"Invalid color string: {color}")
-    elif isinstance(color, tuple) and len(color) == 3:
-        if all(isinstance(x, int) for x in color):
-            return color
-        else:
-            raise ValueError(f"Invalid RGB tuple: {color}")
+            # Check if it looks like it might be a color name or other format
+            if color.replace(' ', '').replace('-', '').replace('_', '').isalpha():
+                raise ValueError(f"Color name '{color}' is not supported. Please use hex format (e.g., '#ff0000') or RGB format (e.g., 'rgb(255, 0, 0)').")
+            else:
+                raise ValueError(f"Unrecognized color format: '{color}'. Supported formats are hex (e.g., '#ff0000') or RGB (e.g., 'rgb(255, 0, 0)').")
+    elif isinstance(color, tuple):
+        if len(color) != 3:
+            raise ValueError(f"RGB tuple must have exactly 3 values. Got {len(color)} values: {color}")
+        return parse_color_to_rgb(color)  # Recursive call to handle validation
     else:
-        raise ValueError(f"Unsupported color format: {color}")
+        raise ValueError(f"Unsupported color input type: {type(color).__name__}. Expected string, tuple, or list.")
 
 def rgbint_to_string(rgb: Tuple[int, int, int]) -> str:
     """Convert an RGB tuple to a CSS rgb() string.

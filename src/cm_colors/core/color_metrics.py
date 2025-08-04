@@ -1,6 +1,6 @@
 import math
 from typing import Tuple
-from conversions import rgb_to_lab
+from cm_colors.core.conversions import rgb_to_lab
 
 def calculate_delta_e_2000(rgb1: Tuple[int, int, int], rgb2: Tuple[int, int, int]) -> float:
     """

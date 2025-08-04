@@ -1,6 +1,27 @@
+# Include documentation and license files
 include README.md
 include LICENSE
 include MANIFEST.in
-recursive-include *.py
+
+# Include Python source files from src directory only
+recursive-include src *.py
+
+# Exclude CLI directory and all its contents
+recursive-exclude src/cm_colors/cli *
+
+# Exclude build artifacts and cache files
 global-exclude __pycache__
 global-exclude *.py[co]
+global-exclude *.so
+global-exclude .DS_Store
+global-exclude *.egg-info
+
+# Exclude test files from distribution
+global-exclude tests
+recursive-exclude tests *
+
+# Exclude development files
+global-exclude .git*
+global-exclude .pytest_cache
+global-exclude .coverage
+global-exclude htmlcov

@@ -1,23 +1,33 @@
-# cm_colors.py
 """
-CMColors - Mathematically Rigorous Accessible Color Science Library
+CM-Colors - Accessible Color Science Library
 
-This library provides tools for ensuring color accessibility based on WCAG guidelines,
-offering functions to calculate contrast ratios, find accessible color alternatives,
-and convert between color spaces (RGB, OKLCH, LAB).
+A Python library for ensuring color accessibility based on WCAG guidelines.
+Automatically tune colors to meet accessibility standards with minimal perceptual change.
+
+CM-Colors takes your color choices and makes precise, barely-noticeable adjustments 
+to ensure they meet WCAG AA/AAA compliance while preserving your design intent.
+
+Features:
+- Tune colors to WCAG AA/AAA compliance with minimal visual change
+- Calculate contrast ratios and determine WCAG compliance levels
+- Convert between RGB, OKLCH, and LAB color spaces
+- Measure perceptual color differences using Delta E 2000
+- Mathematically rigorous color science algorithms
+
+Ideal for web developers, designers, and accessibility professionals.
 
 License: GNU General Public License v3.0
 """
 
 from typing import Tuple, Optional
 
-from color_metrics import (
+from cm_colors.core.color_metrics import (
     rgb_to_lab,
     calculate_delta_e_2000,
 
 )
 
-from conversions import (
+from cm_colors.core.conversions import (
     rgb_to_oklch_safe,
     oklch_to_rgb_safe,
     is_valid_rgb,
@@ -25,12 +35,12 @@ from conversions import (
     parse_color_to_rgb
 )
 
-from contrast import (
+from cm_colors.core.contrast import (
     calculate_contrast_ratio,
     get_wcag_level
 )
 
-from optimisation import (
+from cm_colors.core.optimisation import (
     check_and_fix_contrast
 )
 

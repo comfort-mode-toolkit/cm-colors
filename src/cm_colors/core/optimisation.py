@@ -1,7 +1,7 @@
 from typing import Tuple, Optional
-from conversions import rgb_to_oklch_safe, oklch_to_rgb_safe, is_valid_rgb,parse_color_to_rgb,rgbint_to_string
-from contrast import calculate_contrast_ratio,get_wcag_level
-from color_metrics import calculate_delta_e_2000
+from cm_colors.core.conversions import rgb_to_oklch_safe, oklch_to_rgb_safe, is_valid_rgb,parse_color_to_rgb,rgbint_to_string
+from cm_colors.core.contrast import calculate_contrast_ratio,get_wcag_level
+from cm_colors.core.color_metrics import calculate_delta_e_2000
 
 def binary_search_lightness(text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int], 
                            delta_e_threshold: float = 2.0, target_contrast: float = 7.0, 
@@ -286,7 +286,7 @@ def check_and_fix_contrast(text, bg, large: bool = False, details: bool = False)
         else:
             message = f'Your pair was not accessible, but now it is {wcag_level} compliant with a contrast ratio of {new_contrast:.2f}.'
         return {
-            'text': accessible_text,
+            'text': text,
             'tuned_text': accessible_text,
             'bg': bg,
             'large': large,
