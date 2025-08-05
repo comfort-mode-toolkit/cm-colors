@@ -34,13 +34,13 @@ cd cm-colors
 pip install -e .
 
 # Install development dependencies
-pip install pytest pytest-cov hypothesis black flake8
+pip install pytest unittest hypothesis black
 
 # Run the tests to make sure everything works
-python -m pytest tests/ -v
+PYTHONPATH=src python -m pytest tests/*.py
 
 # Run a quick smoke test
-python -c "from cm_colors import CMColors; cm = CMColors(); print('✨ Everything works!'); print(f'Black on white contrast: {cm.contrast_ratio((0,0,0), (255,255,255)):.1f}')"
+python -c "from cm_colors import CMColors; cm = CMColors(); print('✨ Everything works!'); print(f'Black on white contrast: {cm.contrast_ratio((0,0,0), (255,255,255)):.1f}')" #Should print 21.0
 ```
 
 **Requirements**: Python 3.7+ (we try to stay compatible with slightly older versions because not everyone can upgrade immediately)
@@ -96,7 +96,7 @@ We're not super strict, but:
 
 
 ```bash
-PYTHONPATH=src python3 -m pytest tests/*.py 
+PYTHONPATH=src python -m pytest tests/*.py 
 ```
 
 ### Directory Structure
