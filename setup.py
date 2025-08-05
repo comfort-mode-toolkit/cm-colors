@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.1.0",
     author="Lalitha A R",
     author_email="arlalithablogs@gmail.com",
-    description="You do your style, we make it accessible",
+    description="You pick your colors, we make it readable",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/comfort-mode-toolkit/cm-colors",

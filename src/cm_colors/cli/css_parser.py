@@ -3,6 +3,7 @@ import re
 
 COLOR_PROPERTIES = {"color", "background-color"}
 
+
 def hex_match(value: str) -> str | None:
     """
     Extract and validate hex color string from a CSS value.
@@ -12,6 +13,7 @@ def hex_match(value: str) -> str | None:
     match = re.search(regex, value)
     return match.group(0) if match else None
 
+
 def named_match(value: str) -> str | None:
     """
     Extract and validate named color string from a CSS value.
@@ -19,9 +21,10 @@ def named_match(value: str) -> str | None:
     """
     regex = r"\b[a-zA-Z]+\b"
     match = re.search(regex, value)
-    if match and match.group(0).lower() not in ['rgb', 'rgba']:
+    if match and match.group(0).lower() not in ["rgb", "rgba"]:
         return match.group(0)
     return None
+
 
 def rgb_match(value: str) -> str | None:
     """
@@ -36,7 +39,7 @@ def rgb_match(value: str) -> str | None:
     rgb_str = match.group(0)
     components = re.findall(r"[\d.]+", rgb_str)
 
-    if rgb_str.startswith('rgb(') and len(components) == 3:
+    if rgb_str.startswith("rgb(") and len(components) == 3:
         # Ensure RGB values are within range
         try:
             r, g, b = map(int, components)
@@ -45,7 +48,7 @@ def rgb_match(value: str) -> str | None:
         except ValueError:
             return None
 
-    elif rgb_str.startswith('rgba(') and len(components) == 4:
+    elif rgb_str.startswith("rgba(") and len(components) == 4:
         # Ensure RGBA values are within range
         try:
             r, g, b = map(int, components[:3])
@@ -57,12 +60,14 @@ def rgb_match(value: str) -> str | None:
 
     return None
 
+
 def parse_color_value(value: str) -> str | None:
     """
     Extract and validate a color string from a CSS value.
     Returns the color string if valid (HEX, named, or RGB), otherwise returns None.
     """
     return hex_match(value) or named_match(value) or rgb_match(value)
+
 
 def parse_rule_colors(rule) -> dict | None:
     """
@@ -96,10 +101,11 @@ def parse_rule_colors(rule) -> dict | None:
             "selector": selector,
             "text": color,
             "background": background,
-            "line": rule.source_line
+            "line": rule.source_line,
         }
 
     return None
+
 
 def extract_colors(filename: str) -> list[dict]:
     """
@@ -109,7 +115,9 @@ def extract_colors(filename: str) -> list[dict]:
     with open(filename, "r", encoding="utf-8") as file:
         css_content = file.read()
 
-    parsed_stylesheet = tinycss2.parse_stylesheet(css_content, skip_comments=True, skip_whitespace=True)
+    parsed_stylesheet = tinycss2.parse_stylesheet(
+        css_content, skip_comments=True, skip_whitespace=True
+    )
     extracted_colors = []
 
     for rule in parsed_stylesheet:
