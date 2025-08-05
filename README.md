@@ -4,7 +4,7 @@
 _(Our color wizard can work miracles, but even magic has limits - don't expect us to make neon yellow on white look good!)_
 
 Ever picked perfect colors for your portfolio website, only to have someone tell you they can't read your text? Yeah, that's an accessibility problem, and it's more common than you think.
-
+ 
 ## What's This About?
 
 **The Problem**: You spend hours choosing the perfect shade of dusty rose for your headings and soft lavender for your background. It looks _chef's kiss_ aesthetic... but people with visual impairments (or honestly, anyone trying to read it on their phone in sunlight) can't see it properly.
