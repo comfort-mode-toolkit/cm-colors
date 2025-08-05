@@ -36,7 +36,7 @@ Delta E > 5.0 = Obviously different colors
 
 We try to keep changes under 2.0 Delta E whenever possible.
 
-> Note: The function's we are mentioning are all from `accessible_palatte.py` and is used to create our `ensure_accessible_colors()` function
+> Note: The function's we are mentioning are all from `optimised.py` and is used to create our `tune_colors()` function
 ## The Algorithm: Multi-Phase Optimization
 
 Our `generate_accessible_color_optimized()` function uses a sophisticated multi-phase approach:

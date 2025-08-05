@@ -38,6 +38,7 @@ The web has official rules called WCAG (don't worry about what it stands for) th
 ```bash
 pip install cm-colors
 ```
+That's it. No complex setup, no configuration files, no PhD in color science required.
 
 ## The Magic One-Liner
 
@@ -49,15 +50,15 @@ from cm_colors import CMColors
 cm = CMColors()
 
 # Your original colors
-text_color = (95, 120, 135)  # dark bluish gray text
-bg_color = (230, 240, 245)    # pale blue
+text_color = 'rgb(95, 120, 135)'  # dark bluish gray text
+bg_color = 'rgb(230, 240, 245)'    # pale blue
 
 # ✨ The magic happens here ✨
-accessible_text,_,level,_,_ = cm.ensure_accessible_colors(text_color, bg_color)
+tuned_text,is_accessible = cm.tune_colors(text_color, bg_color)
 
 print(f"Original: {text_color}")
-print(f"Accessible: {accessible_text}")
-print(f"Now it passes: {level} level!")
+print(f"Tuned: {tuned_text}")
+print(f"Is it accessible now?: {is_accessible}") #Always check to ensure it is true
 ```
 
 That's it. Seriously.
@@ -72,12 +73,12 @@ The % shows the change in contrast ratio
 <!--```python
 # Example 1: Your aesthetic dusty rose
 original = (199, 72, 59)    # Pretty dusty rose
-fixed, _, level,_,_ = cm.ensure_accessible_colors(original, (255, 255, 255))
+fixed, _, level,_,_ = cm.tune_colors(original, (255, 255, 255))
 print(f"Dusty rose {original} → {fixed} (now {level} compliant!)")
 
 # Example 2: That trendy muted blue
 original = (40, 117, 219)   # Trendy blue
-fixed, _, level = cm.ensure_accessible_colors(original, (240, 240, 240))
+fixed, _, level = cm.tune_colors(original, (240, 240, 240))
 print(f"Trendy blue {original} → {fixed} (still looks trendy, now readable!)")
 ```-->
 
@@ -95,48 +96,17 @@ A: We'll try our best, but if you chose neon yellow on white... even wizards hav
 **Q: Do I need to understand color science?**
 A: Not at all! That's why this library exists.
 
-## For Your Portfolio/Project
-
-Here's a simple function you can drop into any project:
-
-```python
-def make_my_colors_accessible(text_rgb, background_rgb):
-    """
-    Takes your color choices and makes them accessible.
-    Returns the fixed colors ready to use in CSS.
-    """
-    from cm_colors import CMColors
-    
-    cm = CMColors()
-    accessible_text, bg, level = cm.ensure_accessible_colors(text_rgb, background_rgb)
-    
-    # Convert to CSS format
-    css_text = f"rgb({accessible_text[0]}, {accessible_text[1]}, {accessible_text[2]})"
-    css_bg = f"rgb({bg[0]}, {bg[1]}, {bg[2]})"
-    
-    return {
-        'text_color': css_text,
-        'background_color': css_bg,
-        'accessibility_level': level,
-        'ready_for_css': True
-    }
-
-# Use it like this:
-result = make_my_colors_accessible((120, 80, 200), (255, 255, 255))
-print(f"Use this in your CSS: color: {result['text_color']};")
-```
-
 ## Other Stuff You Can Do
 
 Want to check if your colors are already good?
 
 ```python
 # Check contrast ratio (higher = better readability)
-ratio = cm.calculate_contrast((100, 100, 100), (255, 255, 255))
+ratio = cm.contrast_ratio((100, 100, 100), (255, 255, 255)) 
 print(f"Contrast ratio: {ratio:.2f}")
 
 # Check what level you're hitting
-level = cm.get_wcag_level((100, 100, 100), (255, 255, 255))
+level = cm.wcag_level((100, 100, 100), (255, 255, 255))
 print(f"Current level: {level}")  # "AA", "AAA", or "FAIL"
 ```
 
@@ -151,17 +121,9 @@ print(f"Current level: {level}")  # "AA", "AAA", or "FAIL"
 
 If you want to dive deep into the mathematical wizardry behind this (Delta E 2000, OKLCH color spaces, gradient descent optimization), check out our [full technical documentation](https://github.com/comfort-mode-toolkit/cm-colors/blob/main/Technical%20README.md) where we get very nerdy about color perception and optimization algorithms.
 
-## Installation & Setup
-
-```bash
-pip install cm-colors
-```
-
-That's it. No complex setup, no configuration files, no PhD in color science required.
-
 ## License
 
-GNU v3 - Use it however you want except to put a product label on and sell it - it's free forever!
+This project is licensed under GNU General Public License v3.0 — meaning it's free to use and modify, but you can't sell it as a closed-source product.
 
 ## Problems?
 

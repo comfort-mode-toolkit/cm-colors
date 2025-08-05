@@ -14,7 +14,7 @@ Features:
 - Measure perceptual color differences using Delta E 2000
 - Mathematically rigorous color science algorithms
 
-Ideal for web developers, designers, and accessibility professionals.
+Ideal for students. web developers, designers, and for anyone who ever had to pick a pair of text,bg color for the web
 
 License: GNU General Public License v3.0
 """
