@@ -1,19 +1,19 @@
 # CM-Colors 🎨✨
 
 **You do your style, we make it accessible**
-*(Our color wizard can work miracles, but even magic has limits - don't expect us to make neon yellow on white look good!)*
+_(Our color wizard can work miracles, but even magic has limits - don't expect us to make neon yellow on white look good!)_
 
 Ever picked perfect colors for your portfolio website, only to have someone tell you they can't read your text? Yeah, that's an accessibility problem, and it's more common than you think.
 
 ## What's This About?
 
-**The Problem**: You spend hours choosing the perfect shade of dusty rose for your headings and soft lavender for your background. It looks *chef's kiss* aesthetic... but people with visual impairments (or honestly, anyone trying to read it on their phone in sunlight) can't see it properly.
+**The Problem**: You spend hours choosing the perfect shade of dusty rose for your headings and soft lavender for your background. It looks _chef's kiss_ aesthetic... but people with visual impairments (or honestly, anyone trying to read it on their phone in sunlight) can't see it properly.
 
 **The Solution**: CM-Colors takes your beautiful color choices and makes tiny, barely-noticeable tweaks so everyone can read your content. We're talking changes so small you won't even notice them, but your accessibility score will love you.
 
 ## What Does "Accessible" Even Mean?
 
-Simple version: There needs to be enough contrast between your text and background so people can actually read it. 
+Simple version: There needs to be enough contrast between your text and background so people can actually read it.
 
 - **Good contrast** = Easy to read for everyone
 - **Bad contrast** = Squinting, headaches, and people bouncing off your site
@@ -25,6 +25,7 @@ The web has official rules called WCAG (don't worry about what it stands for) th
 ```bash
 pip install cm-colors
 ```
+
 That's it. No complex setup, no configuration files, no PhD in color science required.
 
 ## The Magic One-Liner
@@ -44,18 +45,17 @@ bg_color = 'rgb(230, 240, 245)'    # pale blue
 tuned_text,is_accessible = cm.tune_colors(text_color, bg_color)
 
 print(f"Original: {text_color}")
-print(f"Tuned: {tuned_text}")
+print(f"Tuned: {tuned_text}") #Output:- Tuned: rgb(83, 107, 122)
 print(f"Is it accessible now?: {is_accessible}") #Always check to ensure it is true
 ```
 
 That's it. Seriously.
 
 ## Real Examples (Because Seeing is Believing)
+
 The % shows the change in contrast ratio
 
 <img width="1189" height="1110" alt="an image showing side by side comparision of before and after change of colors" src="https://github.com/user-attachments/assets/4ce92c65-cd27-4bae-8756-bbbe9bf70a91"  />
-
-
 
 <!--```python
 # Example 1: Your aesthetic dusty rose
@@ -89,12 +89,12 @@ Want to check if your colors are already good?
 
 ```python
 # Check contrast ratio (higher = better readability)
-ratio = cm.contrast_ratio((100, 100, 100), (255, 255, 255)) 
-print(f"Contrast ratio: {ratio:.2f}")
+ratio = cm.contrast_ratio((100, 100, 100), (255, 255, 255))
+print(f"Contrast ratio: {ratio:.2f}")   #Output:- Contrast ratio: 5.92
 
 # Check what level you're hitting
 level = cm.wcag_level((100, 100, 100), (255, 255, 255))
-print(f"Current level: {level}")  # "AA", "AAA", or "FAIL"
+print(f"Current level: {level}")  # "AA", "AAA", or "FAIL"  #Output:- Current level: AA
 ```
 
 ## Why This Matters
@@ -120,4 +120,4 @@ Found a bug or have questions? [Open an issue](https://github.com/comfort-mode-t
 
 **Making the web readable for everyone, one color tweak at a time** 🌈♿
 
-*P.S. Your design professor will be impressed that you actually thought about accessibility*
+_P.S. Your design professor will be impressed that you actually thought about accessibility_
