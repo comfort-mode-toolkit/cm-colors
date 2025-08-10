@@ -34,6 +34,6 @@ setuptools.setup(
 #        "console_scripts": [
 #            "cm-colors = cm_colors.cli.cli:app",
 #        ],
-    },
+#    },
 )
 
