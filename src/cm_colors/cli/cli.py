@@ -19,7 +19,7 @@ def process_and_output(
     cm_parser.write_css(processed_colors, output_filepath)
 
 
-# A usless, pass, callback funtion to prevent typer from assuming the only command, process, to get executed without explicitly mentioning process command
+# A useless, pass, callback function to prevent typer from assuming the only command, process, to get executed without explicitly mentioning process command
 # For eg. without this callback, `cm-colors ./input.css` would automatically run process command as its the only command, typer feature it is.
 # We want `cm-colors ./input.css` to fail, mentioning absence of command name.
 # hence, this callback function makes, `cm-colors process ./input.css` the correct usage despite `process` being the only command defined.
