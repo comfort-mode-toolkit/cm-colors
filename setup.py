@@ -30,10 +30,10 @@ setuptools.setup(
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src", exclude=["cm_colors.cli", "cm_colors.cli.*"]),
     python_requires=">=3.7",
-    entry_points={
-        "console_scripts": [
-            "cm-colors = cm_colors.cli.cli:app",
-        ],
+#    entry_points={
+#        "console_scripts": [
+#            "cm-colors = cm_colors.cli.cli:app",
+#        ],
     },
 )
 
