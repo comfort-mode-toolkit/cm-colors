@@ -414,15 +414,77 @@ def parse_color_to_rgb(color):
                 raise ValueError(
                     f"Invalid RGB string format: '{color}'. Expected format: 'rgb(r, g, b)' where r, g, b are integers 0-255."
                 )
+        elif color.startswith("rgba(") and color.endswith(")"):
+            # Extract RGBA values from rgba() string
+            rgba_content = color[5:-1]
+            rgba_values = rgba_content.split(",")
+
+            if len(rgba_values) != 4:
+                raise ValueError(
+                    f"RGBA string must have exactly 4 values separated by commas. Got {len(rgba_values)} values in '{color}'."
+                )
+
+            try:
+                parsed_values = []
+                # Parse RGB components (first 3 values)
+                for i, value_str in enumerate(rgba_values[:3]):
+                    value_str = value_str.strip()
+                    try:
+                        value = int(value_str)
+                        if value < 0:
+                            raise ValueError(
+                                f"RGB values cannot be negative. Got {value} for {'RGB'[i]} component in '{color}'."
+                            )
+                        if value > 255:
+                            raise ValueError(
+                                f"RGB values must be between 0-255. Got {value} for {'RGB'[i]} component in '{color}'."
+                            )
+                        parsed_values.append(value)
+                    except ValueError as ve:
+                        if "cannot be negative" in str(
+                            ve
+                        ) or "must be between 0-255" in str(ve):
+                            raise ve
+                        raise ValueError(
+                            f"Invalid numeric value '{value_str}' for {'RGB'[i]} component in '{color}'. Must be an integer between 0-255."
+                        )
+
+                # Parse alpha component (fourth value) for validation only
+                alpha_str = rgba_values[3].strip()
+                try:
+                    alpha = float(alpha_str)
+                    if alpha < 0 or alpha > 1:
+                        raise ValueError(
+                            f"Alpha value must be between 0 and 1. Got {alpha} in '{color}'."
+                        )
+                except ValueError as ve:
+                    if "Alpha value must be between" in str(ve):
+                        raise ve
+                    raise ValueError(
+                        f"Invalid alpha value '{alpha_str}' in '{color}'. Must be a number between 0 and 1."
+                    )
+
+                # Return only RGB components (ignore alpha for RGB conversion)
+                return tuple(parsed_values)
+            except ValueError as ve:
+                if (
+                    "RGB values" in str(ve)
+                    or "Alpha value" in str(ve)
+                    or "Invalid alpha value" in str(ve)
+                ):
+                    raise ve
+                raise ValueError(
+                    f"Invalid RGBA string format: '{color}'. Expected format: 'rgba(r, g, b, a)' where r, g, b are integers 0-255 and a is a number 0-1."
+                )
         else:
             # Check if it looks like it might be a color name or other format
             if color.replace(" ", "").replace("-", "").replace("_", "").isalpha():
                 raise ValueError(
-                    f"Color name '{color}' is not supported. Please use hex format (e.g., '#ff0000') or RGB format (e.g., 'rgb(255, 0, 0)')."
+                    f"Color name '{color}' is not supported. Please use hex format (e.g., '#ff0000'), RGB format (e.g., 'rgb(255, 0, 0)'), or RGBA format (e.g., 'rgba(255, 0, 0, 0.5)')."
                 )
             else:
                 raise ValueError(
-                    f"Unrecognized color format: '{color}'. Supported formats are hex (e.g., '#ff0000') or RGB (e.g., 'rgb(255, 0, 0)')."
+                    f"Unrecognized color format: '{color}'. Supported formats are hex (e.g., '#ff0000'), RGB (e.g., 'rgb(255, 0, 0)'), or RGBA (e.g., 'rgba(255, 0, 0, 0.5)')."
                 )
     elif isinstance(color, tuple):
         if len(color) != 3:
