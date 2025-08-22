@@ -28,6 +28,7 @@ try:
         rgb_to_oklch_safe,
         oklch_to_rgb_safe,
         parse_color_to_rgb,
+        rgba_to_rgb,
         rgbint_to_string,
     )
     from cm_colors.core.color_metrics import calculate_delta_e_2000
@@ -279,13 +280,18 @@ class TestValidationFunctions:
         assert parse_color_to_rgb("rgb(255, 0, 0)") == (255, 0, 0)
         assert parse_color_to_rgb("rgb(0, 0, 0)") == (0, 0, 0)
 
-        # Test RGBA strings (alpha should be ignored, returning only RGB)
-        assert parse_color_to_rgb("rgba(255, 0, 0, 1.0)") == (255, 0, 0)
-        assert parse_color_to_rgb("rgba(0, 128, 255, 0.5)") == (0, 128, 255)
-        assert parse_color_to_rgb("rgba(255, 255, 255, 0.0)") == (255, 255, 255)
-        assert parse_color_to_rgb("rgba(100, 200, 50, 0.8)") == (100, 200, 50)
+        # Test RGBA strings (now properly alpha blended with white background)
+        assert parse_color_to_rgb("rgba(255, 0, 0, 1.0)") == (255, 0, 0)  # Full opacity = no change
+        assert parse_color_to_rgb("rgba(0, 128, 255, 0.5)") == (128, 192, 255)  # 50% blend with white
+        assert parse_color_to_rgb("rgba(255, 255, 255, 0.0)") == (255, 255, 255)  # 0% opacity = white background
+        assert parse_color_to_rgb("rgba(100, 200, 50, 0.8)") == (131, 211, 91)  # 80% opacity blend
 
-        # Test RGB tuples
+        # Test RGBA tuples
+        assert parse_color_to_rgb((255, 0, 0, 1.0)) == (255, 0, 0)  # Full opacity
+        assert parse_color_to_rgb((0, 128, 255, 0.5)) == (128, 192, 255)  # 50% blend with white
+        assert parse_color_to_rgb((100, 200, 50, 0.0)) == (255, 255, 255)  # 0% opacity = white
+
+        # Test RGB tuples (unchanged behavior)
         assert parse_color_to_rgb((255, 0, 0)) == (255, 0, 0)
 
     def test_rgbint_to_string(self):
@@ -321,6 +327,105 @@ class TestValidationFunctions:
 
         with pytest.raises(ValueError, match="Invalid alpha value"):
             parse_color_to_rgb("rgba(255, 0, 0, abc)")
+
+
+class TestRGBAConversions:
+    """Test RGBA to RGB conversion functionality"""
+
+    def test_rgba_to_rgb_basic(self):
+        """Test basic RGBA to RGB conversion with default white background"""
+        # Full opacity should return original color
+        assert rgba_to_rgb((255, 0, 0, 1.0)) == (255, 0, 0)
+        assert rgba_to_rgb((0, 255, 0, 1.0)) == (0, 255, 0)
+        assert rgba_to_rgb((0, 0, 255, 1.0)) == (0, 0, 255)
+        
+        # Zero opacity should return white background
+        assert rgba_to_rgb((255, 0, 0, 0.0)) == (255, 255, 255)
+        assert rgba_to_rgb((0, 255, 0, 0.0)) == (255, 255, 255)
+        assert rgba_to_rgb((0, 0, 0, 0.0)) == (255, 255, 255)
+        
+        # 50% opacity should blend halfway
+        assert rgba_to_rgb((0, 0, 0, 0.5)) == (128, 128, 128)  # Black 50% + White 50% = Gray
+        assert rgba_to_rgb((255, 0, 0, 0.5)) == (255, 128, 128)  # Red 50% + White 50%
+        
+    def test_rgba_to_rgb_custom_background(self):
+        """Test RGBA to RGB conversion with custom background colors"""
+        # Test with black background
+        black_bg = (0, 0, 0)
+        assert rgba_to_rgb((255, 255, 255, 0.5), black_bg) == (128, 128, 128)
+        assert rgba_to_rgb((255, 0, 0, 0.0), black_bg) == (0, 0, 0)
+        assert rgba_to_rgb((255, 0, 0, 1.0), black_bg) == (255, 0, 0)
+        
+        # Test with colored background
+        blue_bg = (0, 0, 255)
+        assert rgba_to_rgb((255, 0, 0, 0.5), blue_bg) == (128, 0, 128)  # Red 50% + Blue 50%
+        assert rgba_to_rgb((0, 255, 0, 0.0), blue_bg) == (0, 0, 255)    # 0% opacity = blue background
+        
+    def test_rgba_to_rgb_edge_cases(self):
+        """Test edge cases for RGBA to RGB conversion"""
+        # Test various alpha values
+        test_cases = [
+            ((100, 150, 200, 0.25), (255, 255, 255), (216, 229, 241)),  # 25% opacity
+            ((100, 150, 200, 0.75), (255, 255, 255), (139, 176, 214)),  # 75% opacity - keeping original
+            ((0, 0, 0, 0.1), (255, 255, 255), (230, 230, 230)),         # 10% black - keeping original
+            ((255, 255, 255, 0.9), (0, 0, 0), (230, 230, 230)),         # 90% white on black - keeping original
+        ]
+        
+        for rgba, bg, expected in test_cases:
+            result = rgba_to_rgb(rgba, bg)
+            for i, (actual, exp) in enumerate(zip(result, expected)):
+                assert abs(actual - exp) <= 1, f"Component {i}: expected {exp}, got {actual}"
+    
+    def test_rgba_to_rgb_validation(self):
+        """Test validation of RGBA inputs"""
+        # Test invalid RGB values
+        with pytest.raises(ValueError, match="RGB values in RGBA must be integers 0-255"):
+            rgba_to_rgb((-1, 0, 0, 0.5))
+        with pytest.raises(ValueError, match="RGB values in RGBA must be integers 0-255"):
+            rgba_to_rgb((256, 0, 0, 0.5))
+        with pytest.raises(ValueError, match="RGB values in RGBA must be integers 0-255"):
+            rgba_to_rgb((255, -5, 0, 0.5))
+        with pytest.raises(ValueError, match="RGB values in RGBA must be integers 0-255"):
+            rgba_to_rgb((255, 300, 0, 0.5))
+            
+        # Test invalid alpha values
+        with pytest.raises(ValueError, match="Alpha value must be between 0 and 1"):
+            rgba_to_rgb((255, 0, 0, -0.1))
+        with pytest.raises(ValueError, match="Alpha value must be between 0 and 1"):
+            rgba_to_rgb((255, 0, 0, 1.5))
+            
+        # Test invalid background values
+        with pytest.raises(ValueError, match="Background RGB values must be integers 0-255"):
+            rgba_to_rgb((255, 0, 0, 0.5), (-1, 255, 255))
+        with pytest.raises(ValueError, match="Background RGB values must be integers 0-255"):
+            rgba_to_rgb((255, 0, 0, 0.5), (255, 256, 255))
+    
+    def test_parse_color_to_rgb_rgba_tuples(self):
+        """Test parsing RGBA tuples through parse_color_to_rgb"""
+        # Test RGBA tuples with default background
+        assert parse_color_to_rgb((255, 0, 0, 1.0)) == (255, 0, 0)
+        assert parse_color_to_rgb((0, 128, 255, 0.5)) == (128, 192, 255)
+        assert parse_color_to_rgb((100, 200, 50, 0.0)) == (255, 255, 255)
+        
+        # Test RGBA tuples with custom background
+        assert parse_color_to_rgb((255, 0, 0, 0.5), (0, 0, 0)) == (128, 0, 0)
+        
+        # Test invalid RGBA tuples
+        with pytest.raises(ValueError, match="RGB values in RGBA tuple must be integers 0-255"):
+            parse_color_to_rgb((-1, 0, 0, 0.5))
+        with pytest.raises(ValueError, match="Alpha value in RGBA tuple must be between 0 and 1"):
+            parse_color_to_rgb((255, 0, 0, 1.5))
+        with pytest.raises(ValueError, match="RGBA tuple must contain only numbers"):
+            parse_color_to_rgb((255, 0, 0, "abc"))
+    
+    def test_parse_color_to_rgb_rgba_strings_custom_background(self):
+        """Test parsing RGBA strings with custom backgrounds"""
+        # Test with black background
+        assert parse_color_to_rgb("rgba(255, 0, 0, 0.5)", (0, 0, 0)) == (128, 0, 0)
+        assert parse_color_to_rgb("rgba(0, 255, 0, 0.3)", (0, 0, 0)) == (0, 76, 0)
+        
+        # Test with colored background
+        assert parse_color_to_rgb("rgba(255, 255, 255, 0.5)", (255, 0, 0)) == (255, 128, 128)
 
 
 class TestOptimizationFunctions:

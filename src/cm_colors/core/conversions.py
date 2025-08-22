@@ -1,5 +1,5 @@
 import math
-from typing import Tuple
+from typing import Tuple, Union
 
 
 def hex_to_rgb(hex_str: str, string: bool = False) -> Tuple[int, int, int] | str:
@@ -313,11 +313,49 @@ def is_valid_oklch(oklch: Tuple[float, float, float]) -> bool:
     return True
 
 
-def parse_color_to_rgb(color):
+def rgba_to_rgb(rgba: Tuple[int, int, int, float], background: Tuple[int, int, int] = (255, 255, 255)) -> Tuple[int, int, int]:
+    """Convert RGBA color to RGB by blending with a background color.
+    
+    Args:
+        rgba (Tuple[int, int, int, float]): RGBA tuple where RGB are 0-255 and alpha is 0-1.
+        background (Tuple[int, int, int]): Background RGB color to blend with. Defaults to white (255, 255, 255).
+    
+    Returns:
+        Tuple[int, int, int]: RGB tuple (r, g, b) after alpha blending.
+        
+    Raises:
+        ValueError: If RGBA or background values are invalid.
+    """
+    r, g, b, alpha = rgba
+    bg_r, bg_g, bg_b = background
+    
+    # Validate inputs
+    if not all(isinstance(x, int) and 0 <= x <= 255 for x in [r, g, b]):
+        raise ValueError(f"RGB values in RGBA must be integers 0-255. Got: {rgba}")
+    if not isinstance(alpha, (int, float)) or not (0 <= alpha <= 1):
+        raise ValueError(f"Alpha value must be between 0 and 1. Got: {alpha}")
+    if not all(isinstance(x, int) and 0 <= x <= 255 for x in background):
+        raise ValueError(f"Background RGB values must be integers 0-255. Got: {background}")
+    
+    # Alpha blending formula: final = foreground * alpha + background * (1 - alpha)
+    final_r = round(r * alpha + bg_r * (1 - alpha))
+    final_g = round(g * alpha + bg_g * (1 - alpha))
+    final_b = round(b * alpha + bg_b * (1 - alpha))
+    
+    # Ensure values stay in valid range
+    final_r = max(0, min(255, final_r))
+    final_g = max(0, min(255, final_g))
+    final_b = max(0, min(255, final_b))
+    
+    return (final_r, final_g, final_b)
+
+
+def parse_color_to_rgb(color, background: Tuple[int, int, int] = (255, 255, 255)):
     """Parse a color input (string or tuple) to an RGB tuple.
 
     Args:
-        color (str or tuple): Color input, can be a hex string, RGB string, or RGB tuple.
+        color (str, tuple, or list): Color input, can be a hex string, RGB string, RGBA string, RGB tuple, or RGBA tuple.
+        background (Tuple[int, int, int]): Background RGB color for RGBA conversion. Defaults to white (255, 255, 255).
 
     Returns:
         Tuple[int, int, int]: RGB tuple (r, g, b).
@@ -325,7 +363,22 @@ def parse_color_to_rgb(color):
     Raises:
         ValueError: If the input color format is invalid.
     """
-    if isinstance(color, tuple) and len(color) == 3:
+    # Handle RGBA tuples (4 values)
+    if isinstance(color, (tuple, list)) and len(color) == 4:
+        if all(isinstance(x, (int, float)) for x in color):
+            r, g, b, alpha = color
+            # Validate RGB components
+            if not all(isinstance(x, int) and 0 <= x <= 255 for x in [r, g, b]):
+                raise ValueError(f"RGB values in RGBA tuple must be integers 0-255. Got: {color}")
+            # Validate alpha component
+            if not isinstance(alpha, (int, float)) or not (0 <= alpha <= 1):
+                raise ValueError(f"Alpha value in RGBA tuple must be between 0 and 1. Got: {alpha}")
+            # Convert RGBA to RGB using alpha blending
+            return rgba_to_rgb((r, g, b, alpha), background)
+        else:
+            raise ValueError(f"RGBA tuple must contain only numbers. Got: {color}")
+    # Handle RGB tuples (3 values)
+    elif isinstance(color, tuple) and len(color) == 3:
         if all(isinstance(x, int) for x in color):
             # Validate RGB tuple values are in range 0-255
             for i, value in enumerate(color):
@@ -449,7 +502,7 @@ def parse_color_to_rgb(color):
                             f"Invalid numeric value '{value_str}' for {'RGB'[i]} component in '{color}'. Must be an integer between 0-255."
                         )
 
-                # Parse alpha component (fourth value) for validation only
+                # Parse alpha component (fourth value)
                 alpha_str = rgba_values[3].strip()
                 try:
                     alpha = float(alpha_str)
@@ -457,6 +510,7 @@ def parse_color_to_rgb(color):
                         raise ValueError(
                             f"Alpha value must be between 0 and 1. Got {alpha} in '{color}'."
                         )
+                    parsed_values.append(alpha)
                 except ValueError as ve:
                     if "Alpha value must be between" in str(ve):
                         raise ve
@@ -464,8 +518,9 @@ def parse_color_to_rgb(color):
                         f"Invalid alpha value '{alpha_str}' in '{color}'. Must be a number between 0 and 1."
                     )
 
-                # Return only RGB components (ignore alpha for RGB conversion)
-                return tuple(parsed_values)
+                # Convert RGBA to RGB using alpha blending
+                rgba_tuple = (parsed_values[0], parsed_values[1], parsed_values[2], parsed_values[3])
+                return rgba_to_rgb(rgba_tuple, background)
             except ValueError as ve:
                 if (
                     "RGB values" in str(ve)
@@ -487,11 +542,11 @@ def parse_color_to_rgb(color):
                     f"Unrecognized color format: '{color}'. Supported formats are hex (e.g., '#ff0000'), RGB (e.g., 'rgb(255, 0, 0)'), or RGBA (e.g., 'rgba(255, 0, 0, 0.5)')."
                 )
     elif isinstance(color, tuple):
-        if len(color) != 3:
+        if len(color) not in [3, 4]:
             raise ValueError(
-                f"RGB tuple must have exactly 3 values. Got {len(color)} values: {color}"
+                f"Color tuple must have exactly 3 (RGB) or 4 (RGBA) values. Got {len(color)} values: {color}"
             )
-        return parse_color_to_rgb(color)  # Recursive call to handle validation
+        return parse_color_to_rgb(color, background)  # Recursive call to handle validation
     else:
         raise ValueError(
             f"Unsupported color input type: {type(color).__name__}. Expected string, tuple, or list."
