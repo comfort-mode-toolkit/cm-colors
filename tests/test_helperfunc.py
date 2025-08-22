@@ -280,19 +280,15 @@ class TestValidationFunctions:
         assert parse_color_to_rgb("rgb(255, 0, 0)") == (255, 0, 0)
         assert parse_color_to_rgb("rgb(0, 0, 0)") == (0, 0, 0)
 
-        # Test RGBA strings (now properly alpha blended with white background)
-        assert parse_color_to_rgb("rgba(255, 0, 0, 1.0)") == (255, 0, 0)  # Full opacity = no change
-        assert parse_color_to_rgb("rgba(0, 128, 255, 0.5)") == (128, 192, 255)  # 50% blend with white
-        assert parse_color_to_rgb("rgba(255, 255, 255, 0.0)") == (255, 255, 255)  # 0% opacity = white background
-        assert parse_color_to_rgb("rgba(100, 200, 50, 0.8)") == (131, 211, 91)  # 80% opacity blend
-
-        # Test RGBA tuples
-        assert parse_color_to_rgb((255, 0, 0, 1.0)) == (255, 0, 0)  # Full opacity
-        assert parse_color_to_rgb((0, 128, 255, 0.5)) == (128, 192, 255)  # 50% blend with white
-        assert parse_color_to_rgb((100, 200, 50, 0.0)) == (255, 255, 255)  # 0% opacity = white
-
         # Test RGB tuples (unchanged behavior)
         assert parse_color_to_rgb((255, 0, 0)) == (255, 0, 0)
+
+        # Test that RGBA formats are now rejected by parse_color_to_rgb
+        with pytest.raises(ValueError, match="RGBA format.*not supported by parse_color_to_rgb"):
+            parse_color_to_rgb("rgba(255, 0, 0, 1.0)")
+        
+        with pytest.raises(ValueError, match="RGBA tuple.*not supported by parse_color_to_rgb"):
+            parse_color_to_rgb((255, 0, 0, 1.0))
 
     def test_rgbint_to_string(self):
         assert rgbint_to_string((255, 0, 0)) == "rgb(255, 0, 0)"
@@ -300,32 +296,31 @@ class TestValidationFunctions:
         assert rgbint_to_string((128, 128, 128)) == "rgb(128, 128, 128)"
 
     def test_parse_color_to_rgb_rgba_errors(self):
-        """Test error handling for RGBA format"""
-        # Test invalid RGBA formats
-        with pytest.raises(ValueError, match="RGBA string must have exactly 4 values"):
-            parse_color_to_rgb("rgba(255, 0, 0)")  # Missing alpha
+        """Test error handling for RGBA format rejection in parse_color_to_rgb"""
+        # Test that RGBA formats are now rejected
+        with pytest.raises(ValueError, match="RGBA format.*not supported by parse_color_to_rgb"):
+            parse_color_to_rgb("rgba(255, 0, 0, 0.5)")
 
-        with pytest.raises(ValueError, match="RGBA string must have exactly 4 values"):
-            parse_color_to_rgb("rgba(255, 0)")  # Too few values
+        with pytest.raises(ValueError, match="RGBA format.*not supported by parse_color_to_rgb"):
+            parse_color_to_rgb("rgba(255, 0, 0)")  # Even malformed RGBA strings
 
-        with pytest.raises(ValueError, match="RGBA string must have exactly 4 values"):
-            parse_color_to_rgb("rgba(255, 0, 0, 0.5, 0.8)")  # Too many values
+        with pytest.raises(ValueError, match="RGBA tuple.*not supported by parse_color_to_rgb"):
+            parse_color_to_rgb((255, 0, 0, 0.5))
 
-        # Test invalid RGB values in RGBA
-        with pytest.raises(ValueError, match="RGB values must be between 0-255"):
+        # All RGBA strings should be rejected regardless of their content
+        with pytest.raises(ValueError, match="RGBA format.*not supported by parse_color_to_rgb"):
             parse_color_to_rgb("rgba(256, 0, 0, 0.5)")
 
-        with pytest.raises(ValueError, match="RGB values cannot be negative"):
+        with pytest.raises(ValueError, match="RGBA format.*not supported by parse_color_to_rgb"):
             parse_color_to_rgb("rgba(-1, 0, 0, 0.5)")
 
-        # Test invalid alpha values
-        with pytest.raises(ValueError, match="Alpha value must be between 0 and 1"):
+        with pytest.raises(ValueError, match="RGBA format.*not supported by parse_color_to_rgb"):
             parse_color_to_rgb("rgba(255, 0, 0, 1.5)")
 
-        with pytest.raises(ValueError, match="Alpha value must be between 0 and 1"):
+        with pytest.raises(ValueError, match="RGBA format.*not supported by parse_color_to_rgb"):
             parse_color_to_rgb("rgba(255, 0, 0, -0.1)")
 
-        with pytest.raises(ValueError, match="Invalid alpha value"):
+        with pytest.raises(ValueError, match="RGBA format.*not supported by parse_color_to_rgb"):
             parse_color_to_rgb("rgba(255, 0, 0, abc)")
 
 
@@ -400,32 +395,51 @@ class TestRGBAConversions:
         with pytest.raises(ValueError, match="Background RGB values must be integers 0-255"):
             rgba_to_rgb((255, 0, 0, 0.5), (255, 256, 255))
     
+    def test_check_and_fix_contrast_rgba_handling(self):
+        """Test that check_and_fix_contrast properly handles RGBA inputs"""
+        # Test RGBA strings - should be converted to RGB and processed
+        result = check_and_fix_contrast('rgba(255, 0, 0, 0.5)', '#ffffff')
+        assert isinstance(result, tuple)
+        assert len(result) == 2
+        accessible_color, is_accessible = result
+        assert isinstance(accessible_color, str)
+        assert isinstance(is_accessible, bool)
+        
+        # Test RGBA tuples
+        result = check_and_fix_contrast((255, 0, 0, 0.5), (255, 255, 255))
+        assert isinstance(result, tuple)
+        assert len(result) == 2
+        
+        # Test normal RGB still works
+        result = check_and_fix_contrast('#ff0000', '#ffffff')
+        assert isinstance(result, tuple)
+        assert len(result) == 2
+        
     def test_parse_color_to_rgb_rgba_tuples(self):
-        """Test parsing RGBA tuples through parse_color_to_rgb"""
-        # Test RGBA tuples with default background
-        assert parse_color_to_rgb((255, 0, 0, 1.0)) == (255, 0, 0)
-        assert parse_color_to_rgb((0, 128, 255, 0.5)) == (128, 192, 255)
-        assert parse_color_to_rgb((100, 200, 50, 0.0)) == (255, 255, 255)
+        """Test that RGBA tuples are rejected by parse_color_to_rgb"""
+        # Test that RGBA tuples are now rejected
+        with pytest.raises(ValueError, match="RGBA tuple.*not supported by parse_color_to_rgb"):
+            parse_color_to_rgb((255, 0, 0, 1.0))
         
-        # Test RGBA tuples with custom background
-        assert parse_color_to_rgb((255, 0, 0, 0.5), (0, 0, 0)) == (128, 0, 0)
+        with pytest.raises(ValueError, match="RGBA tuple.*not supported by parse_color_to_rgb"):
+            parse_color_to_rgb((0, 128, 255, 0.5))
         
-        # Test invalid RGBA tuples
-        with pytest.raises(ValueError, match="RGB values in RGBA tuple must be integers 0-255"):
-            parse_color_to_rgb((-1, 0, 0, 0.5))
-        with pytest.raises(ValueError, match="Alpha value in RGBA tuple must be between 0 and 1"):
-            parse_color_to_rgb((255, 0, 0, 1.5))
-        with pytest.raises(ValueError, match="RGBA tuple must contain only numbers"):
-            parse_color_to_rgb((255, 0, 0, "abc"))
+        with pytest.raises(ValueError, match="RGBA tuple.*not supported by parse_color_to_rgb"):
+            parse_color_to_rgb((100, 200, 50, 0.0))
     
-    def test_parse_color_to_rgb_rgba_strings_custom_background(self):
-        """Test parsing RGBA strings with custom backgrounds"""
-        # Test with black background
-        assert parse_color_to_rgb("rgba(255, 0, 0, 0.5)", (0, 0, 0)) == (128, 0, 0)
-        assert parse_color_to_rgb("rgba(0, 255, 0, 0.3)", (0, 0, 0)) == (0, 76, 0)
+    def test_check_and_fix_contrast_rgba_strings_custom_background(self):
+        """Test RGBA string handling in check_and_fix_contrast with different backgrounds"""
+        # Test with black background - RGBA should be blended with the background color
+        result = check_and_fix_contrast('rgba(255, 0, 0, 0.5)', '#000000')
+        accessible_color, is_accessible = result
+        assert isinstance(accessible_color, str)
+        assert isinstance(is_accessible, bool)
         
         # Test with colored background
-        assert parse_color_to_rgb("rgba(255, 255, 255, 0.5)", (255, 0, 0)) == (255, 128, 128)
+        result = check_and_fix_contrast('rgba(255, 255, 255, 0.5)', 'rgb(255, 0, 0)')
+        accessible_color, is_accessible = result
+        assert isinstance(accessible_color, str)
+        assert isinstance(is_accessible, bool)
 
 
 class TestOptimizationFunctions:

@@ -5,6 +5,7 @@ from cm_colors.core.conversions import (
     is_valid_rgb,
     parse_color_to_rgb,
     rgbint_to_string,
+    rgba_to_rgb,
 )
 from cm_colors.core.contrast import calculate_contrast_ratio, get_wcag_level
 from cm_colors.core.color_metrics import calculate_delta_e_2000
@@ -276,11 +277,113 @@ def generate_accessible_color(
     return best_candidate if best_candidate else text_rgb
 
 
+def _is_rgba_input(color) -> bool:
+    """Check if the input color is in RGBA format (string or tuple)."""
+    if isinstance(color, str):
+        return color.startswith("rgba(") and color.endswith(")")
+    elif isinstance(color, (tuple, list)):
+        return len(color) == 4
+    return False
+
+
+def _convert_rgba_to_rgb(rgba_input, bg_color) -> Tuple[int, int, int]:
+    """Convert RGBA input to RGB using alpha blending with background color."""
+    # Parse background color to RGB to use as blending background
+    if _is_rgba_input(bg_color):
+        # If background is also RGBA, convert it to RGB first using white background
+        bg_rgb = _convert_rgba_to_rgb(bg_color, (255, 255, 255))
+    else:
+        bg_rgb = parse_color_to_rgb(bg_color)
+    
+    if isinstance(rgba_input, str):
+        # Parse RGBA string
+        rgba_content = rgba_input[5:-1]  # Remove "rgba(" and ")"
+        rgba_values = rgba_content.split(",")
+        
+        if len(rgba_values) != 4:
+            raise ValueError(
+                f"RGBA string must have exactly 4 values separated by commas. Got {len(rgba_values)} values in '{rgba_input}'."
+            )
+        
+        try:
+            parsed_values = []
+            # Parse RGB components (first 3 values)
+            for i, value_str in enumerate(rgba_values[:3]):
+                value_str = value_str.strip()
+                try:
+                    value = int(value_str)
+                    if value < 0:
+                        raise ValueError(
+                            f"RGB values cannot be negative. Got {value} for {'RGB'[i]} component in '{rgba_input}'."
+                        )
+                    if value > 255:
+                        raise ValueError(
+                            f"RGB values must be between 0-255. Got {value} for {'RGB'[i]} component in '{rgba_input}'."
+                        )
+                    parsed_values.append(value)
+                except ValueError as ve:
+                    if "cannot be negative" in str(ve) or "must be between 0-255" in str(ve):
+                        raise ve
+                    raise ValueError(
+                        f"Invalid numeric value '{value_str}' for {'RGB'[i]} component in '{rgba_input}'. Must be an integer between 0-255."
+                    )
+            
+            # Parse alpha component (fourth value)
+            alpha_str = rgba_values[3].strip()
+            try:
+                alpha = float(alpha_str)
+                if alpha < 0 or alpha > 1:
+                    raise ValueError(
+                        f"Alpha value must be between 0 and 1. Got {alpha} in '{rgba_input}'."
+                    )
+                parsed_values.append(alpha)
+            except ValueError as ve:
+                if "Alpha value must be between" in str(ve):
+                    raise ve
+                raise ValueError(
+                    f"Invalid alpha value '{alpha_str}' in '{rgba_input}'. Must be a number between 0 and 1."
+                )
+            
+            # Convert RGBA to RGB using alpha blending
+            rgba_tuple = (parsed_values[0], parsed_values[1], parsed_values[2], parsed_values[3])
+            return rgba_to_rgb(rgba_tuple, bg_rgb)
+        except ValueError as ve:
+            if (
+                "RGB values" in str(ve)
+                or "Alpha value" in str(ve)
+                or "Invalid alpha value" in str(ve)
+            ):
+                raise ve
+            raise ValueError(
+                f"Invalid RGBA string format: '{rgba_input}'. Expected format: 'rgba(r, g, b, a)' where r, g, b are integers 0-255 and a is a number 0-1."
+            )
+    
+    elif isinstance(rgba_input, (tuple, list)):
+        # Handle RGBA tuple/list
+        if len(rgba_input) == 4:
+            if all(isinstance(x, (int, float)) for x in rgba_input):
+                r, g, b, alpha = rgba_input
+                # Validate RGB components
+                if not all(isinstance(x, int) and 0 <= x <= 255 for x in [r, g, b]):
+                    raise ValueError(f"RGB values in RGBA tuple must be integers 0-255. Got: {rgba_input}")
+                # Validate alpha component
+                if not isinstance(alpha, (int, float)) or not (0 <= alpha <= 1):
+                    raise ValueError(f"Alpha value in RGBA tuple must be between 0 and 1. Got: {rgba_input}")
+                # Convert RGBA to RGB using alpha blending
+                return rgba_to_rgb((r, g, b, alpha), bg_rgb)
+            else:
+                raise ValueError(f"RGBA tuple must contain only numbers. Got: {rgba_input}")
+        else:
+            raise ValueError(f"RGBA tuple must have exactly 4 values. Got {len(rgba_input)} values: {rgba_input}")
+    
+    raise ValueError(f"Unsupported RGBA input type: {type(rgba_input).__name__}")
+
+
 def check_and_fix_contrast(text, bg, large: bool = False, details: bool = False):
     """Main function to check and fix contrast using optimized methods.
 
      Args:
-        text: Text color (any valid hex, rgb string or rgb tuple)
+        text: Text color (any valid hex, rgb string, rgba string, rgb tuple, or rgba tuple)
         bg: Background color (any valid hex, rgb string or rgb tuple)
         large: True for large text (18pt+ or 14pt+ bold), False for normal text
         details: If True, returns detailed report, else just (tuned_color, is_accessible)
@@ -290,8 +393,17 @@ def check_and_fix_contrast(text, bg, large: bool = False, details: bool = False)
         details = True: a dict with detailed report
     """
 
-    text_rgb = parse_color_to_rgb(text)
-    bg_rgb = parse_color_to_rgb(bg)
+    # Check if text is RGBA and convert to RGB if necessary
+    if _is_rgba_input(text):
+        text_rgb = _convert_rgba_to_rgb(text, bg)
+    else:
+        text_rgb = parse_color_to_rgb(text)
+    
+    # Check if background is RGBA and convert to RGB if necessary
+    if _is_rgba_input(bg):
+        bg_rgb = _convert_rgba_to_rgb(bg, (255, 255, 255))  # Use white as default for background conversion
+    else:
+        bg_rgb = parse_color_to_rgb(bg)
 
     if not (is_valid_rgb(text_rgb) and is_valid_rgb(bg_rgb)):
         raise ValueError(
