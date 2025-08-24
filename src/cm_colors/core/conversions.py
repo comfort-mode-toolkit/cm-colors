@@ -325,6 +325,9 @@ def parse_color_to_rgb(color):
     Raises:
         ValueError: If the input color format is invalid.
     """
+        # RGBA tuple/list
+    if isinstance(color, (tuple, list)) and len(color) == 4:
+        return rgba_to_rgb(color)
     if isinstance(color, tuple) and len(color) == 3:
         if all(isinstance(x, int) for x in color):
             # Validate RGB tuple values are in range 0-255
