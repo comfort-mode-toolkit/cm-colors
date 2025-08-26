@@ -312,6 +312,54 @@ def is_valid_oklch(oklch: Tuple[float, float, float]) -> bool:
 
     return True
 
+def parse_color_pair(text_color, bg_color):
+    """
+    Parses text and background color inputs, handling RGBA transparency if present.
+
+    Args:
+        text_color: Color for text (tuple, list, or CSS-style string)
+        bg_color: Color for background (tuple, list, or CSS-style string)
+
+    Returns:
+        Tuple[Tuple[int, int, int], Tuple[int, int, int]]: (text_rgb, bg_rgb)
+    """
+    # Parse background color to RGB first (for compositing if needed)
+    bg_rgb = parse_color_to_rgb(bg_color)
+
+    # Check if text_color is RGBA (tuple/list of length 4 or CSS rgba string)
+    is_rgba = False
+    if isinstance(text_color, (tuple, list)) and len(text_color) == 4:
+        is_rgba = True
+    elif isinstance(text_color, str):
+        color_str = text_color.strip().lower()
+        if color_str.startswith("rgba(") and color_str.endswith(")"):
+            is_rgba = True
+
+    if is_rgba:
+        # Use rgba_to_rgb with background
+        if isinstance(text_color, str):
+            # Parse string to tuple first
+            color_str = text_color.strip().lower()
+            rgba_content = color_str[5:-1]
+            rgba_values = [v.strip() for v in rgba_content.split(",")]
+            if len(rgba_values) != 4:
+                raise ValueError(
+                    f"RGBA string must have exactly 4 values separated by commas. Got {len(rgba_values)} values in '{text_color}'."
+                )
+            try:
+                r = int(rgba_values[0])
+                g = int(rgba_values[1])
+                b = int(rgba_values[2])
+                a = float(rgba_values[3])
+            except Exception:
+                raise ValueError(f"Invalid RGBA values in '{text_color}'")
+            text_rgb = rgba_to_rgb((r, g, b, a), background=bg_rgb)
+        else:
+            text_rgb = rgba_to_rgb(tuple(text_color), background=bg_rgb)
+    else:
+        text_rgb = parse_color_to_rgb(text_color)
+
+    return text_rgb, bg_rgb
 
 def parse_color_to_rgb(color):
     """Parse a color input (string or tuple) to an RGB tuple.
