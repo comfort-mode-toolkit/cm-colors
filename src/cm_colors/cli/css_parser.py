@@ -149,7 +149,7 @@ def process_colors(input_file: str) -> list[dict]:
             "line": color_pair["line"],
             "was_accessible": "Insufficient Data"
         }
-        if color_pair["text"] != None and color_pair["background"] != None:
+        if color_pair["text"] is not None and color_pair["background"] is not None:
             if not color_pair["text"].startswith("#") and not color_pair["text"].startswith("rgb"):
                 color_pair["text"] = CSS_NAMED_COLORS[color_pair["text"]]
             if not color_pair["background"].startswith("#") and not color_pair["background"].startswith("rgb"):
@@ -177,6 +177,8 @@ def construct_css_block(css_block: dict) -> str:
         return f"{css_block['selector']} {{\n    color: {css_block['text']};\n    /* Was the color pair Accessible? {css_block['was_accessible']} */\n}}\n"
     elif css_block["selector"] != None and css_block["background"] != None:
         return f"{css_block['selector']} {{\n    background-color: {css_block['background']};\n    /* Was the color pair Accessible? {css_block['was_accessible']} */\n}}\n"
+    else:
+        return ""
 
 def write_css(processed_colors: list[dict], output_file: str) -> None:
     """
