@@ -312,6 +312,54 @@ def is_valid_oklch(oklch: Tuple[float, float, float]) -> bool:
 
     return True
 
+def parse_color_pair(text_color, bg_color):
+    """
+    Parses text and background color inputs, handling RGBA transparency if present.
+
+    Args:
+        text_color: Color for text (tuple, list, or CSS-style string)
+        bg_color: Color for background (tuple, list, or CSS-style string)
+
+    Returns:
+        Tuple[Tuple[int, int, int], Tuple[int, int, int]]: (text_rgb, bg_rgb)
+    """
+    # Parse background color to RGB first (for compositing if needed)
+    bg_rgb = parse_color_to_rgb(bg_color)
+
+    # Check if text_color is RGBA (tuple/list of length 4 or CSS rgba string)
+    is_rgba = False
+    if isinstance(text_color, (tuple, list)) and len(text_color) == 4:
+        is_rgba = True
+    elif isinstance(text_color, str):
+        color_str = text_color.strip().lower()
+        if color_str.startswith("rgba(") and color_str.endswith(")"):
+            is_rgba = True
+
+    if is_rgba:
+        # Use rgba_to_rgb with background
+        if isinstance(text_color, str):
+            # Parse string to tuple first
+            color_str = text_color.strip().lower()
+            rgba_content = color_str[5:-1]
+            rgba_values = [v.strip() for v in rgba_content.split(",")]
+            if len(rgba_values) != 4:
+                raise ValueError(
+                    f"RGBA string must have exactly 4 values separated by commas. Got {len(rgba_values)} values in '{text_color}'."
+                )
+            try:
+                r = int(rgba_values[0])
+                g = int(rgba_values[1])
+                b = int(rgba_values[2])
+                a = float(rgba_values[3])
+            except Exception:
+                raise ValueError(f"Invalid RGBA values in '{text_color}'")
+            text_rgb = rgba_to_rgb((r, g, b, a), background=bg_rgb)
+        else:
+            text_rgb = rgba_to_rgb(tuple(text_color), background=bg_rgb)
+    else:
+        text_rgb = parse_color_to_rgb(text_color)
+
+    return text_rgb, bg_rgb
 
 def parse_color_to_rgb(color):
     """Parse a color input (string or tuple) to an RGB tuple.
@@ -325,6 +373,9 @@ def parse_color_to_rgb(color):
     Raises:
         ValueError: If the input color format is invalid.
     """
+        # RGBA tuple/list
+    if isinstance(color, (tuple, list)) and len(color) == 4:
+        return rgba_to_rgb(color)
     if isinstance(color, tuple) and len(color) == 3:
         if all(isinstance(x, int) for x in color):
             # Validate RGB tuple values are in range 0-255
@@ -435,6 +486,37 @@ def parse_color_to_rgb(color):
             f"Unsupported color input type: {type(color).__name__}. Expected string, tuple, or list."
         )
 
+def rgba_to_rgb(rgba, background=(255, 255, 255)):
+    """
+    Convert an RGBA color to an RGB color by alpha blending over a background.
+
+    Args:
+        rgba (tuple): (r, g, b, a) where r, g, b are 0–255, and a is 0–1 (float).
+        background (tuple): (r_bg, g_bg, b_bg) 0–255, default is white.
+
+    Returns:
+        tuple: (r, g, b) after blending.
+
+    Raises:
+        ValueError: If inputs are out of expected range.
+    """
+    if not (isinstance(rgba, (list, tuple)) and len(rgba) == 4):
+        raise ValueError("RGBA must be a tuple or list of 4 values.")
+    r, g, b, a = rgba
+    if not all(isinstance(v, int) and 0 <= v <= 255 for v in (r, g, b)):
+        raise ValueError("RGBA r, g, b must be integers in 0–255.")
+    if not isinstance(a, (float, int)) or not (0.0 <= a <= 1.0):
+        raise ValueError("RGBA a must be a float in 0–1.")
+    if not (isinstance(background, (list, tuple)) and len(background) == 3):
+        raise ValueError("background must be a tuple or list of 3 values.")
+    if not all(isinstance(v, int) and 0 <= v <= 255 for v in background):
+        raise ValueError("background r, g, b must be integers in 0–255.")
+
+    r_bg, g_bg, b_bg = background
+    r_out = int(round(r * a + r_bg * (1 - a)))
+    g_out = int(round(g * a + g_bg * (1 - a)))
+    b_out = int(round(b * a + b_bg * (1 - a)))
+    return (r_out, g_out, b_out)
 
 def rgbint_to_string(rgb: Tuple[int, int, int]) -> str:
     """Convert an RGB tuple to a CSS rgb() string.
