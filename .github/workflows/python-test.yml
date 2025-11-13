@@ -2,7 +2,7 @@ name: Python Tests
 
 on:
   push:
-    branches: [main, RgbaSupport, cli-development]
+    branches: [main]
   pull_request:
     branches: [main, RgbaSupport, cli-development]
 
