@@ -1,5 +1,7 @@
 # CM-Colors 🎨✨
 
+[![Python Tests](https://github.com/comfort-mode-toolkit/cm-colors/actions/workflows/python-test.yml/badge.svg)](https://github.com/comfort-mode-toolkit/cm-colors/actions/workflows/python-test.yml)
+
 **You do your style, we make it accessible**
 _(Our color wizard can work miracles, but even magic has limits - don't expect us to make neon yellow on white look good!)_
 
