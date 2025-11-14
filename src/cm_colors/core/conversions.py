@@ -549,15 +549,6 @@ def hsl_to_rgb(hsl_color):
 
     return (int(round(r*255)), int(round(g*255)), int(round(b*255)))
 
-# Example Usage:
-rgb_color = (0, 128, 255)
-hsl_string = rgb_to_hsl(rgb_color)
-print(f"RGB {rgb_color} converts to HSL string: {hsl_string}")
-
-# Inverse check using the provided hsl_to_rgb function:
-rgb_back = hsl_to_rgb(hsl_string)
-print(f"HSL string converts back to RGB: {rgb_back}")
-
 def hsla_to_rgb(hsla_color, background=None):
     """
     Converts HSLA color to RGB, with alpha compositing if needed.
