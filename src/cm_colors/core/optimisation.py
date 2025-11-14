@@ -10,7 +10,7 @@ from cm_colors.core.color_parser import parse_color_to_rgb
 from cm_colors.core.contrast import calculate_contrast_ratio, get_wcag_level
 from cm_colors.core.color_metrics import calculate_delta_e_2000
 
-from cm_colors.core.colors import ColorPair
+from cm_colors.core.colors import Color
 
 def binary_search_lightness(
     text_rgb: Tuple[int, int, int],
@@ -291,6 +291,16 @@ def check_and_fix_contrast(text, bg, large: bool = False, details: bool = False)
         details = False: (tuned_color, accessible with atleast 4.5)
         details = True: a dict with detailed report
     """
+
+    # Validaton just to double check - the function is only called through ColorPair which already validates
+
+    text_color = Color(text)
+    bg_color = Color(bg)
+    
+    if not text_color.is_valid:
+        raise ValueError(f"Invalid text color: {text_color.error}")
+    if not bg_color.is_valid:
+        raise ValueError(f"Invalid background color: {bg_color.error}")
 
 
     current_contrast = calculate_contrast_ratio(text, bg)

@@ -97,9 +97,9 @@ class ColorPair:
             return None
         return calculate_delta_e_2000(self.bg.rgb,self.text.rgb)
 
-    def tune_colors(self, large_text: bool = False, details: bool = False):
+    def tune_colors(self, details: bool = False):
         """
-        Tune colors to fix contrast using the algorithm
+        Tune colors to fix contrast using the algorithm 
         """
         if not self.is_valid:
             if details:
@@ -114,6 +114,6 @@ class ColorPair:
         return check_and_fix_contrast(
             self.text._rgb, 
             self.bg._rgb, 
-            large_text, 
+            self.large_text, 
             details
         )

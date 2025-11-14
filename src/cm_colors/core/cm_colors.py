@@ -53,7 +53,7 @@ class CMColors:
         pass
 
     def tune_colors(
-        self, text_rgb, bg_rgb, large_text: bool = False, details: bool = False
+        self, text, bg, large_text: bool = False, details: bool = False
     ):
         """
         Checks the contrast between text and background colors and, if necessary,
@@ -85,8 +85,11 @@ class CMColors:
                         - status: True if wcag_level != 'FAIL' else False,
                         - message: The status message
         """
+        pair = ColorPair(text,bg,large_text)
+        if not pair.is_valid:
+            raise ValueError(f"Invalid color pair: {', '.join(pair.errors)}")
 
-        return check_and_fix_contrast(text_rgb, bg_rgb, large_text, details)
+        return pair.tune_colors(details)
 
     def contrast_ratio(self, text_color, bg_color) -> float:
         """
