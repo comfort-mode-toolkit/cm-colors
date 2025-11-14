@@ -18,6 +18,11 @@ from cm_colors import CMColors
 class TestWithMocks:
     
     def setup_method(self):
+        """
+        Create a new CMColors instance and assign it to self.cm for test setup.
+        
+        Provides a fresh CMColors object before each test method to ensure isolation.
+        """
         self.cm = CMColors()
     
     @patch('cm_colors.core.cm_colors.check_and_fix_contrast')  # Patch where it's imported

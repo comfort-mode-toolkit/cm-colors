@@ -56,53 +56,43 @@ class CMColors:
         self, text_rgb, bg_rgb, large_text: bool = False, details: bool = False
     ):
         """
-        Checks the contrast between text and background colors and, if necessary,
-        adjusts the text color to meet WCAG AAA requirements (or AA for large text)
-        with minimal perceptual change.
-
-        This function uses an optimized approach combining binary search and gradient descent.
-
-        Args:
-            text: Text color (any valid hex, rgb string or rgb tuple)
-            bg: Background color (any valid hex, rgb string or rgb tuple)
-            large: True for large text (18pt+ or 14pt+ bold), False for normal text
-            details: If True, returns detailed report, else just (tuned_color, is_accessible)
-
+        Adjusts a text color so it meets WCAG contrast requirements against a given background.
+        
+        Parameters:
+            text_rgb: Text color in any supported format (hex string, rgb/rgba string, named color, or RGB tuple).
+            bg_rgb: Background color in any supported format (hex string, rgb/rgba string, named color, or RGB tuple). RGBA inputs are composited over their backgrounds.
+            large_text (bool): Treat the text as large (WCAG large-text thresholds) when True.
+            details (bool): If True, return a detailed report dictionary instead of the simple tuple.
+        
         Returns:
-                If details=False (default):
-                   A tuple containing:
-                    - The adjusted text color (RGB string i.e 'rgb(...)').
-                    - A boolean indicating if the color pair is accessible (meets atleast WCAG AA).
-
-                If details=True:
-                   A detailed dict including:
-                        - text: The original text color
-                        - tuned_text: The adjusted text color
-                        - bg: The background color
-                        - large: Whether the text is considered large
-                        - wcag_level: The WCAG compliance level
-                        - improvement_percentage: The percentage improvement in contrast
-                        - status: True if wcag_level != 'FAIL' else False,
-                        - message: The status message
+            If details is False: A tuple (adjusted_text_rgb, accessible) where `adjusted_text_rgb` is the tuned text color as an RGB string (e.g., "rgb(...)") and `accessible` is `True` if the pair meets at least WCAG AA, `False` otherwise.
+        
+            If details is True: A dictionary with keys:
+                - text: original text color input
+                - tuned_text: adjusted text color as an RGB string
+                - bg: background color input
+                - large: boolean indicating large-text mode
+                - wcag_level: resulting WCAG level ("AAA", "AA", or "FAIL")
+                - improvement_percentage: numeric percentage improvement in contrast
+                - status: `True` if wcag_level != "FAIL", `False` otherwise
+                - message: human-readable status message
         """
 
         return check_and_fix_contrast(text_rgb, bg_rgb, large_text, details)
 
     def contrast_ratio(self, text_color, bg_color) -> float:
         """
-        Calculates the WCAG contrast ratio between two colors.
+        Compute the WCAG contrast ratio between two colors.
         
-        Now accepts any color format: hex, rgb(), rgba(), tuples, named colors, etc.
-
-        Args:
-            text_color: Text color (hex, rgb string, rgba string, tuple, named color, etc.)
-            bg_color: Background color (any supported format)
-
+        Parameters:
+            text_color: Text color in any supported format (hex string, `rgb()`/`rgba()` string, tuple, named color, etc.).
+            bg_color: Background color in any supported format.
+        
         Returns:
-            float: The calculated contrast ratio.
-            
+            contrast_ratio (float): Contrast ratio according to WCAG.
+        
         Raises:
-            ValueError: If either color cannot be parsed.
+            ValueError: If one or both colors cannot be parsed or are invalid.
         """
         pair = ColorPair(text_color, bg_color)
         
@@ -146,15 +136,19 @@ class CMColors:
 
     def rgb_to_oklch(self, rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
         """
-        Converts an RGB color to the OKLCH color space.
-        OKLCH is a perceptually uniform color space, making it ideal for color manipulation.
-
-        Args:
-            rgb (Tuple[int, int, int]): The RGB tuple (R, G, B).
-
+        Convert an RGB color tuple to the OKLCH color space.
+        
+        Parameters:
+            rgb (Tuple[int, int, int]): RGB tuple (R, G, B) with each component in the range 0–255.
+        
         Returns:
-            Tuple[float, float, float]: The OKLCH tuple (Lightness, Chroma, Hue).
-                                        Lightness is 0-1, Chroma is 0-~0.4, Hue is 0-360.
+            Tuple[float, float, float]: OKLCH tuple (Lightness, Chroma, Hue).
+                - Lightness: 0.0–1.0
+                - Chroma: non-negative (typical upper range ≈ 0.4)
+                - Hue: degrees in the range 0–360
+        
+        Raises:
+            ValueError: If any RGB component is outside the 0–255 range.
         """
         if not is_valid_rgb(rgb):
             raise ValueError(
@@ -180,13 +174,16 @@ class CMColors:
 
     def rgb_to_lab(self, rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
         """
-        Converts an RGB color to the CIELAB color space.
-
-        Args:
-            rgb (Tuple[int, int, int]): The RGB tuple (R, G, B).
-
+        Convert an RGB color to the CIELAB color space (L*, a*, b*).
+        
+        Parameters:
+            rgb (Tuple[int, int, int]): RGB components as integers in the range 0–255.
+        
         Returns:
-            Tuple[float, float, float]: The LAB tuple (Lightness, a*, b*).
+            Tuple[float, float, float]: CIELAB coordinates (L*, a*, b*).
+        
+        Raises:
+            ValueError: If any RGB component is outside the 0–255 range.
         """
         if not is_valid_rgb(rgb):
             raise ValueError(
@@ -196,16 +193,17 @@ class CMColors:
 
     def delta_e(self, color1,color2) -> float:
         """
-        Calculates the Delta E 2000 color difference between two RGB colors.
-        Delta E 2000 is a perceptually uniform measure of color difference.
-
+        Compute the Delta E 2000 color difference between two colors.
+        
         Args:
-            color1: Text color (hex, rgb string, rgba string, tuple, named color, etc.)
-            color2: Background color (any supported format)
-
+            color1: First color; accepts hex, rgb/rgba strings, tuples, named colors, or any format supported by the library.
+            color2: Second color in any supported format.
+        
         Returns:
-            float: The Delta E 2000 value. A value less than 2.3 is generally
-                considered imperceptible to the average human eye.
+            float: The Delta E 2000 value. Values less than 2.3 are generally imperceptible to the average human eye.
+        
+        Raises:
+            ValueError: If either input cannot be parsed as a valid color (error messages from parsing are combined).
         """
 
         pair = ColorPair(color1, color2)
@@ -218,13 +216,15 @@ class CMColors:
 
     def parse_to_rgb(self, color: str) -> Tuple[int, int, int]:
         """
-        Parses a color string (hex, rgb) to an RGB tuple.
-
-        Args:
-            color (str): The color string in hex (#RRGGBB), rgb(r, g, b), or named format.
-
+        Parse a color string into an RGB tuple.
+        
+        Accepts hex (e.g. "#RRGGBB"), `rgb()`/`rgba()` strings, and named color strings.
+        
+        Parameters:
+        	color (str): Color string to parse.
+        
         Returns:
-            Tuple[int, int, int]: The RGB tuple (R, G, B).
+        	Tuple[int, int, int]: RGB tuple (R, G, B) with channels in the range 0–255.
         """
         return parse_color_to_rgb(color)
 

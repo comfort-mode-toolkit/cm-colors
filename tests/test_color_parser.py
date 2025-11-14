@@ -45,7 +45,11 @@ class TestColorParser:
         assert result == (128, 0, 0)
     
     def test_hex_colors(self):
-        """Test hex color inputs"""
+        """
+        Verifies that hexadecimal color strings are parsed into correct RGB tuples.
+        
+        Asserts parsing of 6-digit hex with and without a leading '#', and 3-digit short-form hex with and without a leading '#', producing the expected (R, G, B) tuples.
+        """
         assert parse_color_to_rgb("#ff0000") == (255, 0, 0)
         assert parse_color_to_rgb("#00ff00") == (0, 255, 0)
         assert parse_color_to_rgb("#0000ff") == (0, 0, 255)
@@ -63,13 +67,19 @@ class TestColorParser:
             pytest.skip("Named colors not available in test environment")
     
     def test_rgb_css_strings(self):
-        """Test RGB CSS function strings"""
+        """
+        Verify parsing of CSS `rgb(...)` strings with standard, no-space, and extra-space formats.
+        """
         assert parse_color_to_rgb("rgb(255, 0, 0)") == (255, 0, 0)
         assert parse_color_to_rgb("rgb(0,255,0)") == (0, 255, 0)  # no spaces
         assert parse_color_to_rgb("rgb( 0 , 255 , 0 )") == (0, 255, 0)  # extra spaces
     
     def test_rgba_css_strings(self):
-        """Test RGBA CSS function strings"""
+        """
+        Validate parsing of 'rgba(...)' CSS strings and alpha blending against a white background.
+        
+        Asserts the red channel remains 255 and the green and blue channels are approximately mid-gray (between 120 and 135) after blending.
+        """
         # rgba(255, 0, 0, 0.5) on default white background
         result = parse_color_to_rgb("rgba(255, 0, 0, 0.5)")
         assert result[0] == 255  # red stays red
@@ -101,7 +111,11 @@ class TestColorParser:
     # ===== EDGE CASES AND ERROR HANDLING =====
     
     def test_invalid_tuple_lengths(self):
-        """Test invalid tuple/list lengths"""
+        """
+        Verify that tuple or list inputs with lengths other than 3 or 4 raise ValueError.
+        
+        Asserts that sequences with 1, 2, or 5 components passed to parse_color_to_rgb produce a ValueError with a message indicating the required length of 3 or 4.
+        """
         with pytest.raises(ValueError, match="must have length 3.*or 4"):
             parse_color_to_rgb((255,))
         
@@ -128,7 +142,11 @@ class TestColorParser:
             parse_color_to_rgb("#ff00")    # wrong length
     
     def test_unsupported_types(self):
-        """Test unsupported input types"""
+        """
+        Verifies that unsupported input types raise a ValueError.
+        
+        Checks that parse_color_to_rgb raises ValueError with a message matching "Unsupported color input type" when given a float, None, or a dict.
+        """
         with pytest.raises(ValueError, match="Unsupported color input type"):
             parse_color_to_rgb(123.45)  # float
         
@@ -209,7 +227,17 @@ class TestColorParser:
     @example(h=120, s=100, l=50)  # green
     @example(h=240, s=100, l=50)  # blue
     def test_hsl_css_property(self, h, s, l):
-        """Property test: valid HSL CSS strings should produce valid RGB"""
+        """
+        Property-based test that parsing an HSL CSS string produces a valid 3-channel RGB value when the HSL color is representable in RGB.
+        
+        Parameters:
+            h (int): Hue in degrees (typically 0–360).
+            s (int): Saturation as a percentage (0–100).
+            l (int): Lightness as a percentage (0–100).
+        
+        Notes:
+            Some HSL combinations may be outside the RGB gamut and can raise exceptions; those cases are treated as acceptable and are ignored by the test.
+        """
         hsl_string = f"hsl({h}, {s}%, {l}%)"
         
         try:
@@ -291,7 +319,18 @@ class TestColorParser:
 
 @pytest.fixture
 def sample_colors():
-    """Fixture providing sample valid colors in different formats"""
+    """
+    Provide a dictionary of equivalent sample red color representations in multiple formats.
+    
+    Returns:
+        dict: Mapping of descriptive keys to color representations:
+            - 'red_tuple': (255, 0, 0)
+            - 'red_hex': '#ff0000'
+            - 'red_css': 'rgb(255, 0, 0)'
+            - 'red_rgba': 'rgba(255, 0, 0, 1.0)'
+            - 'red_hsl': 'hsl(0, 100%, 50%)'
+            - 'red_hsla': 'hsla(0, 100%, 50%, 1.0)'
+    """
     return {
         'red_tuple': (255, 0, 0),
         'red_hex': '#ff0000',

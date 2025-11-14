@@ -20,8 +20,19 @@ def binary_search_lightness(
     large_text: bool = False,
 ) -> Optional[Tuple[int, int, int]]:
     """
-    Binary search on lightness component to find minimal change achieving target contrast
-    while keeping DeltaE <= threshold. O(log n) complexity vs O(n) brute force.
+    Finds a candidate text color by binary-searching the OKLCH lightness to meet a contrast target while keeping perceptual change within a DeltaE threshold.
+    
+    Attempts up to 20 binary-search steps over the text color's lightness (in OKLCH space) to produce an RGB color that (1) has a contrast ratio against the given background at or above `target_contrast` and (2) has DeltaE (CIEDE2000) from the original text color less than or equal to `delta_e_threshold`. Prefers candidates with lower DeltaE when multiple colors meet the contrast target.
+    
+    Parameters:
+        text_rgb (Tuple[int, int, int]): Original text color as an (R, G, B) tuple with values in 0–255.
+        bg_rgb (Tuple[int, int, int]): Background color as an (R, G, B) tuple with values in 0–255.
+        delta_e_threshold (float): Maximum allowed perceptual difference (CIEDE2000) from the original text color.
+        target_contrast (float): Required contrast ratio against the background (e.g., 7.0 for normal text).
+        large_text (bool): Reserved flag for large-text handling (not used by this routine).
+    
+    Returns:
+        Optional[Tuple[int, int, int]]: An (R, G, B) tuple (0–255) for the best-found candidate that satisfies constraints, or `None` if no valid candidate is found or an error occurs.
     """
     try:
         l, c, h = rgb_to_oklch_safe(text_rgb)
@@ -279,17 +290,29 @@ def generate_accessible_color(
 
 
 def check_and_fix_contrast(text, bg, large: bool = False, details: bool = False):
-    """Main function to check and fix contrast using optimized methods.
-
-     Args:
-        text: Text color (any valid format)
-        bg: Background color (any valid format)
-        large: True for large text (18pt+ or 14pt+ bold), False for normal text
-        details: If True, returns detailed report, else just (tuned_color, is_accessible)
-
+    """
+    Check and fix contrast between a text color and a background color, returning an accessible text color when possible.
+    
+    Parameters:
+        text: Text color in any valid input format (e.g., hex, rgb tuple, color string).
+        bg: Background color in any valid input format.
+        large (bool): True for large text (18pt or larger, or 14pt+ bold); False for normal text.
+        details (bool): If True, return a detailed report dictionary; if False, return a simple result tuple.
+    
     Returns:
-        details = False: (tuned_color, accessible with atleast 4.5)
-        details = True: a dict with detailed report
+        If details is False: (tuned_color, is_accessible)
+            tuned_color (str): The adjusted text color formatted as a string.
+            is_accessible (bool): True if the returned color meets the target WCAG contrast level, False otherwise.
+    
+        If details is True: dict with keys:
+            text: original input text color.
+            tuned_text: adjusted text color as a string (or original text if already accessible).
+            bg: original background color.
+            large: the large-text flag value.
+            wcag_level: one of "AAA", "AA", "AA Large", or "FAIL" describing compliance.
+            improvement_percentage: numeric percent improvement in contrast relative to the original.
+            status: True if accessible (wcag_level != "FAIL"), False otherwise.
+            message: human-readable summary of the outcome.
     """
 
 

@@ -2,7 +2,15 @@ from typing import Tuple
 # from .color_parser import parse_color_pair
 
 def rgb_to_linear(rgb_value: float) -> float:
-    """Convert RGB value to linear RGB for contrast calculation"""
+    """
+    Convert a single sRGB component (0–255) to its linearized RGB value used in luminance and contrast calculations.
+    
+    Parameters:
+        rgb_value (float): sRGB component value in the range 0 to 255.
+    
+    Returns:
+        float: Linearized RGB component in the range 0 to 1.
+    """
     normalized = rgb_value / 255.0
     if normalized <= 0.03928:
         return normalized / 12.92
@@ -55,8 +63,15 @@ def get_wcag_level(
     text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int], large: bool = False
 ) -> str:
     """
-    Check WCAG contrast level for given text and background colors.
-    Returns 'AAA', 'AA', or 'FAIL'.
+    Determine the WCAG contrast level for the given text and background colors.
+    
+    Parameters:
+        text_rgb (Tuple[int, int, int]): Text color as an RGB tuple with components 0–255.
+        bg_rgb (Tuple[int, int, int]): Background color as an RGB tuple with components 0–255.
+        large (bool): Whether the text is considered large (relaxes contrast thresholds).
+    
+    Returns:
+        str: 'AAA' if the pair meets the AAA threshold, 'AA' if it meets the AA threshold, 'FAIL' otherwise.
     """
     contrast_ratio = calculate_contrast_ratio(text_rgb, bg_rgb)
     return get_contrast_level(contrast_ratio, large)

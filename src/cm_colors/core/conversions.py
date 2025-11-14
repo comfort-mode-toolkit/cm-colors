@@ -294,7 +294,13 @@ def is_valid_rgb(rgb: Tuple[int, int, int]) -> bool:
 
 def is_valid_oklch(oklch: Tuple[float, float, float]) -> bool:
     """
-    Validate OKLCH values are within acceptable ranges
+    Check whether an OKLCH color tuple lies within expected component ranges.
+    
+    Parameters:
+        oklch (Tuple[float, float, float]): (L, C, H) where L is lightness, C is chroma, H is hue in degrees.
+    
+    Returns:
+        bool: `True` if L is between 0 and 1 (inclusive), C is greater than or equal to 0, and H is between 0 and 360 (inclusive); `False` otherwise.
     """
     L, C, H = oklch
 
@@ -533,15 +539,19 @@ def rgbint_to_string(rgb: Tuple[int, int, int]) -> str:
 
 def hsl_to_rgb(hsl_color):
     """
-    Converts an HSL color value to RGB.
-
+    Convert an HSL color to an RGB tuple.
+    
     Args:
-        hsl_color: An HSL color representation. This can be:
-                   - A tuple or list: (h, s, l) where h is in [0, 360), s and l are in [0, 1].
-                   - A CSS string: e.g., "hsl(120, 100%, 50%)" or "hsl(120 100% 50%)".
-
+        hsl_color: HSL color as either:
+            - A tuple/list (h, s, l) where h is in [0, 360), s and l are in [0, 1].
+            - A CSS-style string like "hsl(120, 100%, 50%)" or "hsl(120 100% 50%)".
+    
     Returns:
-        A tuple (r, g, b) with integer values in the range [0, 255].
+        A tuple (r, g, b) where each component is an int in the range 0–255.
+    
+    Raises:
+        ValueError: If the HSL values or string format are invalid or out of range.
+        TypeError: If the input type is unsupported.
     """
     if isinstance(hsl_color, str):
         # Parse CSS string
@@ -572,6 +582,17 @@ def hsl_to_rgb(hsl_color):
         r = g = b = l  # achromatic
     else:
         def hue_to_rgb_component(p, q, t):
+            """
+            Compute one RGB channel value from HSL interpolation for a given hue fraction.
+            
+            Parameters:
+                p (float): Lower helper value from HSL conversion (typically in 0–1).
+                q (float): Upper helper value from HSL conversion (typically in 0–1).
+                t (float): Hue fractional offset; values outside 0–1 will be wrapped into that range.
+            
+            Returns:
+                float: The RGB component value in the range 0–1.
+            """
             if t < 0: t += 1
             if t > 1: t -= 1
             if t < 1/6: return p + (q - p) * 6 * t
@@ -592,15 +613,19 @@ def hsl_to_rgb(hsl_color):
 
 def hsl_to_rgb(hsl_color):
     """
-    Converts an HSL color value to RGB.
-
-    Args:
-        hsl_color: An HSL color representation. This can be:
-                   - A tuple or list: (h, s, l) where h is in [0, 360), s and l are in [0, 1].
-                   - A CSS string: e.g., "hsl(120, 100%, 50%)" or "hsl(120 100% 50%)".
-
+    Convert an HSL color to an RGB tuple.
+    
+    Parameters:
+        hsl_color: HSL color as either:
+            - a (h, s, l) tuple/list where h is in [0, 360), s and l are in [0, 1], or
+            - a CSS-style string "hsl(h, s%, l%)" or "hsl(h s% l%)" (commas or spaces).
+    
     Returns:
-        A tuple (r, g, b) with integer values in the range [0, 255].
+        tuple: (r, g, b) where each component is an integer in the range 0–255.
+    
+    Raises:
+        ValueError: If the HSL values or string format are invalid or out of range.
+        TypeError: If hsl_color is not a supported type.
     """
     if isinstance(hsl_color, str):
         # Parse CSS string
@@ -639,6 +664,17 @@ def hsl_to_rgb(hsl_color):
         r = g = b = l  # achromatic
     else:
         def hue_to_rgb_component(p, q, t):
+            """
+            Compute one RGB channel value from HSL interpolation for a given hue fraction.
+            
+            Parameters:
+                p (float): Lower helper value from HSL conversion (typically in 0–1).
+                q (float): Upper helper value from HSL conversion (typically in 0–1).
+                t (float): Hue fractional offset; values outside 0–1 will be wrapped into that range.
+            
+            Returns:
+                float: The RGB component value in the range 0–1.
+            """
             if t < 0: t += 1
             if t > 1: t -= 1
             if t < 1/6: return p + (q - p) * 6 * t
@@ -659,16 +695,21 @@ def hsl_to_rgb(hsl_color):
 
 def hsla_to_rgb(hsla_color, background=None):
     """
-    Converts HSLA color to RGB, with alpha compositing if needed.
+    Convert an HSLA color to an RGB tuple, optionally compositing the result over a background.
     
-    Args:
-        hsla_color: HSLA color representation:
-                   - Tuple/list: (h, s, l, a) where h is [0,360), s/l are [0,1], a is [0,1]
-                   - CSS string: "hsla(120, 100%, 50%, 0.8)" or "hsla(120 100% 50% / 0.8)"
-        background: Background color for alpha compositing (defaults to white)
+    Parameters:
+        hsla_color (str | tuple | list): HSLA color in one of the following forms:
+            - Tuple/list (h, s, l, a) where h is in degrees (wraps mod 360), s and l are in [0, 1], and a is in [0, 1].
+            - CSS string "hsla(h, s%, l%, a)" or space/slash form "hsla(h s% l% / a)".
+        background (tuple | list, optional): RGB background (r, g, b) with each component in 0–255 used for alpha compositing.
+            If omitted, white (255, 255, 255) is used.
     
     Returns:
-        RGB tuple (r, g, b) with values [0, 255]
+        tuple: (r, g, b) with each component as an integer in 0–255 representing the composited RGB color.
+    
+    Raises:
+        TypeError: If hsla_color is not a string, tuple, or list.
+        ValueError: If hsla_color or background have an invalid format or values out of the expected ranges.
     """
     if isinstance(hsla_color, str):
         # Parse CSS string
@@ -735,14 +776,14 @@ def hsla_to_rgb(hsla_color, background=None):
 
 def rgb_to_hsla(rgb_tuple, alpha=1.0):
     """
-    Converts RGB tuple to HSLA CSS string.
+    Convert an RGB tuple to an HSLA CSS string.
     
-    Args:
-        rgb_tuple: RGB color as (r, g, b) tuple with values [0, 255]
-        alpha: Alpha value [0, 1] (defaults to 1.0)
+    Parameters:
+        rgb_tuple (tuple | list): (r, g, b) with each value 0–255.
+        alpha (float): Opacity value in [0, 1]. Defaults to 1.0.
     
     Returns:
-        HSLA CSS string: "hsla(h, s%, l%, a)"
+        str: HSLA CSS string in the form "hsla(h, s%, l%, a)" where `h` is degrees, `s` and `l` are percentages, and `a` is the given alpha.
     """
     if not isinstance(rgb_tuple, (tuple, list)) or len(rgb_tuple) != 3:
         raise ValueError("RGB must be a tuple/list of 3 values")

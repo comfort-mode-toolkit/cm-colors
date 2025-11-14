@@ -11,10 +11,17 @@ _NUM_RE = re.compile(r'[-+]?\d*\.?\d+%?')
 
 def _parse_number_token(tok: str, component: bool = True) -> float:
     """
-    Parse a numeric token which may be integer, float, or percent.
+    Parse a numeric token representing either an RGB component or an alpha value and convert it to the corresponding numeric range.
+    
+    Parameters:
+        tok (str): The numeric token to parse. May be an integer, float, scientific notation, or a percentage (ending with '%').
+        component (bool): If True, interpret the token as an RGB component; if False, interpret it as an alpha value.
+    
     Returns:
-      - for color components (component=True): a float in 0..255
-      - for alpha (component=False): a float in 0..1
+        float: If `component` is True, a value in the range 0.0–255.0. If `component` is False, a value in the range 0.0–1.0.
+    
+    Raises:
+        ValueError: If the token is not a valid number or percentage, or if the parsed value is out of the allowed range for the selected interpretation.
     """
     tok = tok.strip()
     if tok.endswith('%'):
@@ -52,19 +59,37 @@ def _parse_number_token(tok: str, component: bool = True) -> float:
         raise ValueError(f"Alpha value out of range: {v}")
 
 def _extract_number_tokens(s: str) -> list:
-    """Return list of numeric-like tokens from a string (keeps percent markers)."""
+    """
+    Extract numeric-like tokens from the input string, preserving trailing percent signs.
+    
+    Parameters:
+        s (str): String to scan for numeric tokens.
+    
+    Returns:
+        list[str]: Matched numeric token strings (including optional sign, decimal/exponent parts, and a trailing '%', if present).
+    """
     return _NUM_RE.findall(s)
 
 def parse_color_to_rgb(color: ColorInput, background: ColorInput | None = None) -> Tuple[int, int, int]:
     """
-    Universal parser: accepts hex, rgb(), rgba(), hsl(), hsla(), tuples/lists (3 or 4), 
-    informal "(r,g,b)" or "r,g,b", percentage components, and CSS named colors.
-
-    If the parsed color includes alpha (RGBA/HSLA), and `background` is provided (or omitted),
-    the function composites the color over `background` (defaults to white).
-
-    Returns: (r, g, b) ints
-    Raises: ValueError for invalid formats/values
+    Parse a color input and return an (r, g, b) RGB tuple.
+    
+    Supports hex (with or without '#'), CSS named colors, `rgb()`/`rgba()`, `hsl()`/`hsla()`,
+    3- or 4-element tuples/lists (interpreted as RGB/RGBA or HSL/HSLA by heuristics),
+    informal forms like "r,g,b" or "(r g b)", and numeric components expressed as integers,
+    floats, or percentages. If the parsed color includes alpha, the color is composited
+    over `background` (defaults to white).
+    
+    Parameters:
+        color: The input color to parse (string, tuple, or list).
+        background: Optional background color (same accepted formats) used when the
+            parsed color has an alpha channel; if omitted, white (255, 255, 255) is used.
+    
+    Returns:
+        Tuple[int, int, int]: RGB components as integers in the range 0–255.
+    
+    Raises:
+        ValueError: If the input format is unrecognized or contains invalid/out-of-range components.
     """
     # 1. Normalise tuple/list inputs first
     if isinstance(color, (tuple, list)):
