@@ -59,11 +59,12 @@ class Color:
         return rgb_to_oklch_safe(self._rgb)
 
 class ColorPair:
-    def __init__(self, text_color, bg_color):
+    def __init__(self, text_color, bg_color,large_text=False):
         # Parse background first for RGBA context
         self.bg = Color(bg_color)
         # Pass background context for RGBA compositing
         self.text = Color(text_color, background_context=self.bg)
+        self.large_text = large_text
     
     @property
     def is_valid(self) -> bool:
@@ -88,10 +89,10 @@ class ColorPair:
     def wcag_level(self) -> Optional[str]:
         if not self.is_valid:
             return None
-        return get_wcag_level(self.text.rgb, self.bg.rgb)
+        return get_wcag_level(self.text.rgb, self.bg.rgb,self.large_text)
     
     @property
-    def delta_e(self) -> Optional[int]:
+    def delta_e(self) -> Optional[float]:
         if not self.is_valid:
             return None
         return calculate_delta_e_2000(self.bg.rgb,self.text.rgb)

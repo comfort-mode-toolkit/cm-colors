@@ -183,7 +183,8 @@ class TestMockEdgeCases:
         with pytest.raises(ValueError, match="Optimization failed"):
             self.cm.tune_colors((128, 128, 128), (255, 255, 255))
     
-    @patch('cm_colors.core.contrast.calculate_contrast_ratio')
+    
+    @patch('cm_colors.core.colors.calculate_contrast_ratio')
     def test_contrast_ratio_edge_values(self, mock_calc):
         """Test contrast ratio with edge return values"""
         # Test minimum contrast
@@ -208,8 +209,3 @@ class TestMockEdgeCases:
 #         assert result == 10.0  # Should return mocked value, not real ~21 # TODO: Check why because it returns 21 not 10.0
         
 #     print("✅ Basic mock test passed!")
-
-
-if __name__ == "__main__":
-    # Run quick mock test if called directly
-    test_quick_mock()

@@ -136,7 +136,7 @@ class CMColors:
             wcag_level((255,0,0), (255,255,255))             # tuples
             wcag_level("red", "rgb(255,255,255)")            # mixed formats
         """
-        pair = ColorPair(text_color, bg_color)
+        pair = ColorPair(text_color, bg_color,large_text)
         
         if not pair.is_valid:
             error_msgs = ", ".join(pair.errors)
