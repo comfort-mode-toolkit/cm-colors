@@ -204,7 +204,13 @@ def parse_color_to_rgb(
         # HSL/HSLA functional notation
         if s_lower.startswith('hsl(') or s_lower.startswith('hsla('):
             if s_lower.startswith('hsla('):
-                return hsla_to_rgb(s, background)
+                bg_rgb = None
+                if background is not None:
+                    if isinstance(background, (tuple, list)) and len(background) == 3:
+                        bg_rgb = tuple(background)
+                    else:
+                        bg_rgb = parse_color_to_rgb(background)
+                return hsla_to_rgb(s, bg_rgb)
             else:
                 # HSL without alpha
                 return hsl_to_rgb(s)

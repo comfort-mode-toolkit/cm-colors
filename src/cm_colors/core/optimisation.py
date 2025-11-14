@@ -327,7 +327,8 @@ def check_and_fix_contrast(
     Raises:
         ValueError: if `text` or `bg` cannot be parsed as valid colors.
     """
-
+    # SHOULD NEVER BE CALLED STANDALONE. CALL ONLY THROUGH ColorPair Class
+    # Assumes the inputs are passed through ColorPair's _rgb method only after parsing
     # Validaton just to double check - the function is only called through ColorPair which already validates
 
     text_color = Color(text)

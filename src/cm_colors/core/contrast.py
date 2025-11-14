@@ -79,14 +79,3 @@ def get_wcag_level(
     """
     contrast_ratio = calculate_contrast_ratio(text_rgb, bg_rgb)
     return get_contrast_level(contrast_ratio, large)
-
-
-# def check_and_fix_contrast(text_color, bg_color, min_ratio=4.5):
-#     """
-#     Checks and (optionally) adjusts text color to meet minimum contrast ratio.
-#     Returns a tuple: (final_text_rgb, bg_rgb, ratio)
-#     """
-#     text_rgb, bg_rgb = parse_color_pair(text_color, bg_color)
-#     ratio = calculate_contrast_ratio(text_rgb, bg_rgb)
-#     # Optionally, you could adjust text_rgb here if ratio < min_ratio
-#     return text_rgb, bg_rgb, ratio
