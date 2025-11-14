@@ -1,5 +1,5 @@
 from typing import Tuple
-from .conversions import parse_color_pair
+# from .color_parser import parse_color_pair
 
 def rgb_to_linear(rgb_value: float) -> float:
     """Convert RGB value to linear RGB for contrast calculation"""
@@ -62,12 +62,12 @@ def get_wcag_level(
     return get_contrast_level(contrast_ratio, large)
 
 
-def check_and_fix_contrast(text_color, bg_color, min_ratio=4.5):
-    """
-    Checks and (optionally) adjusts text color to meet minimum contrast ratio.
-    Returns a tuple: (final_text_rgb, bg_rgb, ratio)
-    """
-    text_rgb, bg_rgb = parse_color_pair(text_color, bg_color)
-    ratio = calculate_contrast_ratio(text_rgb, bg_rgb)
-    # Optionally, you could adjust text_rgb here if ratio < min_ratio
-    return text_rgb, bg_rgb, ratio
+# def check_and_fix_contrast(text_color, bg_color, min_ratio=4.5):
+#     """
+#     Checks and (optionally) adjusts text color to meet minimum contrast ratio.
+#     Returns a tuple: (final_text_rgb, bg_rgb, ratio)
+#     """
+#     text_rgb, bg_rgb = parse_color_pair(text_color, bg_color)
+#     ratio = calculate_contrast_ratio(text_rgb, bg_rgb)
+#     # Optionally, you could adjust text_rgb here if ratio < min_ratio
+#     return text_rgb, bg_rgb, ratio

@@ -19,22 +19,22 @@ Ideal for students. web developers, designers, and for anyone who ever had to pi
 License: GNU General Public License v3.0
 """
 
-from typing import Tuple, Optional
+from typing import Tuple
 
 from cm_colors.core.color_metrics import (
     rgb_to_lab,
-    calculate_delta_e_2000,
 )
 
 from cm_colors.core.conversions import (
     rgb_to_oklch_safe,
     oklch_to_rgb_safe,
     is_valid_rgb,
-    is_valid_oklch,
-    parse_color_to_rgb,
+    is_valid_oklch
 )
 
-from cm_colors.core.contrast import calculate_contrast_ratio, get_wcag_level
+from cm_colors.core.colors import Color,ColorPair
+
+from cm_colors.core.color_parser import parse_color_to_rgb
 
 from cm_colors.core.optimisation import check_and_fix_contrast
 
@@ -88,43 +88,61 @@ class CMColors:
 
         return check_and_fix_contrast(text_rgb, bg_rgb, large_text, details)
 
-    def contrast_ratio(
-        self, text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int]
-    ) -> float:
+    def contrast_ratio(self, text_color, bg_color) -> float:
         """
-        Calculates the WCAG contrast ratio between two RGB colors.
+        Calculates the WCAG contrast ratio between two colors.
+        
+        Now accepts any color format: hex, rgb(), rgba(), tuples, named colors, etc.
 
         Args:
-            text_rgb (Tuple[int, int, int]): The RGB tuple for the text color (R, G, B).
-            bg_rgb (Tuple[int, int, int]): The RGB tuple for the background color (R, G, B).
+            text_color: Text color (hex, rgb string, rgba string, tuple, named color, etc.)
+            bg_color: Background color (any supported format)
 
         Returns:
             float: The calculated contrast ratio.
+            
+        Raises:
+            ValueError: If either color cannot be parsed.
         """
-        if not (is_valid_rgb(text_rgb) and is_valid_rgb(bg_rgb)):
-            raise ValueError(
-                "Invalid RGB values provided. Each component must be between 0 and 255."
-            )
-        return calculate_contrast_ratio(text_rgb, bg_rgb)
+        pair = ColorPair(text_color, bg_color)
+        
+        if not pair.is_valid:
+            error_msgs = ", ".join(pair.errors)
+            raise ValueError(f"Invalid color input(s): {error_msgs}")
+        
+        return pair.contrast_ratio
 
-    def wcag_level(
-        self,
-        text_rgb: Tuple[int, int, int],
-        bg_rgb: Tuple[int, int, int],
-        large_text: bool = False,
-    ) -> str:
+    def wcag_level(self, text_color, bg_color, large_text: bool = False) -> str:
         """
-        Determines the WCAG contrast level (AAA, AA, FAIL) based on the color pair and whether the text is considered 'large'.
+        Determines the WCAG contrast level (AAA, AA, FAIL) based on the color pair and text size.
+        
+        Now accepts any color format: hex, rgb(), rgba(), tuples, named colors, etc.
+        RGBA colors are automatically composited over backgrounds.
 
         Args:
-            text_rgb (Tuple[int, int, int]): The RGB tuple for the text color (R, G, B).
-            bg_rgb (Tuple[int, int, int]): The RGB tuple for the background color (R, G, B).
-            large_text (bool): True if the text is considered large (18pt or 14pt bold), False otherwise (default).
+            text_color: Text color in any supported format (hex, rgb/rgba strings, tuples, named colors)
+            bg_color: Background color in any supported format  
+            large_text (bool): True if text is large (18pt+ or 14pt+ bold), False otherwise
 
         Returns:
-            str: The WCAG compliance level ("AAA", "AA", or "FAIL").
+            str: WCAG compliance level ("AAA", "AA", or "FAIL")
+            
+        Raises:
+            ValueError: If either color cannot be parsed
+            
+        Examples:
+            wcag_level("#ff0000", "white")                    # hex + named
+            wcag_level("rgba(255,0,0,0.8)", "#ffffff")       # rgba with auto-compositing  
+            wcag_level((255,0,0), (255,255,255))             # tuples
+            wcag_level("red", "rgb(255,255,255)")            # mixed formats
         """
-        return get_wcag_level(text_rgb, bg_rgb, large_text)
+        pair = ColorPair(text_color, bg_color)
+        
+        if not pair.is_valid:
+            error_msgs = ", ".join(pair.errors)
+            raise ValueError(f"Cannot determine WCAG level - invalid color input(s): {error_msgs}")
+        
+        return pair.wcag_level
 
     def rgb_to_oklch(self, rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
         """
@@ -176,24 +194,27 @@ class CMColors:
             )
         return rgb_to_lab(rgb)
 
-    def delta_e(self, rgb1: Tuple[int, int, int], rgb2: Tuple[int, int, int]) -> float:
+    def delta_e(self, color1,color2) -> float:
         """
         Calculates the Delta E 2000 color difference between two RGB colors.
         Delta E 2000 is a perceptually uniform measure of color difference.
 
         Args:
-            rgb1 (Tuple[int, int, int]): The first RGB color.
-            rgb2 (Tuple[int, int, int]): The second RGB color.
+            color1: Text color (hex, rgb string, rgba string, tuple, named color, etc.)
+            color2: Background color (any supported format)
 
         Returns:
             float: The Delta E 2000 value. A value less than 2.3 is generally
-                   considered imperceptible to the average human eye.
+                considered imperceptible to the average human eye.
         """
-        if not (is_valid_rgb(rgb1) and is_valid_rgb(rgb2)):
-            raise ValueError(
-                "Invalid RGB values provided. Each component must be between 0 and 255."
-            )
-        return calculate_delta_e_2000(rgb1, rgb2)
+
+        pair = ColorPair(color1, color2)
+        
+        if not pair.is_valid:
+            error_msgs = ", ".join(pair.errors)
+            raise ValueError(f"Invalid color input(s): {error_msgs}")
+        
+        return pair.delta_e
 
     def parse_to_rgb(self, color: str) -> Tuple[int, int, int]:
         """

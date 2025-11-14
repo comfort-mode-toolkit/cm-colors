@@ -1,94 +1,118 @@
-from cm_colors.core.conversions import (
-    rgb_to_oklch_safe,
-    oklch_to_rgb_safe,
-    is_valid_rgb,
-    parse_color_to_rgb,
-    rgbint_to_string,
-)
+# colors.py
+from typing import Tuple, Optional, Union
+from .color_parser import parse_color_to_rgb
+from .contrast import calculate_contrast_ratio, get_wcag_level
+from .conversions import rgbint_to_string,rgb_to_oklch_safe
+from .color_metrics import calculate_delta_e_2000
 
-from cm_colors.core.contrast import calculate_contrast_ratio, get_wcag_level
-
-from collections import state #ik this is not the right import but i forgot the right name so, fix this
-
-from optimisation import check_and_fix_contrast
-
-    
 class Color:
-    def __init__(self,color,type=None,background_context=None):
-        self.original_color = color
-        self.color = None
-        self.type=type
-        self.background_context = None
+    def __init__(self, color_input: Union[str, tuple, list], background_context: Optional['Color'] = None):
+        self.original = color_input
+        self.background_context = background_context
+        self._rgb = None
+        self._error = None
+        self._parsed = False
 
-        @state
-        def color(self):
-            # if background context is given, aka the bg color ( of Color class ), use it to blend for rgba to rgb
-            # parse function that handles rgba ( from pr #11 ), rgb, hex, namedcolor in string / css string / tuple / list
-            pass
-
-        def to_hex(self):
-            # returns string of format '#______' - css style
-            pass
-        
-        def to_rgb(self):
-            # returns string of format 'rgb(xx,xx,xx)' - css style
-            return f'rgb({self.color[0]},{self.color[1]},{self.color[2]})'
-
-        def to_oklch(self):
-            # returns string of format 'oklch(??)' - css style
-            pass
-
+        self._parse()
+    
+    def _parse(self) -> None:
+        if self._parsed:
+            return
+            
+        try:
+            bg_rgb = None
+            if self.background_context and self.background_context.is_valid:
+                bg_rgb = self.background_context.rgb
+            
+            self._rgb = parse_color_to_rgb(self.original, background=bg_rgb)
+            self._parsed = True
+        except ValueError as e:
+            self._error = str(e)
+            self._parsed = True
+    
+    @property
+    def is_valid(self) -> bool:
+        return self._rgb is not None
+    
+    @property
+    def rgb(self) -> Optional[Tuple[int, int, int]]:
+        return self._rgb
+    
+    @property
+    def error(self) -> Optional[str]:
+        return self._error
+    
+    def to_hex(self) -> Optional[str]:
+        if not self.is_valid:
+            return None
+        r, g, b = self.rgb
+        return f"#{r:02x}{g:02x}{b:02x}"
+    
+    def to_rgb_string(self) -> Optional[str]:
+        if not self.is_valid:
+            return None
+        return rgbint_to_string(self.rgb)
+    
+    def to_oklch(self):
+        if not self.is_valid:
+            return None
+        return rgb_to_oklch_safe(self._rgb)
 
 class ColorPair:
-    def __init__(self,text_color,bg_color,large_text=False):
-        self.bg = Color(bg_color,'bg')
-        self.text = Color(text_color,'text',background_context=self.bg)
-        self.large_text = large_text
-        self.contrast = None
-        self.a11y = None
-
-    @state
-    def contrast(self):
-        return calculate_contrast_ratio(self.bg.color,self.text.color)
+    def __init__(self, text_color, bg_color):
+        # Parse background first for RGBA context
+        self.bg = Color(bg_color)
+        # Pass background context for RGBA compositing
+        self.text = Color(text_color, background_context=self.bg)
     
-    @state
-    def a11y(self):
-        return get_wcag_level(self.bg.color,self.text.color,self.large_text)
-
+    @property
+    def is_valid(self) -> bool:
+        return self.text.is_valid and self.bg.is_valid
     
-"""final main func format would be like
-def tune_color(text_color,bg_color,large_text=False,details=False):
-    color_pair = ColorPair(text_color,bg_color,large_text)
-    tuned_text,is_accessible = check_and_fix_contrast(ColorPair,details=details)
+    @property
+    def errors(self) -> list[str]:
+        errors = []
+        if not self.text.is_valid:
+            errors.append(f"Text: {self.text.error}")
+        if not self.bg.is_valid:
+            errors.append(f"Background: {self.bg.error}")
+        return errors
+    
+    @property
+    def contrast_ratio(self) -> Optional[float]:
+        if not self.is_valid:
+            return None
+        return calculate_contrast_ratio(self.text.rgb, self.bg.rgb)
+    
+    @property
+    def wcag_level(self) -> Optional[str]:
+        if not self.is_valid:
+            return None
+        return get_wcag_level(self.text.rgb, self.bg.rgb)
+    
+    @property
+    def delta_e(self) -> Optional[int]:
+        if not self.is_valid:
+            return None
+        return calculate_delta_e_2000(self.bg.rgb,self.text.rgb)
 
-    if is_accessible:
-        # return the tuned_text,bg ColorPair
-    else:
-        notify it's not accessible even with tuning, please pick better starting color or smth like this ( return value not yet fixed !! Choose the best )
-
-    # main point is to make sure it is both usable for single ColorPair like manual library usage but also for bulk through a cli
-    so that it isn't a mess or huge list of this accessible this not, we need to be as minimal as 'black .'
-
-    We need to break down so that errors are caught well so is feedback 
-    1. Parse the colors to rgb and store, else throw error
-    2. Tune colors
-    3. return is_accessible, tuned_text
-
-    we need to ensure that if we were to bulk call this tune_color() func, it's easily readable through a cli too without the code breaking at single error
-
-    rather cli would somehow should be able to handle this like:
-
-    hello I am color cheetah, tuning your colors to make it more readable ( if not already )
-    x color pairs found
-    great job x-y pairs are accessible already
-    tuning the y pairs to see if we can make it accessible.....
-    y-z pairs are now accessible after tuning!!
-    unfortunately, tunign didnt fix contrast for z pairs, here are those
-    ... text_color,bg_color ( found under .blabla css class )
-    please try picking better starting colors
-    x found, x-a pairs are now accessible, please pick better starting colors for a pairs 
-    Great job!!
-
-
-
-"""
+    def tune_colors(self, large_text: bool = False, details: bool = False):
+        """
+        Tune colors to fix contrast using the algorithm
+        """
+        if not self.is_valid:
+            if details:
+                return {
+                    "status": False,
+                    "message": f"Invalid color pair: {', '.join(self.errors)}"
+                }
+            return None, False
+        
+        # Use your existing optimized function
+        from .optimisation import check_and_fix_contrast
+        return check_and_fix_contrast(
+            self.text._rgb, 
+            self.bg._rgb, 
+            large_text, 
+            details
+        )

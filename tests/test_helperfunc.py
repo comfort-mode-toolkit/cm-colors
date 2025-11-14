@@ -25,7 +25,6 @@ try:
         is_valid_oklch,
         rgb_to_oklch_safe,
         oklch_to_rgb_safe,
-        parse_color_to_rgb,
         rgbint_to_string
     )
     from cm_colors.core.color_metrics import (
@@ -37,6 +36,9 @@ try:
         binary_search_lightness,
         gradient_descent_oklch
     )
+
+    from cm_colors.core.color_parser import parse_color_to_rgb
+
 
 except ImportError as e:
     print(f"Import error: {e}")

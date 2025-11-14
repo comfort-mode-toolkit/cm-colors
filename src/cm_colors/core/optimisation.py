@@ -3,12 +3,14 @@ from cm_colors.core.conversions import (
     rgb_to_oklch_safe,
     oklch_to_rgb_safe,
     is_valid_rgb,
-    parse_color_to_rgb,
     rgbint_to_string,
 )
+from cm_colors.core.color_parser import parse_color_to_rgb
+
 from cm_colors.core.contrast import calculate_contrast_ratio, get_wcag_level
 from cm_colors.core.color_metrics import calculate_delta_e_2000
 
+from cm_colors.core.colors import ColorPair
 
 def binary_search_lightness(
     text_rgb: Tuple[int, int, int],
@@ -280,8 +282,8 @@ def check_and_fix_contrast(text, bg, large: bool = False, details: bool = False)
     """Main function to check and fix contrast using optimized methods.
 
      Args:
-        text: Text color (any valid hex, rgb string or rgb tuple)
-        bg: Background color (any valid hex, rgb string or rgb tuple)
+        text: Text color (any valid format)
+        bg: Background color (any valid format)
         large: True for large text (18pt+ or 14pt+ bold), False for normal text
         details: If True, returns detailed report, else just (tuned_color, is_accessible)
 
@@ -290,15 +292,8 @@ def check_and_fix_contrast(text, bg, large: bool = False, details: bool = False)
         details = True: a dict with detailed report
     """
 
-    text_rgb = parse_color_to_rgb(text)
-    bg_rgb = parse_color_to_rgb(bg)
 
-    if not (is_valid_rgb(text_rgb) and is_valid_rgb(bg_rgb)):
-        raise ValueError(
-            "Invalid RGB values provided. Each component must be between 0 and 255."
-        )
-
-    current_contrast = calculate_contrast_ratio(text_rgb, bg_rgb)
+    current_contrast = calculate_contrast_ratio(text, bg)
     target_contrast = 4.5 if large else 7.0
 
     if current_contrast >= target_contrast:
@@ -318,10 +313,10 @@ def check_and_fix_contrast(text, bg, large: bool = False, details: bool = False)
                 ),
             }
 
-    accessible_text = generate_accessible_color(text_rgb, bg_rgb, large)
-    wcag_level = get_wcag_level(accessible_text, bg_rgb)
+    accessible_text = generate_accessible_color(text, bg, large)
+    wcag_level = get_wcag_level(accessible_text, bg)
 
-    new_contrast = calculate_contrast_ratio(accessible_text, bg_rgb)
+    new_contrast = calculate_contrast_ratio(accessible_text, bg)
     improvement_percentage = round(
         (((new_contrast - current_contrast) / current_contrast) * 100), 2
     )
