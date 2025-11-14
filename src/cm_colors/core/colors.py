@@ -68,7 +68,7 @@ class Color:
         Return the parsing error message for the color, if any.
         
         Returns:
-            The error message produced while parsing the original input, or `None` if parsing succeeded.
+            Optional[str]: The error message produced while parsing the original input, or `None` if parsing succeeded.
         """
         return self._error
     
