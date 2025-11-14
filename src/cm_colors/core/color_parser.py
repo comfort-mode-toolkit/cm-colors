@@ -175,8 +175,13 @@ def parse_color_to_rgb(
                     bg_rgb = parse_color_to_rgb(background)
                 return rgba_to_rgb((r, g, b, a), background=bg_rgb)
             else:
-                # Treat as HSLA
-                return hsla_to_rgb(color, background)
+                bg_rgb = None
+                if background is not None:
+                    if isinstance(background, (tuple, list)) and len(background) == 3:
+                        bg_rgb = tuple(background)
+                    else:
+                        bg_rgb = parse_color_to_rgb(background)
+                return hsla_to_rgb(color, bg_rgb)
         else:
             raise ValueError(
                 f'Tuple/list color must have length 3 (RGB/HSL) or 4 (RGBA/HSLA). Got length {ln}'
