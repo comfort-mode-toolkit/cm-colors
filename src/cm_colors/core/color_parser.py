@@ -80,7 +80,7 @@ def _extract_number_tokens(s: str) -> list:
 
 
 def parse_color_to_rgb(
-    color: ColorInput, background:Optional[ColorInput]
+    color: ColorInput, background: ColorInput | None = None
 ) -> Tuple[int, int, int]:
     """
     Parse a color specification and return its RGB representation.
