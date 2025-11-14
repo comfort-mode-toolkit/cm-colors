@@ -20,8 +20,17 @@ def binary_search_lightness(
     large_text: bool = False,
 ) -> Optional[Tuple[int, int, int]]:
     """
-    Binary search on lightness component to find minimal change achieving target contrast
-    while keeping DeltaE <= threshold. O(log n) complexity vs O(n) brute force.
+    Search the Oklch lightness of a text color to find a candidate RGB that meets a contrast target while keeping perceptual change within a DeltaE threshold.
+    
+    Parameters:
+        text_rgb (Tuple[int, int, int]): Original text color as an (R, G, B) tuple with 0–255 components.
+        bg_rgb (Tuple[int, int, int]): Background color as an (R, G, B) tuple with 0–255 components.
+        delta_e_threshold (float): Maximum allowed CIEDE2000 distance between the original text color and a candidate (default 2.0).
+        target_contrast (float): Desired contrast ratio between candidate text and background (default 7.0).
+        large_text (bool): Ignored by this routine but kept for API compatibility; no effect on search behavior (default False).
+    
+    Returns:
+        Optional[Tuple[int, int, int]]: An (R, G, B) tuple for a candidate text color that meets the constraints, or `None` if no suitable candidate is found or an error occurs.
     """
     try:
         l, c, h = rgb_to_oklch_safe(text_rgb)
@@ -279,17 +288,31 @@ def generate_accessible_color(
 
 
 def check_and_fix_contrast(text, bg, large: bool = False, details: bool = False):
-    """Main function to check and fix contrast using optimized methods.
-
-     Args:
-        text: Text color (any valid format)
-        bg: Background color (any valid format)
-        large: True for large text (18pt+ or 14pt+ bold), False for normal text
-        details: If True, returns detailed report, else just (tuned_color, is_accessible)
-
+    """
+    Verify and, if necessary, adjust a text/background color pair so it meets WCAG contrast requirements.
+    
+    Parameters:
+        text: Text color in any parseable format.
+        bg: Background color in any parseable format.
+        large (bool): True to use the large-text WCAG threshold, False to use the normal-text threshold.
+        details (bool): If False, return a simple result tuple; if True, return a detailed report dictionary.
+    
     Returns:
-        details = False: (tuned_color, accessible with atleast 4.5)
-        details = True: a dict with detailed report
+        If details is False: (tuned_color, is_accessible)
+            tuned_color (str): The resulting text color as an RGB string (may be the original input if already acceptable).
+            is_accessible (bool): True if tuned_color meets the WCAG contrast requirement for the given `large` flag, False otherwise.
+        If details is True: dict containing:
+            - text: original text color input
+            - tuned_text: resulting text color as an RGB string
+            - bg: original background color input
+            - large: the `large` flag value used
+            - wcag_level: resulting WCAG level string (e.g., "AAA", "AA", "FAIL")
+            - improvement_percentage: percent improvement in contrast relative to the original color
+            - status: True if tuned_text meets at least the minimum WCAG level, False otherwise
+            - message: human-readable outcome message
+    
+    Raises:
+        ValueError: if `text` or `bg` cannot be parsed as valid colors.
     """
 
     # Validaton just to double check - the function is only called through ColorPair which already validates

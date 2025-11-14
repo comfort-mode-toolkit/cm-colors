@@ -63,7 +63,11 @@ class TestColorParser:
             pytest.skip("Named colors not available in test environment")
     
     def test_rgb_css_strings(self):
-        """Test RGB CSS function strings"""
+        """
+        Verify parsing of CSS `rgb()` strings with varied spacing and formatting.
+        
+        Asserts that standard `rgb(255, 0, 0)`, compact `rgb(0,255,0)`, and forms with extra spaces `rgb( 0 , 255 , 0 )` are parsed to the expected RGB tuples.
+        """
         assert parse_color_to_rgb("rgb(255, 0, 0)") == (255, 0, 0)
         assert parse_color_to_rgb("rgb(0,255,0)") == (0, 255, 0)  # no spaces
         assert parse_color_to_rgb("rgb( 0 , 255 , 0 )") == (0, 255, 0)  # extra spaces
@@ -101,7 +105,9 @@ class TestColorParser:
     # ===== EDGE CASES AND ERROR HANDLING =====
     
     def test_invalid_tuple_lengths(self):
-        """Test invalid tuple/list lengths"""
+        """
+        Verify that tuple or list color inputs whose length is not 3 or 4 raise a ValueError with a message indicating the required lengths.
+        """
         with pytest.raises(ValueError, match="must have length 3.*or 4"):
             parse_color_to_rgb((255,))
         
@@ -193,7 +199,11 @@ class TestColorParser:
         a=st.floats(0.0, 1.0)
     )
     def test_valid_rgba_tuples_property(self, r, g, b, a):
-        """Property test: valid RGBA tuples should produce valid RGB"""
+        """
+        Property test that parsing an RGBA tuple produces a valid 3-channel RGB tuple.
+        
+        Avoids the degenerate case where r, g, b are all 0 and alpha is 0; asserts the parsed result is a valid RGB triple of length 3.
+        """
         assume(not (r == g == b == 0 and a == 0))  # avoid edge case
         
         result = parse_color_to_rgb((r, g, b, a))
@@ -291,7 +301,18 @@ class TestColorParser:
 
 @pytest.fixture
 def sample_colors():
-    """Fixture providing sample valid colors in different formats"""
+    """
+    Provide a mapping of sample red color representations in multiple formats for tests.
+    
+    Returns:
+        dict: Mapping of sample names to color representations. Keys:
+            - 'red_tuple': (255, 0, 0)
+            - 'red_hex': '#ff0000'
+            - 'red_css': 'rgb(255, 0, 0)'
+            - 'red_rgba': 'rgba(255, 0, 0, 1.0)'
+            - 'red_hsl': 'hsl(0, 100%, 50%)'
+            - 'red_hsla': 'hsla(0, 100%, 50%, 1.0)'
+    """
     return {
         'red_tuple': (255, 0, 0),
         'red_hex': '#ff0000',
