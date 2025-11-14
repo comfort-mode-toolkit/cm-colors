@@ -12,6 +12,7 @@ from cm_colors.core.color_metrics import calculate_delta_e_2000
 
 from cm_colors.core.colors import Color
 
+
 def binary_search_lightness(
     text_rgb: Tuple[int, int, int],
     bg_rgb: Tuple[int, int, int],
@@ -21,14 +22,14 @@ def binary_search_lightness(
 ) -> Optional[Tuple[int, int, int]]:
     """
     Search the Oklch lightness of a text color to find a candidate RGB that meets a contrast target while keeping perceptual change within a DeltaE threshold.
-    
+
     Parameters:
         text_rgb (Tuple[int, int, int]): Original text color as an (R, G, B) tuple with 0–255 components.
         bg_rgb (Tuple[int, int, int]): Background color as an (R, G, B) tuple with 0–255 components.
         delta_e_threshold (float): Maximum allowed CIEDE2000 distance between the original text color and a candidate (default 2.0).
         target_contrast (float): Desired contrast ratio between candidate text and background (default 7.0).
         large_text (bool): Ignored by this routine but kept for API compatibility; no effect on search behavior (default False).
-    
+
     Returns:
         Optional[Tuple[int, int, int]]: An (R, G, B) tuple for a candidate text color that meets the constraints, or `None` if no suitable candidate is found or an error occurs.
     """
@@ -44,7 +45,7 @@ def binary_search_lightness(
         high = 1.0 if search_up else l
 
         best_rgb = None
-        best_delta_e = float("inf")
+        best_delta_e = float('inf')
         best_contrast = 0.0
 
         # Precision-matched binary search (20 iterations = ~1M precision)
@@ -194,7 +195,10 @@ def gradient_descent_oklch(
             final_contrast = calculate_contrast_ratio(final_rgb, bg_rgb)
 
             # Strict validation matching brute force standards
-            if final_delta_e <= delta_e_threshold and final_contrast >= target_contrast:
+            if (
+                final_delta_e <= delta_e_threshold
+                and final_contrast >= target_contrast
+            ):
                 return final_rgb
 
         return None
@@ -204,7 +208,9 @@ def gradient_descent_oklch(
 
 
 def generate_accessible_color(
-    text_rgb: Tuple[int, int, int], bg_rgb: Tuple[int, int, int], large: bool = False
+    text_rgb: Tuple[int, int, int],
+    bg_rgb: Tuple[int, int, int],
+    large: bool = False,
 ) -> Tuple[int, int, int]:
     """
     Main optimization function: Binary search first, then gradient descent.
@@ -241,7 +247,7 @@ def generate_accessible_color(
 
     best_candidate = None
     best_contrast = current_contrast
-    best_delta_e = float("inf")
+    best_delta_e = float('inf')
 
     for max_delta_e in delta_e_sequence:
         # Phase 1: Binary search on lightness (fastest, most effective)
@@ -274,29 +280,36 @@ def generate_accessible_color(
                 return gradient_result
 
             if result_contrast > best_contrast or (
-                result_contrast == best_contrast and result_delta_e < best_delta_e
+                result_contrast == best_contrast
+                and result_delta_e < best_delta_e
             ):
                 best_contrast = result_contrast
                 best_candidate = gradient_result
                 best_delta_e = result_delta_e
 
         # Early termination with strict DeltaE (matching brute force logic)
-        if best_candidate and best_contrast >= min_contrast and max_delta_e <= 2.5:
+        if (
+            best_candidate
+            and best_contrast >= min_contrast
+            and max_delta_e <= 2.5
+        ):
             return best_candidate
 
     return best_candidate if best_candidate else text_rgb
 
 
-def check_and_fix_contrast(text, bg, large: bool = False, details: bool = False):
+def check_and_fix_contrast(
+    text, bg, large: bool = False, details: bool = False
+):
     """
     Verify and, if necessary, adjust a text/background color pair so it meets WCAG contrast requirements.
-    
+
     Parameters:
         text: Text color in any parseable format.
         bg: Background color in any parseable format.
         large (bool): True to use the large-text WCAG threshold, False to use the normal-text threshold.
         details (bool): If False, return a simple result tuple; if True, return a detailed report dictionary.
-    
+
     Returns:
         If details is False: (tuned_color, is_accessible)
             tuned_color (str): The resulting text color as an RGB string (may be the original input if already acceptable).
@@ -310,7 +323,7 @@ def check_and_fix_contrast(text, bg, large: bool = False, details: bool = False)
             - improvement_percentage: percent improvement in contrast relative to the original color
             - status: True if tuned_text meets at least the minimum WCAG level, False otherwise
             - message: human-readable outcome message
-    
+
     Raises:
         ValueError: if `text` or `bg` cannot be parsed as valid colors.
     """
@@ -319,12 +332,11 @@ def check_and_fix_contrast(text, bg, large: bool = False, details: bool = False)
 
     text_color = Color(text)
     bg_color = Color(bg)
-    
-    if not text_color.is_valid:
-        raise ValueError(f"Invalid text color: {text_color.error}")
-    if not bg_color.is_valid:
-        raise ValueError(f"Invalid background color: {bg_color.error}")
 
+    if not text_color.is_valid:
+        raise ValueError(f'Invalid text color: {text_color.error}')
+    if not bg_color.is_valid:
+        raise ValueError(f'Invalid background color: {bg_color.error}')
 
     current_contrast = calculate_contrast_ratio(text, bg)
     target_contrast = 4.5 if large else 7.0
@@ -334,14 +346,14 @@ def check_and_fix_contrast(text, bg, large: bool = False, details: bool = False)
             return text, True
         else:
             return {
-                "text": text,
-                "tuned_text": text,
-                "bg": bg,
-                "large": large,
-                "wcag_level": "AAA",
-                "improvement_percentage": 0,
-                "status": True,
-                "message": "Perfect! Your pair is already accessible with a contrast ratio of {:.2f}.".format(
+                'text': text,
+                'tuned_text': text,
+                'bg': bg,
+                'large': large,
+                'wcag_level': 'AAA',
+                'improvement_percentage': 0,
+                'status': True,
+                'message': 'Perfect! Your pair is already accessible with a contrast ratio of {:.2f}.'.format(
                     current_contrast
                 ),
             }
@@ -356,19 +368,19 @@ def check_and_fix_contrast(text, bg, large: bool = False, details: bool = False)
     accessible_text = rgbint_to_string(accessible_text)
 
     if not details:
-        return accessible_text, True if wcag_level != "FAIL" else False
+        return accessible_text, True if wcag_level != 'FAIL' else False
     else:
-        if wcag_level == "FAIL":
-            message = f"Please choose a different color, your pair is not accessible with a contrast ratio of {new_contrast:.2f}."
+        if wcag_level == 'FAIL':
+            message = f'Please choose a different color, your pair is not accessible with a contrast ratio of {new_contrast:.2f}.'
         else:
-            message = f"Your pair was not accessible, but now it is {wcag_level} compliant with a contrast ratio of {new_contrast:.2f}."
+            message = f'Your pair was not accessible, but now it is {wcag_level} compliant with a contrast ratio of {new_contrast:.2f}.'
         return {
-            "text": text,
-            "tuned_text": accessible_text,
-            "bg": bg,
-            "large": large,
-            "wcag_level": wcag_level,
-            "improvement_percentage": improvement_percentage,
-            "status": True if wcag_level != "FAIL" else False,
-            "message": message,
+            'text': text,
+            'tuned_text': accessible_text,
+            'bg': bg,
+            'large': large,
+            'wcag_level': wcag_level,
+            'improvement_percentage': improvement_percentage,
+            'status': True if wcag_level != 'FAIL' else False,
+            'message': message,
         }
