@@ -13,6 +13,20 @@ Ever picked perfect colors for your portfolio website, only to have someone tell
 
 **The Solution**: CM-Colors takes your beautiful color choices and makes tiny, barely-noticeable tweaks so everyone can read your content. We're talking changes so small you won't even notice them, but your accessibility score will love you.
 
+## What's New in v0.2.0 ✨
+
+**Universal Color Support**: Use any color format you're comfortable with - hex codes, RGB/RGBA, HSL/HSLA, or even named CSS colors like "cornflowerblue". Mix and match formats freely!
+
+**RGBA & HSLA Support**: Semi-transparent colors are automatically composited over backgrounds for accurate accessibility checks.
+
+**New Color & ColorPair Classes**: More intuitive API for working with colors and checking accessibility. The old syntax still works perfectly - see [documentation](https://comfort-mode-toolkit.readthedocs.io/en/latest/cm_colors/installation.html) for the classic API.
+
+**Supported Formats**:
+- **Hex**: `"#ff0000"`, `"#f00"`, `"ff0000"`
+- **RGB/RGBA**: `(255, 0, 0)`, `"rgb(255, 0, 0)"`, `"rgba(255, 0, 0, 0.8)"`
+- **HSL/HSLA**: `"hsl(120, 100%, 50%)"`, `"hsla(120, 100%, 50%, 0.9)"`
+- **Named Colors**: `"red"`, `"cornflowerblue"`, `"rebeccapurple"`
+
 ## What Does "Accessible" Even Mean?
 
 Simple version: There needs to be enough contrast between your text and background so people can actually read it.
@@ -35,23 +49,51 @@ That's it. No complex setup, no configuration files, no PhD in color science req
 This is literally all you need:
 
 ```python
-from cm_colors import CMColors
+from cm_colors import ColorPair
 
-cm = CMColors()
-
-# Your original colors
-text_color = 'rgb(95, 120, 135)'  # dark bluish gray text
-bg_color = 'rgb(230, 240, 245)'    # pale blue
+# Your original colors - use ANY format!
+text_color = '#5f7887'          # hex
+bg_color = 'rgb(230, 240, 245)' # rgb string
 
 # ✨ The magic happens here ✨
-tuned_text,is_accessible = cm.tune_colors(text_color, bg_color)
+pair = ColorPair(text_color, bg_color)
 
-print(f"Original: {text_color}")
-print(f"Tuned: {tuned_text}") #Output:- Tuned: rgb(83, 107, 122)
-print(f"Is it accessible now?: {is_accessible}") #Always check to ensure it is true
+print(f"Contrast ratio: {pair.contrast_ratio:.2f}")  # 3.89
+print(f"WCAG level: {pair.wcag_level}")              # FAIL (needs improvement)
+
+# Fix it automatically
+tuned_text, is_accessible = pair.tune_colors()
+print(f"Tuned: {tuned_text}")                        # rgb(83, 107, 122)
+print(f"Accessible now? {is_accessible}")            # True
 ```
 
-That's it. Seriously.
+## Mix & Match Color Formats
+
+Use whatever format feels natural:
+
+```python
+from cm_colors import Color, ColorPair
+
+# Create colors from any format
+dusty_rose = Color("#c7483b")
+semi_transparent = Color("rgba(255, 0, 0, 0.5)")  # Auto-composited!
+hsl_blue = Color("hsl(210, 100%, 50%)")
+named = Color("cornflowerblue")
+
+# Check if colors are valid
+if dusty_rose.is_valid:
+    print(f"RGB: {dusty_rose._rgb}")           # (199, 72, 59)
+    # or try 
+    print(f"RGB: {dusty_rose.to_rgb_string()}")   # 'rgb(199, 72, 59)'
+
+    print(f"Hex: {dusty_rose.to_hex()}")      # #c7483b
+
+# Mix formats in a pair
+pair = ColorPair("rebeccapurple", "#ffffff")
+print(pair.contrast_ratio)  # 6.95
+print(pair.wcag_level)      # AA
+
+```
 
 ## Real Examples (Because Seeing is Believing)
 
@@ -59,17 +101,22 @@ The % shows the change in contrast ratio
 
 <img width="1189" height="1110" alt="an image showing side by side comparision of before and after change of colors" src="https://github.com/user-attachments/assets/4ce92c65-cd27-4bae-8756-bbbe9bf70a91"  />
 
-<!--```python
-# Example 1: Your aesthetic dusty rose
-original = (199, 72, 59)    # Pretty dusty rose
-fixed, _, level,_,_ = cm.tune_colors(original, (255, 255, 255))
-print(f"Dusty rose {original} → {fixed} (now {level} compliant!)")
+```python
+from cm_colors import ColorPair
 
-# Example 2: That trendy muted blue
-original = (40, 117, 219)   # Trendy blue
-fixed, _, level = cm.tune_colors(original, (240, 240, 240))
-print(f"Trendy blue {original} → {fixed} (still looks trendy, now readable!)")
-```-->
+# Example 1: Aesthetic dusty rose on white
+pair = ColorPair("#c7483b", "white")
+print(f"Original contrast: {pair.contrast_ratio:.2f}")
+print(f"Level: {pair.wcag_level}")  # Might be FAIL
+
+tuned, success = pair.tune_colors()
+if success:
+    print(f"Tuned! New color: {tuned}")
+
+# Example 2: Semi-transparent overlay
+pair = ColorPair("rgba(40, 117, 219, 0.9)", "#f0f0f0")
+print(f"Contrast with transparency: {pair.contrast_ratio:.2f}")
+```
 
 ## Common Questions
 
@@ -85,18 +132,42 @@ A: We'll try our best, but if you chose neon yellow on white... even wizards hav
 **Q: Do I need to understand color science?**
 A: Not at all! That's why this library exists.
 
+**Q: Does the old API still work?**
+A: Yes! All v0.1.x code works exactly the same. See the [classic API documentation](https://comfort-mode-toolkit.readthedocs.io/en/latest/cm_colors/installation.html) if you prefer the original syntax.
+
 ## Other Stuff You Can Do
 
-Want to check if your colors are already good?
+Quick accessibility checks:
 
 ```python
-# Check contrast ratio (higher = better readability)
-ratio = cm.contrast_ratio((100, 100, 100), (255, 255, 255))
-print(f"Contrast ratio: {ratio:.2f}")   #Output:- Contrast ratio: 5.92
+from cm_colors import ColorPair
 
-# Check what level you're hitting
-level = cm.wcag_level((100, 100, 100), (255, 255, 255))
-print(f"Current level: {level}")  # "AA", "AAA", or "FAIL"  #Output:- Current level: AA
+# Check contrast ratio (higher = better readability)
+pair = ColorPair("#646464", "#ffffff")
+print(f"Contrast ratio: {pair.contrast_ratio:.2f}")  # 5.92
+
+# Check WCAG level
+print(f"Level: {pair.wcag_level}")  # "AA", "AAA", or "FAIL"
+
+# Check perceptual color difference (Delta E)
+print(f"Delta E: {pair.delta_e:.2f}")  # Lower = more similar colors
+
+# For large text (different thresholds)
+pair_large = ColorPair("#767676", "white", large_text=True)
+print(f"Large text level: {pair_large.wcag_level}")  # AA (more lenient)
+```
+
+Using the classic CMColors API:
+
+```python
+from cm_colors import CMColors
+
+cm = CMColors()
+
+# All these work - any format!
+ratio = cm.contrast_ratio("#646464", "white")
+level = cm.wcag_level("rgb(100, 100, 100)", "#ffffff")
+tuned, success = cm.tune_colors("cornflowerblue", "white")
 ```
 
 ## Why This Matters

@@ -1,11 +1,9 @@
 from typing import Tuple
 
-# from .color_parser import parse_color_pair
-
 
 def rgb_to_linear(rgb_value: float) -> float:
     """
-    Convert a single 0–255 RGB channel value to its linear RGB equivalent used for luminance.
+    Convert a single 0-255 RGB channel value to its linear RGB equivalent used for luminance.
 
     Parameters:
         rgb_value (float): The RGB channel intensity in the range 0 to 255.

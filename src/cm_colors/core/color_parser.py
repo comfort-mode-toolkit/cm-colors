@@ -8,7 +8,7 @@ from cm_colors.core.conversions import (
 )
 
 import re
-from typing import Tuple, Union
+from typing import Tuple, Union,Optional
 
 NumberLike = Union[int, float, str]
 ColorInput = Union[str, Tuple, list]
@@ -80,7 +80,7 @@ def _extract_number_tokens(s: str) -> list:
 
 
 def parse_color_to_rgb(
-    color: ColorInput, background: ColorInput | None = None
+    color: ColorInput, background:Optional[ColorInput]
 ) -> Tuple[int, int, int]:
     """
     Parse a color specification and return its RGB representation.
