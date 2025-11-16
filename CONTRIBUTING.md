@@ -12,6 +12,9 @@ Before we get into the technical stuff, here's what we're going for:
 - **Keep it simple**: Complex APIs scare people away from doing the right thing
 - **Preserve aesthetics**: Design and accessibility can coexist
 
+## Codebase Tour ( It's not scary! )
+Checkout the tour [here](https://gist.github.com/lalithaar/286ce89bc1d4816b3d6c862380ddc9d6) so you can easily know which file dpes what and where should you edit :>
+
 ## Quick Start (I Just Want to Fix Something Small)
 
 For tiny fixes (typos, small bugs, documentation improvements):
