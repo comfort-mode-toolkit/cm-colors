@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary Meta Tags -->
+    <title>CM-Colors - You pick the colors. We make them accessible.</title>
+    <meta name="title" content="CM-Colors - You pick the colors. We make them accessible.">
+    <meta name="description" content="Automatically make your color combinations WCAG accessible with tiny, imperceptible changes. Python library that tunes colors for accessibility while preserving your design aesthetic.">
+    <meta name="keywords" content="accessibility, WCAG, color contrast, accessible colors, color accessibility, web accessibility, a11y, color tuning, contrast ratio, accessible design, color compliance, python library, cm-colors">
+    <meta name="author" content="Comfort Mode Toolkit">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://comfort-mode-toolkit.github.io/cm-colors/">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://comfort-mode-toolkit.github.io/cm-colors/">
+    <meta property="og:title" content="CM-Colors - You pick the colors. We make them accessible.">
+    <meta property="og:description" content="Automatically make your color combinations WCAG accessible with tiny, imperceptible changes. Interactive demo showing before/after color accessibility improvements.">
+    <meta property="og:image" content="https://github.com/user-attachments/assets/4ce92c65-cd27-4bae-8756-bbbe9bf70a91">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Side by side comparison showing before and after color accessibility improvements">
+    <meta property="og:site_name" content="CM-Colors">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://comfort-mode-toolkit.github.io/cm-colors/">
+    <meta property="twitter:title" content="CM-Colors - You pick the colors. We make them accessible.">
+    <meta property="twitter:description" content="Automatically make your color combinations WCAG accessible with tiny, imperceptible changes. Interactive demo showing before/after improvements.">
+    <meta property="twitter:image" content="https://github.com/user-attachments/assets/4ce92c65-cd27-4bae-8756-bbbe9bf70a91">
+    <meta property="twitter:image:alt" content="Side by side comparison showing before and after color accessibility improvements">
+    
+    <!-- Additional SEO Meta Tags -->
+    <meta name="theme-color" content="#0066cc">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="CM-Colors">
+    <meta name="application-name" content="CM-Colors">
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "CM-Colors",
+      "description": "Python library that automatically makes your color combinations WCAG accessible with tiny, imperceptible changes while preserving your design aesthetic.",
+      "url": "https://comfort-mode-toolkit.github.io/cm-colors/",
+      "downloadUrl": "https://pypi.org/project/cm-colors/",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Cross-platform",
+      "programmingLanguage": "Python",
+      "author": {
+        "@type": "Organization",
+        "name": "Comfort Mode Toolkit",
+        "url": "https://github.com/comfort-mode-toolkit"
+      },
+      "codeRepository": "https://github.com/comfort-mode-toolkit/cm-colors",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "screenshot": "https://github.com/user-attachments/assets/4ce92c65-cd27-4bae-8756-bbbe9bf70a91",
+      "softwareVersion": "latest",
+      "license": "https://github.com/comfort-mode-toolkit/cm-colors/blob/main/LICENSE",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "5.0",
+        "ratingCount": "1"
+      }
+    }
+    </script>
+    
+    <!-- Fonts (preconnect for performance) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --split-position: 25%;
+            
+            /* Original (non-tuned) colors */
+            --bg-light: #f0f0f0;
+            --text-dark: #555555;
+            
+            --bg-blue: #e1f5fa;
+            --text-blue: #325a64;
+            
+            --bg-mint: #e6f0f5;
+            --text-mint: #5f7887;
+            
+            --bg-lavender: #f5f0f5;
+            --text-lavender: #7d6978;
+            
+            /* Tuned (accessible) colors */
+            --text-dark-tuned: #505050;
+            --text-blue-tuned: #305761;
+            --text-mint-tuned: #5c6f7b;
+            --text-lavender-tuned: #7c6877;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Atkinson Hyperlegible', 'SF Pro Text', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+            cursor: default;
+            user-select: none;
+        }
+
+        .split-container {
+            position: relative;
+            width: 100vw;
+            min-height: 100vh;
+        }
+
+        /* Before (Original Colors) Side */
+        .before-side {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            min-height: 100vh;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            z-index: 1;
+        }
+
+        /* After (Accessible Colors) Side */
+        .after-side {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            min-height: 100vh;
+            background: var(--bg-light);
+            color: var(--text-dark-tuned);
+            z-index: 2;
+            clip-path: polygon(var(--split-position) 0%, 100% 0%, 100% 100%, var(--split-position) 100%);
+            transition: clip-path 0.1s ease-out;
+        }
+
+        /* Draggable Divider Line */
+        .divider {
+            position: fixed;
+            top: 0;
+            left: var(--split-position);
+            width: 4px;
+            height: 100vh;
+            background: linear-gradient(
+                to bottom,
+                rgba(0, 0, 0, 0.4),
+                rgba(0, 0, 0, 0.7),
+                rgba(0, 0, 0, 0.4)
+            );
+            z-index: 1000;
+            cursor: col-resize;
+            transform: translateX(-2px);
+            /* Accessibility improvements */
+            outline: none;
+        }
+
+        /* Focus styles for keyboard accessibility */
+        .divider:focus {
+            outline: 3px solid #0066cc;
+            outline-offset: 2px;
+            box-shadow: 0 0 0 6px rgba(0, 102, 204, 0.3);
+        }
+
+        .divider:focus::before {
+            background: rgba(0, 102, 204, 0.9);
+            width: 50px;
+            height: 50px;
+        }
+
+        /* Draggable Handle on the Divider */
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            /* Better touch target for mobile */
+            min-width: 44px;
+            min-height: 44px;
+        }
+
+        /* Arrow indicators on handle */
+        .divider::after {
+            content: '⟷';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Hover effect for divider */
+        .divider:hover {
+            width: 6px;
+            transform: translateX(-3px);
+        }
+
+        .divider:hover::before {
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        /* Content styling */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-family: 'Yeseva One', Georgia, serif;
+            font-size: 3rem;
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .tagline {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            font-weight: 400;
+        }
+
+        .disclaimer {
+            font-size: 0.9rem;
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        .install-section {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 3rem 0;
+            position: relative;
+            border: 1px solid #333;
+        }
+
+        .install-label {
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+
+        .install-code {
+            background: none;
+            border: none;
+            color: #fff;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+            font-size: 1.1rem;
+            width: 100%;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-family: inherit;
+        }
+
+        .copy-btn:hover {
+            background: #444;
+        }
+
+        .copy-btn.copied {
+            background: #22c55e;
+        }
+
+        .slider-demo {
+            margin: 3rem 0;
+        }
+
+        .slider-demo h2 {
+            text-align: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .slider-demo .tagline {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+
+        .comparison-container {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background: var(--bg-mint);
+        }
+
+        .demo-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        /* Demo section colors - Original vs Tuned */
+        .before-side .comparison-container .demo-content {
+            color: var(--text-mint);
+        }
+
+        .after-side .comparison-container .demo-content {
+            color: var(--text-mint-tuned);
+        }
+
+        .demo-content h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .demo-content p {
+            font-size: 0.9rem;
+        }
+
+        .color-code {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            font-family: 'SF Mono', 'Monaco', monospace;
+        }
+
+        .example {
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+            margin: 2rem 0;
+            background: var(--bg-blue);
+        }
+
+        /* Example section colors - Original vs Tuned */
+        .before-side .example {
+            color: var(--text-blue);
+        }
+
+        .after-side .example {
+            color: var(--text-blue-tuned);
+        }
+
+        .example h2 {
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .code-snippet {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+        }
+
+        .image-demo {
+            margin: 3rem 0;
+            text-align: center;
+        }
+
+        .image-demo h2 {
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .image-demo p {
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+
+        .demo-image {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ddd;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid #ddd;
+            margin-bottom: 2rem;
+        }
+
+        .github-link {
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .github-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Color labels to show the difference */
+        .color-indicator {
+            position: fixed;
+            top: 60px;
+            z-index: 1001;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .color-indicator.left {
+            left: 20px;
+        }
+
+        .color-indicator.right {
+            right: 20px;
+        }
+
+        /* Instruction text */
+        .instruction {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            z-index: 1001;
+            font-weight: 700;
+            /* Better mobile responsiveness */
+            max-width: 90vw;
+            text-align: center;
+        }
+
+        /* Screen reader only text */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Position indicator for screen readers */
+        .position-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            z-index: 1001;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .position-indicator.visible {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+
+            .divider::before {
+                width: 44px;  /* Better touch target */
+                height: 44px;
+                min-width: 44px;
+                min-height: 44px;
+            }
+
+            .instruction {
+                font-size: 0.7rem;
+                padding: 0.4rem 0.8rem;
+                max-width: 95vw;
+            }
+
+            .color-indicator {
+                font-size: 0.6rem;
+                padding: 0.2rem 0.6rem;
+                top: 50px;
+            }
+
+            .demo-image {
+                border-radius: 4px;
+            }
+
+            /* Hide color indicators on very small screens */
+            @media (max-width: 480px) {
+                .color-indicator {
+                    display: none;
+                }
+                
+                .instruction {
+                    font-size: 0.6rem;
+                    padding: 0.3rem 0.6rem;
+                    top: 10px;
+                }
+            }
+        }
+
+        /* Dragging state */
+        .dragging {
+            cursor: col-resize !important;
+        }
+
+        .dragging * {
+            cursor: col-resize !important;
+            pointer-events: none;
+        }
+
+        /* Improved transitions for smoother performance */
+        .after-side {
+            will-change: clip-path;
+        }
+
+        /* Disable transitions during dragging for immediate feedback */
+        .dragging .after-side {
+            transition: none;
+        }
+    </style>
+    
+    <!-- Google Site Verification -->
+    <meta name="google-site-verification" content="looWlfsX3AIw5AFB-ZmE09JTAb-850ixlvAzR2-IFj0" />
+</head>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JHVTKLEQMJ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-JHVTKLEQMJ');
+</script>
+
+<body>
+    <div class="instruction" id="instruction">
+        ← Drag the line or use arrow keys to see colors change →
+    </div>
+    
+    <div class="color-indicator left">
+        Original Colors (Less Accessible)
+    </div>
+    
+    <div class="color-indicator right">
+        Tuned Colors (More Accessible)
+    </div>
+
+    <!-- Screen reader announcement area -->
+    <div aria-live="polite" aria-atomic="true" class="sr-only" id="announcements"></div>
+
+    <!-- Position indicator -->
+    <div class="position-indicator" id="positionIndicator"></div>
+
+    <div class="split-container">
+        <!-- Before Side (Original Colors) -->
+        <div class="before-side">
+            <div class="container">
+                <header>
+                    <h1>CM-Colors</h1>
+                    <p class="tagline">You pick the colors. We make them accessible.</p>
+                    <p class="disclaimer">(Our color wizard can work miracles, but even magic has limits - don't expect us to make neon yellow on white look good!)</p>
+                </header>
+
+                <div class="install-section">
+                    <div class="install-label">Install</div>
+                    <button class="install-code" onclick="copyInstall()" aria-label="Copy installation command">pip install cm-colors</button>
+                    <button class="copy-btn" onclick="copyInstall()" aria-label="Copy to clipboard">Copy</button>
+                </div>
+
+                <div class="slider-demo">
+                    <h2>Tiny Changes, Huge Impact</h2>
+                    <p class="tagline">Changes so subtle you won't notice them. Impact so significant your users will thank you.</p>
+                    <div class="comparison-container">
+                        <div class="demo-content">
+                            <h3>Hard to Read</h3>
+                            <p>Beautiful dusty blue that fails accessibility</p>
+                            <div class="color-code">#5f7887 on #e6f0f5 - FAIL</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="image-demo">
+                    <h2>See the Magic in Action</h2>
+                    <p>Real examples showing the subtle but powerful improvements</p>
+                    <img class="demo-image" 
+                         src="https://github.com/user-attachments/assets/4ce92c65-cd27-4bae-8756-bbbe9bf70a91" 
+                         alt="Side by side comparison showing before and after color accessibility improvements with WCAG compliance indicators"
+                         loading="lazy"
+                         width="800"
+                         height="450" />
+                </div>
+
+                <div class="example">
+                    <h2>The Magic One-Liner</h2>
+                    <div class="code-snippet">
+<pre>from cm_colors import ColorPair
+
+# Your beautiful but inaccessible colors
+pair = ColorPair('#5f7887', '#e6f0f5')
+print(f"Original: {pair.wcag_level}")  # FAIL
+
+# ✨ The magic happens here ✨
+tuned_color, success = pair.tune_colors()
+print(f"Tuned: {tuned_color}")        # #5c6f7b
+print(f"Accessible: {success}")       # True</pre>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <a href="https://github.com/comfort-mode-toolkit/cm-colors" 
+                       class="github-link"
+                       aria-label="View CM-Colors source code on GitHub">
+                        View on GitHub →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- After Side (Accessible Colors) -->
+        <div class="after-side">
+            <div class="container">
+                <header>
+                    <h1>CM-Colors</h1>
+                    <p class="tagline">You pick the colors. We make them accessible.</p>
+                    <p class="disclaimer">(Our color wizard can work miracles, but even magic has limits - don't expect us to make neon yellow on white look good!)</p>
+                </header>
+
+                <div class="install-section">
+                    <div class="install-label">Install</div>
+                    <button class="install-code" onclick="copyInstall()" aria-label="Copy installation command">pip install cm-colors</button>
+                    <button class="copy-btn" onclick="copyInstall()" aria-label="Copy to clipboard">Copy</button>
+                </div>
+
+                <div class="slider-demo">
+                    <h2>Tiny Changes, Huge Impact</h2>
+                    <p class="tagline">Changes so subtle you won't notice them. Impact so significant your users will thank you.</p>
+                    <div class="comparison-container">
+                        <div class="demo-content">
+                            <h3>Easy to Read</h3>
+                            <p>Barely noticeable change, now accessible</p>
+                            <div class="color-code">#5c6f7b on #e6f0f5 - AA ✓</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="image-demo">
+                    <h2>See the Magic in Action</h2>
+                    <p>Real examples showing the subtle but powerful improvements</p>
+                    <img class="demo-image" 
+                         src="https://github.com/user-attachments/assets/4ce92c65-cd27-4bae-8756-bbbe9bf70a91" 
+                         alt="Side by side comparison showing before and after color accessibility improvements with WCAG compliance indicators"
+                         loading="lazy"
+                         width="800"
+                         height="450" />
+                </div>
+
+                <div class="example">
+                    <h2>The Magic One-Liner</h2>
+                    <div class="code-snippet">
+<pre>from cm_colors import ColorPair
+
+# Your beautiful but inaccessible colors
+pair = ColorPair('#5f7887', '#e6f0f5')
+print(f"Original: {pair.wcag_level}")  # FAIL
+
+# ✨ The magic happens here ✨
+tuned_color, success = pair.tune_colors()
+print(f"Tuned: {tuned_color}")        # #5c6f7b
+print(f"Accessible: {success}")       # True</pre>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <a href="https://github.com/comfort-mode-toolkit/cm-colors" 
+                       class="github-link"
+                       aria-label="View CM-Colors source code on GitHub">
+                        View on GitHub →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Draggable Divider with Accessibility -->
+        <div class="divider" 
+             id="divider" 
+             tabindex="0"
+             role="slider"
+             aria-label="Color comparison slider. Use left and right arrow keys to adjust the split between original and accessible colors."
+             aria-valuemin="5"
+             aria-valuemax="95"
+             aria-valuenow="25"
+             aria-valuetext="25% split - showing more original colors"></div>
+    </div>
+
+    <script>
+        let isDragging = false;
+        let animationFrame = null;
+        const divider = document.getElementById('divider');
+        const announcement = document.getElementById('announcements');
+        const positionIndicator = document.getElementById('positionIndicator');
+        const instruction = document.getElementById('instruction');
+
+        function updateSplitPosition(clientX, announce = false) {
+            const percentage = (clientX / window.innerWidth) * 100;
+            const clampedPercentage = Math.max(5, Math.min(95, percentage));
+            
+            // Cancel any pending animation frame
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+            
+            // Use requestAnimationFrame for smoother updates
+            animationFrame = requestAnimationFrame(() => {
+                document.documentElement.style.setProperty('--split-position', `${clampedPercentage}%`);
+                
+                // Update ARIA attributes
+                const roundedPercentage = Math.round(clampedPercentage);
+                divider.setAttribute('aria-valuenow', roundedPercentage);
+                
+                const description = roundedPercentage < 50 
+                    ? `${roundedPercentage}% split - showing more original colors`
+                    : `${roundedPercentage}% split - showing more accessible colors`;
+                
+                divider.setAttribute('aria-valuetext', description);
+                
+                // Show position indicator during interaction
+                positionIndicator.textContent = `${roundedPercentage}%`;
+                positionIndicator.classList.add('visible');
+                
+                // Announce to screen readers occasionally during drag
+                if (announce) {
+                    announcement.textContent = description;
+                }
+            });
+        }
+
+        function hidePositionIndicator() {
+            setTimeout(() => {
+                positionIndicator.classList.remove('visible');
+            }, 1500);
+        }
+
+        // Keyboard navigation
+        divider.addEventListener('keydown', (e) => {
+            let currentPosition = parseInt(divider.getAttribute('aria-valuenow'));
+            let newPosition = currentPosition;
+            let step = e.shiftKey ? 10 : 5; // Shift for larger steps
+            
+            switch(e.key) {
+                case 'ArrowLeft':
+                case 'ArrowDown':
+                    newPosition = Math.max(5, currentPosition - step);
+                    e.preventDefault();
+                    break;
+                case 'ArrowRight':
+                case 'ArrowUp':
+                    newPosition = Math.min(95, currentPosition + step);
+                    e.preventDefault();
+                    break;
+                case 'Home':
+                    newPosition = 5;
+                    e.preventDefault();
+                    break;
+                case 'End':
+                    newPosition = 95;
+                    e.preventDefault();
+                    break;
+                case 'Enter':
+                case ' ':
+                    // Toggle between 25% and 75%
+                    newPosition = currentPosition < 50 ? 75 : 25;
+                    e.preventDefault();
+                    break;
+            }
+            
+            if (newPosition !== currentPosition) {
+                const newClientX = (newPosition / 100) * window.innerWidth;
+                updateSplitPosition(newClientX, true);
+                hideInstructionAfterInteraction();
+                hidePositionIndicator();
+            }
+        });
+
+        // Mouse events
+        divider.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            document.body.classList.add('dragging');
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                updateSplitPosition(e.clientX);
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                document.body.classList.remove('dragging');
+                hidePositionIndicator();
+            }
+        });
+
+        // Touch events for mobile
+        divider.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            document.body.classList.add('dragging');
+            e.preventDefault();
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                const touch = e.touches[0];
+                updateSplitPosition(touch.clientX);
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('touchend', () => {
+            if (isDragging) {
+                isDragging = false;
+                document.body.classList.remove('dragging');
+                hidePositionIndicator();
+            }
+        });
+
+        // Copy functionality
+        async function copyInstall() {
+            const text = 'pip install cm-colors';
+            const btns = document.querySelectorAll('.copy-btn');
+            
+            try {
+                await navigator.clipboard.writeText(text);
+                btns.forEach(btn => {
+                    btn.textContent = 'Copied!';
+                    btn.classList.add('copied');
+                });
+                
+                setTimeout(() => {
+                    btns.forEach(btn => {
+                        btn.textContent = 'Copy';
+                        btn.classList.remove('copied');
+                    });
+                }, 2000);
+            } catch (err) {
+                btns.forEach(btn => {
+                    btn.textContent = 'Copied!';
+                    setTimeout(() => btn.textContent = 'Copy', 2000);
+                });
+            }
+        }
+
+        // Hide instruction after first interaction
+        let hasInteracted = false;
+        
+        function hideInstructionAfterInteraction() {
+            if (!hasInteracted) {
+                instruction.style.opacity = '0';
+                setTimeout(() => {
+                    instruction.style.display = 'none';
+                }, 300);
+                hasInteracted = true;
+            }
+        }
+
+        // Add interaction listeners
+        divider.addEventListener('mousedown', hideInstructionAfterInteraction);
+        divider.addEventListener('keydown', hideInstructionAfterInteraction);
+        divider.addEventListener('touchstart', hideInstructionAfterInteraction);
+
+        // Focus management - announce when divider receives focus
+        divider.addEventListener('focus', () => {
+            announcement.textContent = 'Color comparison slider focused. Use arrow keys to adjust the split between original and accessible colors.';
+        });
+
+        // Initialize position indicator
+        positionIndicator.textContent = '25%';
+    </script>
+</body>
+</html>
