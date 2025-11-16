@@ -6,7 +6,11 @@
 _(Our color wizard can work miracles, but even magic has limits - don't expect us to make neon yellow on white look good!)_
 
 Ever picked perfect colors for your portfolio website, only to have someone tell you they can't read your text? Yeah, that's an accessibility problem, and it's more common than you think.
- 
+
+ The % shows the change in contrast ratio
+
+<img width="1189" height="1110" alt="an image showing side by side comparision of before and after change of colors" src="https://github.com/user-attachments/assets/4ce92c65-cd27-4bae-8756-bbbe9bf70a91"  />
+
 ## What's This About?
 
 **The Problem**: You spend hours choosing the perfect shade of dusty rose for your headings and soft lavender for your background. It looks _chef's kiss_ aesthetic... but people with visual impairments (or honestly, anyone trying to read it on their phone in sunlight) can't see it properly.
@@ -95,11 +99,7 @@ print(pair.wcag_level)      # AA
 
 ```
 
-## Real Examples (Because Seeing is Believing)
-
-The % shows the change in contrast ratio
-
-<img width="1189" height="1110" alt="an image showing side by side comparision of before and after change of colors" src="https://github.com/user-attachments/assets/4ce92c65-cd27-4bae-8756-bbbe9bf70a91"  />
+## Real Examples
 
 ```python
 from cm_colors import ColorPair
