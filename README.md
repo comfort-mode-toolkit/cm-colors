@@ -1,6 +1,9 @@
 # CM-Colors 🎨✨
 
 [![Python Tests](https://github.com/comfort-mode-toolkit/cm-colors/actions/workflows/python-test.yml/badge.svg)](https://github.com/comfort-mode-toolkit/cm-colors/actions/workflows/python-test.yml)
+![GitHub stars](https://img.shields.io/github/stars/comfort-mode-toolkit/cm-colors)
+![Downloads](https://img.shields.io/pypi/dm/cm-colors)
+![License](https://img.shields.io/github/license/comfort-mode-toolkit/cm-colors)
 
 **You do your style, we make it accessible**
 _(Our color wizard can work miracles, but even magic has limits - don't expect us to make neon yellow on white look good!)_
