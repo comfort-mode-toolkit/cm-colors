@@ -1,0 +1,41 @@
+cff-version: 1.2.0
+title: "CM-Colors: You pick the colors. We make them readable."
+message: >-
+  If you use this software, please cite it using the metadata from this file.
+type: software
+authors:
+  - family-names: "A R"
+    given-names: "Lalitha"
+    orcid: "https://orcid.org/0009-0001-7466-3531"
+  - name: "contributors to CM-Colors"
+repository-code: "https://github.com/comfort-mode-toolkit/cm-colors"
+url: "https://comfort-mode-toolkit.github.io/cm-colors/"
+abstract: >-
+  CM-Colors solves a constrained optimization problem: finding the smallest perceptual 
+  change to text colors that achieves WCAG accessibility standards. The library implements 
+  multi-phase optimization using binary search on lightness, gradient descent in OKLCH 
+  color space, and progressive Delta E relaxation to minimize visual changes while 
+  meeting contrast requirements.
+
+  The system converts RGB colors to perceptually uniform OKLCH space, applies Delta E 2000 
+  calculations for human vision-based color difference measurement, and uses numerical 
+  optimization to solve the trade-off between accessibility compliance and brand preservation. 
+  Universal color format support includes hex, RGB/RGBA, HSL/HSLA, and named CSS colors 
+  with automatic alpha compositing.
+
+  Mathematical foundation includes WCAG 2.1 contrast algorithms, OKLAB color appearance 
+  modeling, and constrained optimization with adaptive learning rates for convergence 
+  in practical applications.
+keywords:
+  - accessibility
+  - color-science
+  - WCAG
+  - optimization
+  - contrast-ratio
+  - OKLCH
+  - delta-e
+  - web-accessibility
+  - python
+  - color-perception
+license: GPL-3.0-or-later
+version: "0.2.0"
