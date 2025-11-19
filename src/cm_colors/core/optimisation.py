@@ -364,7 +364,7 @@ def check_and_fix_contrast(
 
     # is_wcag_aa = final_contrast >= aa_target
     success = final_contrast >= aa_target
-    wcag_level = 'AAA' if final_contrast >= 7.0 else ('AA' if success else 'FAIL')
+    wcag_level = get_wcag_level(accessible_text, bg,large)
 
 
 
