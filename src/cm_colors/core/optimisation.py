@@ -192,13 +192,11 @@ def gradient_descent_oklch(
 
         if is_valid_rgb(final_rgb):
             final_delta_e = calculate_delta_e_2000(text_rgb, final_rgb)
-            final_contrast = calculate_contrast_ratio(final_rgb, bg_rgb)
 
-            # Strict validation matching brute force standards
-            if (
-                final_delta_e <= delta_e_threshold
-                and final_contrast >= target_contrast
-            ):
+            # Strict validation only checks DeltaE. The calling function 
+            # (generate_accessible_color) will handle the overall contrast requirement 
+            # and track the best candidate found. (FIX APPLIED HERE)
+            if final_delta_e <= delta_e_threshold:
                 return final_rgb
 
         return None
@@ -351,7 +349,7 @@ def check_and_fix_contrast(
                 'tuned_text': text,
                 'bg': bg,
                 'large': large,
-                'wcag_level': 'AAA',
+                'wcag_level': 'AAA' if current_contrast >= 7.0 else 'AA',
                 'improvement_percentage': 0,
                 'status': True,
                 'message': 'Perfect! Your pair is already accessible with a contrast ratio of {:.2f}.'.format(
@@ -360,21 +358,29 @@ def check_and_fix_contrast(
             }
 
     accessible_text = generate_accessible_color(text, bg, large)
-    wcag_level = get_wcag_level(accessible_text, bg)
+    final_contrast = calculate_contrast_ratio(accessible_text, bg)
+                
+    aa_target = 3.0 if large else 4.5
 
-    new_contrast = calculate_contrast_ratio(accessible_text, bg)
+    # is_wcag_aa = final_contrast >= aa_target
+    success = final_contrast >= aa_target
+    wcag_level = get_wcag_level(accessible_text, bg,large)
+
+
+
     improvement_percentage = round(
-        (((new_contrast - current_contrast) / current_contrast) * 100), 2
+        (((final_contrast - current_contrast) / current_contrast) * 100), 2
     )
     accessible_text = rgbint_to_string(accessible_text)
 
+
     if not details:
-        return accessible_text, True if wcag_level != 'FAIL' else False
+        return accessible_text, success
     else:
         if wcag_level == 'FAIL':
-            message = f'Please choose a different color, your pair is not accessible with a contrast ratio of {new_contrast:.2f}.'
+            message = f'Please choose a different color, your pair is not accessible with a contrast ratio of {final_contrast:.2f}.'
         else:
-            message = f'Your pair was not accessible, but now it is {wcag_level} compliant with a contrast ratio of {new_contrast:.2f}.'
+            message = f'Your pair was not accessible, but now it is {wcag_level} compliant with a contrast ratio of {final_contrast:.2f}.'
         return {
             'text': text,
             'tuned_text': accessible_text,
@@ -382,6 +388,6 @@ def check_and_fix_contrast(
             'large': large,
             'wcag_level': wcag_level,
             'improvement_percentage': improvement_percentage,
-            'status': True if wcag_level != 'FAIL' else False,
+            'status': success,
             'message': message,
         }

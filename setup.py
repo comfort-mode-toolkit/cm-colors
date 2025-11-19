@@ -5,7 +5,7 @@ with open('README.md', 'r', encoding='utf-8') as fh:
 
 setuptools.setup(
     name='cm-colors',
-    version='0.2.0',
+    version='0.2.1',
     author='Lalitha A R',
     author_email='arlalithablogs@gmail.com',
     description='You pick your colors, we make it readable',

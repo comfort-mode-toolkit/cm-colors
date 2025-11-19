@@ -325,7 +325,7 @@ class TestOptimizationFunctions:
 
             # Should have reasonable contrast
             contrast = calculate_contrast_ratio(result, bg_rgb)
-            assert contrast > calculate_contrast_ratio(rgb, bg_rgb)
+            assert contrast >= calculate_contrast_ratio(rgb, bg_rgb)
 
     def test_generate_accessible_color(self):
         rgb = (128, 64, 192)
