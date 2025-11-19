@@ -362,9 +362,11 @@ def check_and_fix_contrast(
                 
     aa_target = 3.0 if large else 4.5
 
-    is_wcag_aa = final_contrast >= aa_target
-                
+    # is_wcag_aa = final_contrast >= aa_target
     success = final_contrast >= aa_target
+    wcag_level = 'AAA' if final_contrast >= 7.0 else ('AA' if success else 'FAIL')
+
+
 
     improvement_percentage = round(
         (((final_contrast - current_contrast) / current_contrast) * 100), 2
