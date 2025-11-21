@@ -1,0 +1,61 @@
+/* 
+   CM-Colors Demo CSS
+   This file demonstrates various contrast scenarios to test the CLI.
+*/
+
+/* 1. Already Accessible (Passes WCAG AA) */
+.good-contrast {
+  color:  #000000;
+  background-color:  #ffffff;
+}
+
+.good-contrast-2 {
+  color:  #2c3e50;
+  background-color:  #ecf0f1;
+}
+
+/* 2. Fixable Pairs (Close to threshold, should be tuned) */
+.fixable-grey {
+  color: rgb(117, 117, 117);
+  background-color:  #ffffff;
+}
+
+.fixable-blue {
+  color:  #3498db;
+  background-color:  #ffffff;
+}
+
+/* 3. Unfixable Pairs (Very low contrast, should be reported) */
+.unfixable-light-grey {
+  color:  #cccccc;
+  background-color:  #ffffff;
+}
+
+.unfixable-clash {
+  color:  #ff0000;
+  background-color:  #00ff00;
+}
+
+/* 4. Implicit Background (Uses default, usually white) */
+.implicit-bg {
+  color: rgb(117, 117, 117);
+}
+
+/* 5. Nested Rules (@media) */
+@media (min-width: 768px) {
+    .media-fixable {
+  color:  #888888;
+  background-color:  #f0f0f0;
+}
+}
+
+/* 6. Various Color Formats */
+.format-rgb {
+  color: rgb(118, 118, 118);
+  background-color:  white;
+}
+
+.format-named {
+  color:  silver;
+  background-color:  white;
+}

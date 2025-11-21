@@ -206,3 +206,10 @@ __marimo__/
 .hypothesis
 .pytest_cache
 .vscode
+
+#Sphnix
+_build/
+
+# Generated reports
+cm_colors_report.html
+*_cm.css

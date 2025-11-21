@@ -1,0 +1,247 @@
+import os
+
+def generate_report(fixed_pairs, output_path="cm_colors_report.html"):
+    """
+    Generates a minimal HTML report for fixed color pairs.
+    
+    Args:
+        fixed_pairs (list): List of dicts containing details of fixed pairs.
+                            Each dict should have: file, selector, bg, original_text, tuned_text, original_level, new_level.
+        output_path (str): Path to save the HTML report.
+    """
+    
+    html_content = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CM-Colors Report</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=Yeseva+One&display=swap" rel="stylesheet">
+    <style>
+        :root {{
+            --bg-color: #f9f9f9;
+            --text-color: #333;
+            --card-bg: #ffffff;
+            --accent: #2c3e50;
+        }}
+        
+        body {{
+            font-family: 'Atkinson Hyperlegible', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px;
+            line-height: 1.6;
+        }}
+        
+        h1, h2, h3 {{
+            font-family: 'Yeseva One', serif;
+            font-weight: 400;
+            margin-top: 0;
+        }}
+        
+        header {{
+            text-align: center;
+            margin-bottom: 60px;
+        }}
+        
+        h1 {{
+            font-size: 3rem;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }}
+        
+        .subtitle {{
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }}
+        
+        .container {{
+            max_width: 900px;
+            margin: 0 auto;
+        }}
+        
+        .card {{
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease;
+        }}
+        
+        .card:hover {{
+            transform: translateY(-2px);
+        }}
+        
+        .card-header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }}
+        
+        .file-info {{
+            font-size: 0.9rem;
+            color: #666;
+        }}
+        
+        .selector {{
+            font-family: 'Atkinson Hyperlegible', monospace;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--accent);
+        }}
+        
+        .comparison {{
+            display: flex;
+            gap: 20px;
+            align-items: stretch;
+        }}
+        
+        .color-box {{
+            flex: 1;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-height: 120px;
+            position: relative;
+            border: 1px solid rgba(0,0,0,0.1);
+        }}
+        
+        .label {{
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            opacity: 0.7;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }}
+        
+        .sample-text {{
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }}
+        
+        .color-code {{
+            font-family: monospace;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }}
+        
+        .badge {{
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }}
+        
+        .badge-fail {{
+            background-color: #ffebee;
+            color: #c62828;
+        }}
+        
+        .badge-pass {{
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }}
+        
+        .arrow {{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #ccc;
+        }}
+        
+        footer {{
+            text-align: center;
+            margin-top: 60px;
+            font-size: 0.9rem;
+            color: #999;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CM-Colors Report</h1>
+            <div class="subtitle">Accessibility Tuning Results</div>
+        </header>
+        
+        <main>
+    """
+    
+    if not fixed_pairs:
+        html_content += """
+            <div class="card" style="text-align: center; padding: 50px;">
+                <h3>No changes were needed!</h3>
+                <p>All color pairs found were already accessible.</p>
+            </div>
+        """
+    else:
+        for pair in fixed_pairs:
+            bg_style = f"background-color: {pair['bg']};"
+            
+            # Ensure text colors are valid for CSS
+            orig_text_style = f"color: {pair['original_text']};"
+            tuned_text_style = f"color: {pair['tuned_text']};"
+            
+            html_content += f"""
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="selector">{pair['selector']}</div>
+                        <div class="file-info">{pair['file']}</div>
+                    </div>
+                </div>
+                
+                <div class="comparison">
+                    <div class="color-box" style="{bg_style} {orig_text_style}">
+                        <span class="label">Before</span>
+                        <div class="sample-text">Sample Text</div>
+                        <div class="color-code">{pair['original_text']}</div>
+                        <div class="badge badge-fail">{pair['original_level']}</div>
+                    </div>
+                    
+                    <div class="arrow">→</div>
+                    
+                    <div class="color-box" style="{bg_style} {tuned_text_style}">
+                        <span class="label">After</span>
+                        <div class="sample-text">Sample Text</div>
+                        <div class="color-code">{pair['tuned_text']}</div>
+                        <div class="badge badge-pass">{pair['new_level']}</div>
+                    </div>
+                </div>
+            </div>
+            """
+            
+    html_content += """
+        </main>
+        
+        <footer>
+            Generated by CM-Colors
+        </footer>
+    </div>
+</body>
+</html>
+    """
+    
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(html_content)
+    
+    return os.path.abspath(output_path)

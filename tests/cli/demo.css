@@ -1,0 +1,74 @@
+/* 
+   CM-Colors Demo CSS
+   This file demonstrates various contrast scenarios to test the CLI.
+*/
+
+/* 1. Already Accessible (Passes WCAG AA) */
+.good-contrast {
+    color: #000000;
+    background-color: #ffffff;
+    /* Contrast: 21.0 */
+}
+
+.good-contrast-2 {
+    color: #2c3e50;
+    background-color: #ecf0f1;
+    /* Contrast: ~10.0 */
+}
+
+/* 2. Fixable Pairs (Close to threshold, should be tuned) */
+.fixable-grey {
+    color: #777777;
+    /* Contrast: ~4.47 on white (Fail AA) */
+    background-color: #ffffff;
+    /* Expected: Tuned to slightly darker grey */
+}
+
+.fixable-blue {
+    color: #3498db;
+    /* Contrast: ~3.0 on white (Fail AA) */
+    background-color: #ffffff;
+    /* Expected: Tuned to darker blue */
+}
+
+/* 3. Unfixable Pairs (Very low contrast, should be reported) */
+.unfixable-light-grey {
+    color: #cccccc;
+    /* Contrast: ~1.6 on white */
+    background-color: #ffffff;
+    /* Expected: Reported as unfixable */
+}
+
+.unfixable-clash {
+    color: #ff0000;
+    background-color: #00ff00;
+    /* Red on Green, terrible contrast */
+    /* Expected: Reported as unfixable */
+}
+
+/* 4. Implicit Background (Uses default, usually white) */
+.implicit-bg {
+    color: #777777;
+    /* Should be treated as on white */
+}
+
+/* 5. Nested Rules (@media) */
+@media (min-width: 768px) {
+    .media-fixable {
+        color: #888888;
+        background-color: #f0f0f0;
+    }
+}
+
+/* 6. Various Color Formats */
+.format-rgb {
+    color: rgb(120, 120, 120);
+    /* Fixable */
+    background-color: white;
+}
+
+.format-named {
+    color: silver;
+    /* Fixable */
+    background-color: white;
+}
