@@ -1,11 +1,12 @@
-import setuptools
+from setuptools import setup, find_packages
+
 
 with open('README.md', 'r', encoding='utf-8') as fh:
     long_description = fh.read()
 
-setuptools.setup(
+setup(
     name='cm-colors',
-    version='0.2.1',
+    version='0.3.0',
     author='Lalitha A R',
     author_email='arlalithablogs@gmail.com',
     description='You pick your colors, we make it readable',
@@ -28,8 +29,15 @@ setuptools.setup(
         'Topic :: Scientific/Engineering',
     ],
     package_dir={'': 'src'},
-    packages=setuptools.find_packages(
-        where='src', exclude=['cm_colors.cli', 'cm_colors.cli.*']
-    ),
+    packages=find_packages(where="src"), # Updated to use find_packages directly
+    install_requires=[ # Added install_requires
+        "tinycss2",
+        "click",
+    ],
+    entry_points={
+        'console_scripts': [
+            'cm-colors=cm_colors.cli.main:main',
+        ],
+    },
     python_requires='>=3.7',
 )
