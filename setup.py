@@ -31,8 +31,8 @@ setup(
     package_dir={'': 'src'},
     packages=find_packages(where="src"), # Updated to use find_packages directly
     install_requires=[ # Added install_requires
-        "tinycss2",
-        "click",
+     "tinycss2>=1.2.0,<2.0.0",
+     "click>=8.0.0,<9.0.0",
     ],
     entry_points={
         'console_scripts': [
