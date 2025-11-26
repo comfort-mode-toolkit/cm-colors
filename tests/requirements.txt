@@ -2,3 +2,4 @@ pytest
 unittest
 hypothesis
 click
+tinycss2
