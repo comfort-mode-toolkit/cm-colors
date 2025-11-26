@@ -34,7 +34,6 @@ def test_css_vars_support(tmp_path):
     
     if output_file.exists():
         output_content = output_file.read_text(encoding="utf-8")
-        print("Output content:", output_content)
         
         # We expect --text to be tuned (e.g. to a darker grey)
         # And the usage in body should still be var(--text)
