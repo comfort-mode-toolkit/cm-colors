@@ -37,7 +37,7 @@ def test_process_fixable_pair(runner):
         
         result = runner.invoke(main, ["test.css"])
         assert result.exit_code == 0
-        assert "1 tuned" in result.output
+        assert "1 pairs tuned" in result.output
         
         with open("test_cm.css", "r") as f:
             content = f.read()
@@ -70,7 +70,7 @@ def test_process_nested_rules(runner):
         
         result = runner.invoke(main, ["test.css"])
         assert result.exit_code == 0
-        assert "1 tuned" in result.output
+        assert "1 pairs tuned" in result.output
         
         with open("test_cm.css", "r") as f:
             content = f.read()
@@ -87,4 +87,4 @@ def test_process_implicit_background(runner):
         # Default bg is white, so #777 should be fixed
         result = runner.invoke(main, ["test.css"])
         assert result.exit_code == 0
-        assert "1 tuned" in result.output
+        assert "1 pairs tuned" in result.output

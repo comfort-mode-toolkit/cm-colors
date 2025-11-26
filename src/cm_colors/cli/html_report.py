@@ -1,4 +1,5 @@
 import os
+import html
 
 def generate_report(fixed_pairs, output_path="cm_colors_report.html"):
     """
@@ -195,18 +196,27 @@ def generate_report(fixed_pairs, output_path="cm_colors_report.html"):
         """
     else:
         for pair in fixed_pairs:
-            bg_style = f"background-color: {pair['bg']};"
+            # Escape all user-controlled values to prevent XSS
+            selector = html.escape(str(pair['selector']))
+            file_path = html.escape(str(pair['file']))
+            bg = html.escape(str(pair['bg']))
+            original_text = html.escape(str(pair['original_text']))
+            tuned_text = html.escape(str(pair['tuned_text']))
+            original_level = html.escape(str(pair['original_level']))
+            new_level = html.escape(str(pair['new_level']))
+
+            bg_style = f"background-color: {bg};"
             
             # Ensure text colors are valid for CSS
-            orig_text_style = f"color: {pair['original_text']};"
-            tuned_text_style = f"color: {pair['tuned_text']};"
+            orig_text_style = f"color: {original_text};"
+            tuned_text_style = f"color: {tuned_text};"
             
             html_content += f"""
             <div class="card">
                 <div class="card-header">
                     <div>
-                        <div class="selector">{pair['selector']}</div>
-                        <div class="file-info">{pair['file']}</div>
+                        <div class="selector">{selector}</div>
+                        <div class="file-info">{file_path}</div>
                     </div>
                 </div>
                 
@@ -214,8 +224,8 @@ def generate_report(fixed_pairs, output_path="cm_colors_report.html"):
                     <div class="color-box" style="{bg_style} {orig_text_style}">
                         <span class="label">Before</span>
                         <div class="sample-text">Sample Text</div>
-                        <div class="color-code">{pair['original_text']}</div>
-                        <div class="badge badge-fail">{pair['original_level']}</div>
+                        <div class="color-code">{original_text}</div>
+                        <div class="badge badge-fail">{original_level}</div>
                     </div>
                     
                     <div class="arrow">→</div>
@@ -223,8 +233,8 @@ def generate_report(fixed_pairs, output_path="cm_colors_report.html"):
                     <div class="color-box" style="{bg_style} {tuned_text_style}">
                         <span class="label">After</span>
                         <div class="sample-text">Sample Text</div>
-                        <div class="color-code">{pair['tuned_text']}</div>
-                        <div class="badge badge-pass">{pair['new_level']}</div>
+                        <div class="color-code">{tuned_text}</div>
+                        <div class="badge badge-pass">{new_level}</div>
                     </div>
                 </div>
             </div>
