@@ -6,9 +6,16 @@ from cm_colors.core.conversions import rgb_to_lab
 def calculate_delta_e_2000(
     rgb1: Tuple[int, int, int], rgb2: Tuple[int, int, int]
 ) -> float:
-    """
-    Calculate Delta E 2000 color difference with full mathematical rigor
-    Most perceptually accurate color difference formula
+    """Calculate Delta E 2000 color difference with full mathematical rigor.
+
+    Most perceptually accurate color difference formula.
+
+    Args:
+        rgb1 (Tuple[int, int, int]): First RGB color tuple.
+        rgb2 (Tuple[int, int, int]): Second RGB color tuple.
+
+    Returns:
+        float: The Delta E 2000 color difference.
     """
     if rgb1 == rgb2:
         return 0.0

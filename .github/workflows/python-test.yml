@@ -27,4 +27,4 @@ jobs:
         # If your library has other dependencies, install them here
     - name: Run tests with pytest
       run: |
-        PYTHONPATH=src python -m pytest tests/*.py
+        PYTHONPATH=src python -m pytest tests/

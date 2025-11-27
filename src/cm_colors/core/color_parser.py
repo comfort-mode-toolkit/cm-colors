@@ -17,10 +17,9 @@ _NUM_RE = re.compile(r'[-+]?\d*\.?\d+%?')
 
 
 def _parse_number_token(tok: str, component: bool = True) -> float:
-    """
-    Parse a numeric token representing an RGB component or alpha and convert it to the appropriate numeric scale.
+    """Parse a numeric token representing an RGB component or alpha and convert it to the appropriate numeric scale.
 
-    Parameters:
+    Args:
         tok (str): Numeric token to parse; may include a trailing '%' to denote a percentage.
         component (bool): If True, interpret the token as an RGB component and return a value on the 0–255 scale. If False, interpret as an alpha value on the 0–1 scale.
 
@@ -67,10 +66,9 @@ def _parse_number_token(tok: str, component: bool = True) -> float:
 
 
 def _extract_number_tokens(s: str) -> list:
-    """
-    Extract numeric tokens from a string, preserving trailing percent signs.
+    """Extract numeric tokens from a string, preserving trailing percent signs.
 
-    Parameters:
+    Args:
         s (str): Input string to search for numeric tokens.
 
     Returns:
@@ -82,12 +80,11 @@ def _extract_number_tokens(s: str) -> list:
 def parse_color_to_rgb(
     color: ColorInput, background: ColorInput | None = None
 ) -> Tuple[int, int, int]:
-    """
-    Parse a color specification and return its RGB representation.
+    """Parse a color specification and return its RGB representation.
 
     Accepts CSS named colors, hex strings (with or without '#'), "rgb(...)" / "rgba(...)" and informal "r, g, b" or "(r,g,b)" formats, "hsl(...)" / "hsla(...)", and 3- or 4-element tuple/list forms (interpreting 3-element lists as RGB or HSL by heuristic, and 4-element lists as RGBA or HSLA by heuristic). Percentage and fractional component values are supported; when an alpha is present the color is composited over `background` (defaults to white).
 
-    Parameters:
+    Args:
         color: The color to parse (string, tuple, or list). See accepted formats above.
         background: Optional background color used when compositing an alpha channel; may be any input accepted by this function. If omitted and compositing is required, white (255, 255, 255) is used.
 
