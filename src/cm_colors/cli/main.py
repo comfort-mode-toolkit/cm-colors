@@ -87,7 +87,7 @@ def resolve_variable(value_str, variables, visited=None):
         
     return None
 
-def process_nodes_recursive(node_list, default_bg, stats, file_path, variables=None):
+def process_nodes_recursive(node_list, default_bg, stats, file_path, variables=None, mode=1, premium=False):
     if variables is None:
         variables = {}
         
@@ -129,11 +129,14 @@ def process_nodes_recursive(node_list, default_bg, stats, file_path, variables=N
                             'reason': f"Invalid colors: {', '.join(pair.errors)}"
                          })
                     else:
-                        if pair.contrast_ratio >= 4.5:
+                        # Determine target contrast based on premium flag
+                        target_ratio = 7.0 if premium else 4.5
+                        
+                        if pair.contrast_ratio >= target_ratio:
                             stats['accessible'] += 1
                         else:
                             original_level = pair.wcag_level
-                            tuned_rgb, is_accessible = pair.tune_colors()
+                            tuned_rgb, is_accessible = pair.tune_colors(mode=mode, premium=premium)
                             
                             if is_accessible:
                                 stats['tuned'] += 1
@@ -203,7 +206,7 @@ def process_nodes_recursive(node_list, default_bg, stats, file_path, variables=N
         elif isinstance(node, AtRule):
             if node.lower_at_keyword in ('media', 'supports') and node.content:
                 nested_rules = tinycss2.parse_rule_list(node.content, skip_whitespace=False, skip_comments=False)
-                process_nodes_recursive(nested_rules, default_bg, stats, file_path, variables)
+                process_nodes_recursive(nested_rules, default_bg, stats, file_path, variables, mode=mode, premium=premium)
                 
                 nested_css = tinycss2.serialize(nested_rules)
                 new_content = tinycss2.parse_component_value_list(nested_css)
@@ -212,7 +215,9 @@ def process_nodes_recursive(node_list, default_bg, stats, file_path, variables=N
 @click.command()
 @click.argument('path', default='.', type=click.Path(exists=True))
 @click.option('--default-bg', default='white', help='Default background color if not specified.')
-def main(path, default_bg):
+@click.option('--mode', default=1, type=int, help='Optimization mode: 0 (Strict), 1 (Default), 2 (Relaxed).')
+@click.option('--premium', is_flag=True, default=False, help='Aim for AAA compliance (Premium Standard).')
+def main(path, default_bg, mode, premium):
     """CM-Colors CLI: Automatically tune color contrast in CSS files."""
     stats = {'accessible': 0, 'tuned': 0, 'failed': 0, 'failed_details': [], 'fixed_details': []}
     
@@ -254,7 +259,7 @@ def main(path, default_bg):
                                     'rule': rule # Keep ref to rule
                                 }
             
-            process_nodes_recursive(rules, default_bg, stats, file_path, variables)
+            process_nodes_recursive(rules, default_bg, stats, file_path, variables, mode=mode, premium=premium)
             
             # Post-process: Update content of rules that had variables modified
             # We can just iterate through all rules that we parsed declarations for

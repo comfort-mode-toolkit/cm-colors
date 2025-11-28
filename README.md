@@ -65,8 +65,24 @@ Default: `white`
 
 Example:
 
-```bash
 cm-colors styles.css --default-bg "#f5f5f5"
+```
+
+`--mode <0|1|2>`
+
+Choose your optimization strategy:
+- `0` (Ultra Strict): Minimal changes, strict Delta E.
+- `1` (Default): Balanced approach, recursive tuning.
+- `2` (Relaxed): More aggressive changes if needed.
+
+`--premium`
+
+Aim for AAA compliance (contrast ratio 7.0) instead of AA (4.5).
+
+Example:
+
+```bash
+cm-colors styles.css --mode 2 --premium
 ```
 
 ### Output
