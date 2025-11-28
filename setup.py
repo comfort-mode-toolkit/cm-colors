@@ -6,7 +6,7 @@ with open('README.md', 'r', encoding='utf-8') as fh:
 
 setup(
     name='cm-colors',
-    version='0.4.0',
+    version='0.4.1',
     author='Lalitha A R',
     author_email='arlalithablogs@gmail.com',
     description='You pick your colors, we make it readable',

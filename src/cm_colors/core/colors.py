@@ -175,7 +175,7 @@ class ColorPair:
             return None
         return calculate_delta_e_2000(self.bg.rgb, self.text.rgb)
 
-    def tune_colors(self, details: bool = False):
+    def tune_colors(self, details: bool = False,mode: int = 1, premium: bool = False):
         """Adjusts the text/background colors to meet WCAG contrast requirements.
 
         When the color pair is invalid, returns an immediate failure:
@@ -201,5 +201,5 @@ class ColorPair:
         from .optimisation import check_and_fix_contrast
 
         return check_and_fix_contrast(
-            self.text._rgb, self.bg._rgb, self.large_text, details
+            self.text._rgb, self.bg._rgb, self.large_text, details,mode,premium
         )

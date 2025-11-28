@@ -499,13 +499,13 @@ def check_and_fix_contrast(
     # Determine targets based on premium and large flags
     if premium:
         # Premium always aims for AAA
-        target_contrast = 7.0
-        min_contrast = 7.0
-    else:
-        # Standard aims for AA (which is 3.0 for large, 4.5 for normal)
-        # But we keep the internal target slightly higher (7.0/4.5) for better results in strict mode?
-        # The prompt says: "all 3 modes only aim for AA and if the color is already AA, returns the colors as it is, unless premium=True which all 3 push for AAA"
-        
+        if large:
+            min_contrast = 4.5
+            target_contrast = 4.5 # Aim a bit higher for buffer
+        else:
+            min_contrast = 7.0
+            target_contrast = 7.0
+    else:        
         # AA Requirements:
         # Normal Text: 4.5
         # Large Text: 3.0
