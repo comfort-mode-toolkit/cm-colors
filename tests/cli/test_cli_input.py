@@ -55,4 +55,4 @@ def test_cli_default_bg_option(runner):
         # Run with default-bg black (so #ccc is accessible)
         result = runner.invoke(main, ["test.css", "--default-bg", "black"])
         assert result.exit_code == 0
-        assert "1 already accessible" in result.output
+        assert "1 color pairs already readable" in result.output

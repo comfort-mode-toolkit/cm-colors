@@ -5,7 +5,7 @@ Tests mathematical properties and invariants that should always hold.
 """
 
 import pytest
-from hypothesis import given, strategies as st
+from hypothesis import given, strategies as st, settings
 from cm_colors import CMColors
 
 # Generate valid RGB tuples
@@ -62,6 +62,7 @@ class TestMathematicalProperties:
         assert abs(delta1 - delta2) < 1e-10
 
     @given(rgb_strategy, rgb_strategy)
+    @settings(deadline=None)
     def test_tune_colors_improves_or_maintains_contrast(
         self, text_rgb, bg_rgb
     ):

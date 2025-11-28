@@ -6,7 +6,7 @@ with open('README.md', 'r', encoding='utf-8') as fh:
 
 setup(
     name='cm-colors',
-    version='0.3.0',
+    version='0.4.0',
     author='Lalitha A R',
     author_email='arlalithablogs@gmail.com',
     description='You pick your colors, we make it readable',
@@ -14,7 +14,7 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/comfort-mode-toolkit/cm-colors',
     project_urls={
-        'Documentation': 'https://comfort-mode-toolkit.readthedocs.io/en/latest/cm_colors/installation.html',
+        'Documentation': 'https://comfort-mode-toolkit.readthedocs.io/en/latest/cm_colors/index.html',
         'Bug Reports': 'https://github.com/comfort-mode-toolkit/cm-colors/issues',
         'Source': 'https://github.com/comfort-mode-toolkit/cm-colors',
     },
@@ -25,7 +25,9 @@ setup(
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Libraries :: Python Modules',
-        'Topic :: Multimedia :: Graphics',
+        'Topic :: Software Development :: Quality Assurance',
+        'Topic :: Utilities',
+        'Topic :: Internet :: WWW/HTTP :: Site Management',
         'Topic :: Scientific/Engineering',
     ],
     package_dir={'': 'src'},
@@ -40,4 +42,16 @@ setup(
         ],
     },
     python_requires='>=3.7',
+        keywords=[
+        'accessibility',
+        'color-contrast', 
+        'wcag',
+        'a11y',
+        'css-colors',
+        'automated-accessibility',
+        'color-fixing',
+        'contrast-tuning',
+        'readable',
+        'legible'
+    ]
 )

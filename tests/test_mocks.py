@@ -172,7 +172,7 @@ class TestMockEdgeCases:
     def setup_method(self):
         self.cm = CMColors()
 
-    @patch('cm_colors.core.cm_colors.check_and_fix_contrast')
+    @patch('cm_colors.core.optimisation.check_and_fix_contrast')
     def test_tune_colors_failure_case(self, mock_optimize):
         """Test tune_colors when optimization fails"""
         mock_optimize.return_value = (

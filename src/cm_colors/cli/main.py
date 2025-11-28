@@ -281,30 +281,36 @@ def main(path, default_bg):
 
     # Summary List (moved to top)
     if stats['accessible'] > 0:
-        click.secho(f"{stats['accessible']} already accessible pairs ( Great job on these )", fg='cyan')
+        click.secho(f"✓ {stats['accessible']} color pairs already readable", fg='cyan')
     
     if stats['tuned'] > 0:
-        click.secho(f"{stats['tuned']} pairs tuned", fg='green')
+        click.secho(f"✓ {stats['tuned']} color pairs adjusted for better readability", fg='green')
         
     if stats['failed'] > 0:
-        click.secho(f"{stats['failed']} failed tuning (Please pick better starter colors for these)", fg='red')
+        click.secho(f"✗ {stats['failed']} color pairs need your attention", fg='red')
 
     click.echo("")
     
     if stats['failed'] > 0:
-        click.echo(f"Could not tune {stats['failed']} pairs:")
+        click.echo(f"Could not tune {stats['failed']} color pairs:")
         for fail in stats['failed_details']:
             reason = fail.get('reason', '')
-            contrast_info = f"(Contrast: {fail['contrast']:.2f})" if 'contrast' in fail else ""
+            # Map technical reasons to user-friendly ones if needed, or just rely on the source providing good reasons.
             
             click.echo(f"  {fail['file']} -> {fail['selector']}")
             
             # Colorize the failing pair details in red
-            pair_details = f"{fail['text']} on {fail['bg']}"
-            click.secho(f"    {pair_details}", fg='red', nl=False)
-            click.echo(f" {contrast_info}")
+            # pair_details = f"{fail['text']} on {fail['bg']}"
+            # click.secho(f"    {pair_details}", fg='red', nl=False)
+            # click.echo(f" {contrast_info}")
             
             if reason:
+                # If reason is the generic "Could not tune...", replace it with the friendly one
+                if "Could not tune without too much changes" in reason:
+                    reason = "Couldn't find a similar color that's easy to read"
+                elif "Invalid colors" in reason:
+                    reason = "These colors don't look right, check if it's a valid color please?"
+                    
                 click.echo(f"    Reason: {reason}")
         click.echo("")
     
