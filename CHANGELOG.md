@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.0] - 2025-11-21
+## [0.4.0] - 2025-11-27
+
+### Added
+
+- **Smarter Color Fixing**: We've improved how we find readable colors. The default mode is now much better at fixing difficult color pairs.
+- **Strictness Modes**: You can now choose how much we're allowed to change your colors:
+  - **Mode 0 (Ultra Strict)**: Changes colors very little (best for strict brand guidelines).
+  - **Mode 1 (Default)**: The best balance of readability and style.
+  - **Mode 2 (Relaxed)**: Allows more change to ensure your text is readable.
+- **Premium Standard**: Added a `premium` option to aim for the highest readability standard (AAA) instead of the standard (AA).
+
+
+## [0.3.0] - 2025-11-27
 
 ### Added
 

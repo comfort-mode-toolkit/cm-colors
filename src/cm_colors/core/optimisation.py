@@ -1,4 +1,4 @@
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 from cm_colors.core.conversions import (
     rgb_to_oklch_safe,
     oklch_to_rgb_safe,
@@ -209,39 +209,47 @@ def generate_accessible_color(
     text_rgb: Tuple[int, int, int],
     bg_rgb: Tuple[int, int, int],
     large: bool = False,
+    target_contrast: Optional[float] = None,
+    min_contrast: Optional[float] = None,
+    delta_e_sequence: Optional[List[float]] = None,
 ) -> Tuple[int, int, int]:
     """
     Main optimization function: Binary search first, then gradient descent.
     Maintains exact same rigor and quality as brute force with superior performance.
     """
+    # Defaults if not provided
+    if target_contrast is None:
+        target_contrast = 4.5 if large else 7.0
+    if min_contrast is None:
+        min_contrast = 3.0 if large else 4.5
+
     # Check if already accessible
     current_contrast = calculate_contrast_ratio(text_rgb, bg_rgb)
-    target_contrast = 4.5 if large else 7.0
-    min_contrast = 3.0 if large else 4.5
-
+    
     if current_contrast >= target_contrast:
         return text_rgb
 
     # Progressive DeltaE thresholds (matching brute force sequence)
-    delta_e_sequence = [
-        0.8,
-        1.0,
-        1.2,
-        1.4,
-        1.6,
-        1.8,
-        2.0,
-        2.1,
-        2.2,
-        2.3,
-        2.4,
-        2.5,
-        2.7,
-        3.0,
-        3.5,
-        4.0,
-        5.0,
-    ]
+    if delta_e_sequence is None:
+        delta_e_sequence = [
+            0.8,
+            1.0,
+            1.2,
+            1.4,
+            1.6,
+            1.8,
+            2.0,
+            2.1,
+            2.2,
+            2.3,
+            2.4,
+            2.5,
+            2.7,
+            3.0,
+            3.5,
+            4.0,
+            5.0,
+        ]
 
     best_candidate = None
     best_contrast = current_contrast
@@ -286,18 +294,166 @@ def generate_accessible_color(
                 best_delta_e = result_delta_e
 
         # Early termination with strict DeltaE (matching brute force logic)
+        # Only if we are using the default sequence (strict mode)
         if (
             best_candidate
             and best_contrast >= min_contrast
             and max_delta_e <= 2.5
+            and delta_e_sequence[-1] <= 5.0 # Check if it's the strict sequence
         ):
             return best_candidate
 
     return best_candidate if best_candidate else text_rgb
 
 
+def _strategy_strict(
+    text_rgb: Tuple[int, int, int],
+    bg_rgb: Tuple[int, int, int],
+    large: bool,
+    target_contrast: float,
+    min_contrast: float
+) -> Tuple[Tuple[int, int, int], bool]:
+    """
+    Mode 0: Ultra Strict
+    The current implementation as it is in the py file.
+    """
+    tuned_rgb = generate_accessible_color(
+        text_rgb, bg_rgb, large=large, target_contrast=target_contrast, min_contrast=min_contrast
+    )
+    final_contrast = calculate_contrast_ratio(tuned_rgb, bg_rgb)
+    success = final_contrast >= min_contrast
+    return tuned_rgb, success
+
+
+def _strategy_recursive(
+    text_rgb: Tuple[int, int, int],
+    bg_rgb: Tuple[int, int, int],
+    large: bool,
+    target_contrast: float,
+    min_contrast: float
+) -> Tuple[Tuple[int, int, int], bool]:
+    """
+    Mode 1: Default (Recursive)
+    Best for all purposes, works on almost all possible pairs with highest success rate.
+    """
+    current_rgb = text_rgb
+    max_iterations = 10
+    
+    # Strict sequence for each step
+    strict_sequence = [0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.5, 2.8, 3.0]
+    
+    for _ in range(max_iterations):
+        current_contrast = calculate_contrast_ratio(current_rgb, bg_rgb)
+        if current_contrast >= min_contrast:
+             return current_rgb, True
+
+        # We use the core function which aims for target_contrast
+        # If it returns the same color, it means it couldn't improve within DeltaE limit
+        next_rgb = generate_accessible_color(
+            current_rgb, 
+            bg_rgb, 
+            large=large, 
+            target_contrast=target_contrast, 
+            min_contrast=min_contrast,
+            delta_e_sequence=strict_sequence
+        )
+        
+        if next_rgb == current_rgb:
+            # Stuck, can't improve further with strict limit
+            # Check if we are at least passing min_contrast
+            if calculate_contrast_ratio(next_rgb, bg_rgb) >= min_contrast:
+                return next_rgb, True
+            else:
+                return next_rgb, False
+        
+        current_rgb = next_rgb
+        
+        # Check if we passed now
+        if calculate_contrast_ratio(current_rgb, bg_rgb) >= min_contrast:
+            return current_rgb, True
+            
+    return current_rgb, False
+
+
+def _strategy_relaxed(
+    text_rgb: Tuple[int, int, int],
+    bg_rgb: Tuple[int, int, int],
+    large: bool,
+    target_contrast: float,
+    min_contrast: float
+) -> Tuple[Tuple[int, int, int], bool]:
+    """
+    Mode 2: Relaxed
+    Tries recursive first. If fails, tries increasing iterations OR relaxing Delta E.
+    """
+    # 1. Try Recursive first
+    rec_rgb, rec_success = _strategy_recursive(text_rgb, bg_rgb, large, target_contrast, min_contrast)
+    if rec_success:
+        return rec_rgb, True
+
+    # If recursive failed, try two combinations:
+    
+    # Option A: Increased iterations (Recursive with 15 iterations)
+    # We can just continue from where recursive left off or restart with higher limit.
+    # Let's restart with higher limit for simplicity and correctness of the definition "increasing no of iterations by 5"
+    # The original recursive used 10, so we use 15.
+    
+    opt_a_rgb = text_rgb
+    opt_a_success = False
+    max_iterations_extended = 15
+    strict_sequence = [0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.5, 2.8, 3.0]
+
+    for _ in range(max_iterations_extended):
+        if calculate_contrast_ratio(opt_a_rgb, bg_rgb) >= min_contrast:
+            opt_a_success = True
+            break
+        next_rgb = generate_accessible_color(
+            opt_a_rgb, bg_rgb, large=large, target_contrast=target_contrast, min_contrast=min_contrast, delta_e_sequence=strict_sequence
+        )
+        if next_rgb == opt_a_rgb:
+            if calculate_contrast_ratio(next_rgb, bg_rgb) >= min_contrast:
+                opt_a_success = True
+            break
+        opt_a_rgb = next_rgb
+        if calculate_contrast_ratio(opt_a_rgb, bg_rgb) >= min_contrast:
+            opt_a_success = True
+            break
+            
+    # Option B: Delta E relaxation until 15
+    relaxed_sequence = [
+        0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0, 
+        6.0, 7.0, 8.0, 9.0, 10.0, 12.0, 15.0
+    ]
+    opt_b_rgb = generate_accessible_color(
+        text_rgb, bg_rgb, large=large, target_contrast=target_contrast, min_contrast=min_contrast, delta_e_sequence=relaxed_sequence
+    )
+    opt_b_success = calculate_contrast_ratio(opt_b_rgb, bg_rgb) >= min_contrast
+
+    # Decision logic
+    if opt_a_success and opt_b_success:
+        # Go for the one with minimal delta E
+        delta_a = calculate_delta_e_2000(text_rgb, opt_a_rgb)
+        delta_b = calculate_delta_e_2000(text_rgb, opt_b_rgb)
+        if delta_a <= delta_b:
+            return opt_a_rgb, True
+        else:
+            return opt_b_rgb, True
+    elif opt_a_success:
+        return opt_a_rgb, True
+    elif opt_b_success:
+        return opt_b_rgb, True
+    else:
+        # Return fail (return recursive result as best effort)
+        return rec_rgb, False
+
+
 def check_and_fix_contrast(
-    text, bg, large: bool = False, details: bool = False
+    text, 
+    bg, 
+    large: bool = False, 
+    details: bool = False,
+    mode: int = 1,
+    premium: bool = False
 ):
     """
     Verify and, if necessary, adjust a text/background color pair so it meets WCAG contrast requirements.
@@ -307,20 +463,18 @@ def check_and_fix_contrast(
         bg: Background color in any parseable format.
         large (bool): True to use the large-text WCAG threshold, False to use the normal-text threshold.
         details (bool): If False, return a simple result tuple; if True, return a detailed report dictionary.
+        mode (int): Optimization mode. 
+                    0 = Ultra Strict (original implementation)
+                    1 = Default (Recursive)
+                    2 = Relaxed (Recursive + fallback)
+        premium (bool): If True, aims for AAA compliance regardless of initial state. 
+                        If False, aims for AA.
 
     Returns:
         If details is False: (tuned_color, is_accessible)
-            tuned_color (str): The resulting text color as an RGB string (may be the original input if already acceptable).
-            is_accessible (bool): True if tuned_color meets the WCAG contrast requirement for the given `large` flag, False otherwise.
-        If details is True: dict containing:
-            - text: original text color input
-            - tuned_text: resulting text color as an RGB string
-            - bg: original background color input
-            - large: the `large` flag value used
-            - wcag_level: resulting WCAG level string (e.g., "AAA", "AA", "FAIL")
-            - improvement_percentage: percent improvement in contrast relative to the original color
-            - status: True if tuned_text meets at least the minimum WCAG level, False otherwise
-            - message: human-readable outcome message
+            tuned_color (str): The resulting text color as an RGB string.
+            is_accessible (bool): True if tuned_color meets the requirement.
+        If details is True: dict containing detailed report.
 
     Raises:
         ValueError: if `text` or `bg` cannot be parsed as valid colors.
@@ -337,19 +491,50 @@ def check_and_fix_contrast(
     if not bg_color.is_valid:
         raise ValueError(f'Invalid background color: {bg_color.error}')
 
-    current_contrast = calculate_contrast_ratio(text, bg)
-    target_contrast = 4.5 if large else 7.0
+    text_rgb = text_color.rgb
+    bg_rgb = bg_color.rgb
 
-    if current_contrast >= target_contrast:
+    current_contrast = calculate_contrast_ratio(text_rgb, bg_rgb)
+    
+    # Determine targets based on premium and large flags
+    if premium:
+        # Premium always aims for AAA
+        target_contrast = 7.0
+        min_contrast = 7.0
+    else:
+        # Standard aims for AA (which is 3.0 for large, 4.5 for normal)
+        # But we keep the internal target slightly higher (7.0/4.5) for better results in strict mode?
+        # The prompt says: "all 3 modes only aim for AA and if the color is already AA, returns the colors as it is, unless premium=True which all 3 push for AAA"
+        
+        # AA Requirements:
+        # Normal Text: 4.5
+        # Large Text: 3.0
+        
+        if large:
+            min_contrast = 3.0
+            target_contrast = 4.5 # Aim a bit higher for buffer
+        else:
+            min_contrast = 4.5
+            target_contrast = 7.0 # Aim a bit higher (AAA) if possible, but AA is the floor
+
+    # Check if already accessible
+    # If premium=False, and we already meet AA, return as is.
+    # If premium=True, we check against AAA (7.0).
+    
+    required_contrast_for_check = min_contrast
+    
+    if current_contrast >= required_contrast_for_check:
+        # Already passes
         if not details:
             return text, True
         else:
+            wcag_level = get_wcag_level(text_rgb, bg_rgb, large)
             return {
                 'text': text,
                 'tuned_text': text,
                 'bg': bg,
                 'large': large,
-                'wcag_level': 'AAA' if current_contrast >= 7.0 else 'AA',
+                'wcag_level': wcag_level,
                 'improvement_percentage': 0,
                 'status': True,
                 'message': 'Perfect! Your pair is already accessible with a contrast ratio of {:.2f}.'.format(
@@ -357,33 +542,33 @@ def check_and_fix_contrast(
                 ),
             }
 
-    accessible_text = generate_accessible_color(text, bg, large)
-    final_contrast = calculate_contrast_ratio(accessible_text, bg)
-                
-    aa_target = 3.0 if large else 4.5
+    # Dispatch to strategy
+    if mode == 0:
+        tuned_rgb, success = _strategy_strict(text_rgb, bg_rgb, large, target_contrast, min_contrast)
+    elif mode == 2:
+        tuned_rgb, success = _strategy_relaxed(text_rgb, bg_rgb, large, target_contrast, min_contrast)
+    else:
+        # Default to mode 1
+        tuned_rgb, success = _strategy_recursive(text_rgb, bg_rgb, large, target_contrast, min_contrast)
 
-    # is_wcag_aa = final_contrast >= aa_target
-    success = final_contrast >= aa_target
-    wcag_level = get_wcag_level(accessible_text, bg,large)
-
-
+    final_contrast = calculate_contrast_ratio(tuned_rgb, bg_rgb)
+    wcag_level = get_wcag_level(tuned_rgb, bg_rgb, large)
 
     improvement_percentage = round(
         (((final_contrast - current_contrast) / current_contrast) * 100), 2
     )
-    accessible_text = rgbint_to_string(accessible_text)
-
+    accessible_text_str = rgbint_to_string(tuned_rgb)
 
     if not details:
-        return accessible_text, success
+        return accessible_text_str, success
     else:
-        if wcag_level == 'FAIL':
+        if not success:
             message = f'Please choose a different color, your pair is not accessible with a contrast ratio of {final_contrast:.2f}.'
         else:
             message = f'Your pair was not accessible, but now it is {wcag_level} compliant with a contrast ratio of {final_contrast:.2f}.'
         return {
             'text': text,
-            'tuned_text': accessible_text,
+            'tuned_text': accessible_text_str,
             'bg': bg,
             'large': large,
             'wcag_level': wcag_level,

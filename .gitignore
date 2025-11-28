@@ -213,3 +213,5 @@ _build/
 # Generated reports
 cm_colors_report.html
 *_cm.css
+
+ab_test.py

@@ -6,25 +6,24 @@
 ![Downloads](https://img.shields.io/pypi/dm/cm-colors)
 ![License](https://img.shields.io/github/license/comfort-mode-toolkit/cm-colors)
 
-**Automatic color contrast tuning for web accessibility**
+**Color contrast that works for everyone**
 
-CM-Colors adjusts text and background color pairs to meet WCAG accessibility standards while preserving visual aesthetics. Use it as a command-line tool to process CSS files or as a Python library for programmatic color manipulation.
+CM-Colors automatically finds colors that look good and read well, so your website works for all visitors. Use it to fix your CSS files or as a Python tool to adjust colors in your code.
 
-The percentage shows the change in contrast ratio:
+The percentage shows how much easier the text is to read:
 
 <img width="1189" height="1110" alt="an image showing side by side comparision of before and after change of colors" src="https://github.com/user-attachments/assets/4ce92c65-cd27-4bae-8756-bbbe9bf70a91"  />
 
 ## Overview
 
-Web content requires sufficient color contrast between text and backgrounds for readability. WCAG defines minimum contrast ratios to ensure accessibility for users with visual impairments. CM-Colors automatically adjusts colors to meet these standards with minimal perceptual changes.
+Tired of guessing which colors work together? CM-Colors fixes color contrast automatically. It finds similar colors that are easy to read, so you can get back to building features instead of adjusting colors.
 
-**Key features:**
+**What it does:**
 
-- Automatic color contrast tuning to WCAG AA/AAA standards
-- Command-line tool for batch CSS file processing
-- Python API for programmatic color manipulation
-- Support for all common color formats (hex, RGB/RGBA, HSL/HSLA, named colors)
-- Perceptual color space algorithms for visually minimal adjustments
+- Automatically makes your colors readable for everyone
+- Fixes all your CSS files in one go
+- Works with any color format you use (hex, RGB, named colors)
+- Keeps your design looking great while making it accessible
 
 ## Installation
 
@@ -34,23 +33,23 @@ pip install cm-colors
 
 ## CLI Usage
 
-The `cm-colors` command processes CSS files and tunes color contrast automatically.
+The `cm-colors` command checks your CSS files and fixes colors that are hard to read.
 
 ### Basic commands
 
-Process a single CSS file:
+Fix a single CSS file:
 
 ```bash
 cm-colors style.css
 ```
 
-Process all CSS files in a directory:
+Fix all CSS files in a folder:
 
 ```bash
 cm-colors path/to/styles/
 ```
 
-Process files in the current directory:
+Fix files in the current folder:
 
 ```bash
 cm-colors .
@@ -60,7 +59,7 @@ cm-colors .
 
 `--default-bg COLOR`
 
-Specifies the default background color when a CSS rule lacks an explicit background declaration. Accepts any valid color format.
+Sets the background color to use if one isn't specified.
 
 Default: `white`
 
@@ -72,23 +71,16 @@ cm-colors styles.css --default-bg "#f5f5f5"
 
 ### Output
 
-**Modified CSS files:**
+**Updated CSS files:**
 
-The tool creates new files with `_cm` inserted before the extension:
+We create new files with `_cm` added to the name, so your original files stay safe.
 
 - Input: `style.css`
 - Output: `style_cm.css`
 
-Original files remain unchanged. The output preserves formatting, comments, and structure.
-
 **HTML report:**
 
-When colors are tuned, the tool generates `cm_colors_report.html` in the current directory with:
-
-- Visual before/after comparison for each change
-- CSS selector and file location
-- Original and updated WCAG levels
-- Color swatches showing differences
+If we change any colors, we'll create a `cm_colors_report.html` file showing you exactly what changed and why.
 
 **Console output:**
 
@@ -96,40 +88,24 @@ When colors are tuned, the tool generates `cm_colors_report.html` in the current
 Processing 3 files...
 
 Results:
-✓ 12 already accessible
-✓ 5 tuned
-✗ 2 failed tuning
+✓ 12 colors already readable
+✓ 5 colors adjusted for better readability
+✗ 2 colors need your attention
 
 Could not tune 2 pairs:
   style.css -> .warning-badge
-    Reason: Unable to achieve sufficient contrast
+    Reason: Couldn't find a similar color that's easy to read
   layout.css -> .subtle-text
-    Reason: Colors too similar to adjust
+    Reason: Try starting with different colors
 
 Report generated: /path/to/cm_colors_report.html
 ```
-
-### How it works
-
-1. Discovers all CSS files in the specified path
-2. Parses CSS and extracts color declarations
-3. Resolves CSS custom properties (variables)
-4. Detects text/background color pairs per selector
-5. Evaluates each pair against WCAG AA threshold (4.5:1)
-6. Tunes colors below threshold using perceptual optimization
-7. Generates modified CSS and HTML report
-
-### Limitations
-
-- Some color combinations cannot achieve sufficient contrast while maintaining visual similarity
-- Color pair detection requires explicit `color` and `background-color` declarations
-- CSS preprocessor syntax (SCSS, LESS) is not supported; process compiled CSS instead
 
 ## Python API
 
 ### ColorPair class
 
-Check and tune color contrast programmatically:
+Check and fix colors in your Python code:
 
 ```python
 from cm_colors import ColorPair
@@ -137,83 +113,49 @@ from cm_colors import ColorPair
 # Create a color pair
 pair = ColorPair("#5f7887", "rgb(230, 240, 245)")
 
-# Check accessibility
-print(f"Contrast ratio: {pair.contrast_ratio:.2f}")  # 3.89
-print(f"WCAG level: {pair.wcag_level}")              # FAIL
+# Check if it's readable
+print(f"Readable: {pair.is_readable}")  # False
 
-# Tune colors automatically
-tuned_text, is_accessible = pair.tune_colors()
-print(f"Tuned color: {tuned_text}")                  # rgb(83, 107, 122)
-print(f"Accessible: {is_accessible}")                # True
+# Fix colors automatically
+tuned_text, success = pair.tune_colors()
+print(f"New color: {tuned_text}")       # rgb(83, 107, 122)
+print(f"Fixed: {success}")              # True
+```
+
+### Advanced Options
+
+You can control how we fix your colors:
+
+```python
+# Use 'premium' mode to aim for the highest readability standard (AAA)
+tuned_text, success = pair.tune_colors(premium=True)
+
+# Choose how strict we should be about changing the color shade
+# mode=0: Ultra Strict (changes color very little)
+# mode=1: Default (best balance of readability and style)
+# mode=2: Relaxed (allows more change to ensure readability)
+tuned_text, success = pair.tune_colors(mode=2)
 ```
 
 ### Color class
 
-Work with individual colors in any format:
+Work with individual colors easily:
 
 ```python
 from cm_colors import Color
 
 # Create colors from any format
 color = Color("#c7483b")
-rgba = Color("rgba(255, 0, 0, 0.5)")
-hsl = Color("hsl(210, 100%, 50%)")
-named = Color("cornflowerblue")
 
-# Convert between formats
+# Convert to other formats
 if color.is_valid:
     print(color.to_rgb_string())  # 'rgb(199, 72, 59)'
     print(color.to_hex())         # #c7483b
 ```
 
-### Supported color formats
-
-- **Hex:** `"#ff0000"`, `"#f00"`, `"ff0000"`
-- **RGB/RGBA:** `(255, 0, 0)`, `"rgb(255, 0, 0)"`, `"rgba(255, 0, 0, 0.8)"`
-- **HSL/HSLA:** `"hsl(120, 100%, 50%)"`, `"hsla(120, 100%, 50%, 0.9)"`
-- **Named colors:** `"red"`, `"cornflowerblue"`, `"rebeccapurple"`
-
-### Additional methods
-
-```python
-from cm_colors import ColorPair
-
-pair = ColorPair("#646464", "#ffffff")
-
-# Check contrast ratio
-print(pair.contrast_ratio)  # 5.92
-
-# Check WCAG compliance level
-print(pair.wcag_level)  # AA, AAA, or FAIL
-
-# Calculate perceptual difference (Delta E)
-print(f"Delta E: {pair.delta_e:.2f}")
-
-# Use different threshold for large text
-pair_large = ColorPair("#767676", "white", large_text=True)
-print(pair_large.wcag_level)  # AA (threshold: 3.0)
-```
-
-### Legacy API
-
-The v0.1.x API remains supported:
-
-```python
-from cm_colors import CMColors
-
-cm = CMColors()
-ratio = cm.contrast_ratio("#646464", "white")
-level = cm.wcag_level("rgb(100, 100, 100)", "#ffffff")
-tuned, success = cm.tune_colors("cornflowerblue", "white")
-```
-
 ## Documentation
 
-For detailed usage, advanced features, and technical information, see the [full documentation](https://comfort-mode-toolkit.readthedocs.io/en/latest/cm_colors.html).
-
-## Technical details
-
-CM-Colors uses perceptual color space transformations (OKLCH) and Delta E 2000 for color difference calculations. The tuning algorithm employs gradient descent optimization to find accessible colors with minimal perceptual change. See the [Technical README](https://github.com/comfort-mode-toolkit/cm-colors/blob/main/Technical%20README.md) for implementation details.
+For more details, see the [full documentation](https://comfort-mode-toolkit.readthedocs.io/en/latest/cm_colors/index.html).
 
 ## License
 
@@ -221,8 +163,8 @@ GNU General Public License v3.0
 
 ## Support
 
-Report bugs or request features by [opening an issue](https://github.com/comfort-mode-toolkit/cm-colors/issues).
+Found a problem? [Let us know](https://github.com/comfort-mode-toolkit/cm-colors/issues).
 
 ---
 
-**Making web content accessible through automatic color contrast tuning**
+**Stop guessing, start building.**
