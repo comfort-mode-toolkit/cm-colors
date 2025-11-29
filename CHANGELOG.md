@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] - 2025-11-29
+
+### Added
+
+- **Visual Previews**: The `show` parameter now displays a before-and-after comparison in your terminal when tuning colors.
+- **HTML Reports**: The `html` parameter generates detailed visual reports showing exactly what changed.
+- **Format Preservation**: Tuned colors are now returned in the same format as the input (hex → hex, RGB → RGB, HSL → HSL, tuple → tuple). RGBA, HSLA, and named colors default to hex output.
+
+### Fixed
+
+- **Color Parser Bug**: Fixed incorrect parsing of `rgb(0, 1, 0)` which was being interpreted as `(0, 255, 0)`. Now correctly follows CSS standards where integer values represent 0-255 range, not normalized 0-1 floats.
+
+### Tests
+
+- Added 19 comprehensive edge case tests covering format preservation in success/failure scenarios, visualizer behavior, and already-accessible colors.
+
+
 ## [0.4.2] - 2025-11-28
 
 ### Added

@@ -6,7 +6,7 @@ with open('README.md', 'r', encoding='utf-8') as fh:
 
 setup(
     name='cm-colors',
-    version='0.4.2',
+    version='0.4.3',
     author='Lalitha A R',
     author_email='arlalithablogs@gmail.com',
     description='You pick your colors, we make it readable',
@@ -35,6 +35,7 @@ setup(
     install_requires=[ # Added install_requires
      "tinycss2>=1.2.0,<2.0.0",
      "click>=8.0.0,<9.0.0",
+     "rich>=10.0.0",
     ],
     entry_points={
         'console_scripts': [

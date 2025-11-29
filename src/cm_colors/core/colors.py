@@ -1,6 +1,6 @@
 # colors.py
 from typing import Tuple, Optional, Union
-from .color_parser import parse_color_to_rgb
+from .color_parser import parse_color_to_rgb, detect_color_format, format_color
 from .contrast import calculate_contrast_ratio, get_wcag_level
 from .conversions import rgbint_to_string, rgb_to_oklch_safe
 from .color_metrics import calculate_delta_e_2000
@@ -23,6 +23,7 @@ class Color:
         self._rgb = None
         self._error = None
         self._parsed = False
+        self._format = 'unknown'
 
         self._parse()
 
@@ -35,6 +36,9 @@ class Color:
             return
 
         try:
+            # Detect format
+            self._format = detect_color_format(self.original)
+            
             bg_rgb = None
             if self.background_context and self.background_context.is_valid:
                 bg_rgb = self.background_context.rgb
@@ -175,7 +179,7 @@ class ColorPair:
             return None
         return calculate_delta_e_2000(self.bg.rgb, self.text.rgb)
 
-    def tune_colors(self, details: bool = False,mode: int = 1, premium: bool = False):
+    def tune_colors(self, details: bool = False, mode: int = 1, premium: bool = False, show: bool = False, html: bool = False):
         """Adjusts the text/background colors to meet WCAG contrast requirements.
 
         When the color pair is invalid, returns an immediate failure:
@@ -184,6 +188,10 @@ class ColorPair:
 
         Args:
             details (bool): If True, return a detailed result dictionary; if False, return a compact tuple.
+            mode (int): Optimization mode (0=Strict, 1=Default, 2=Relaxed).
+            premium (bool): If True, aim for AAA compliance (7.0 ratio).
+            show (bool): If True, print a visual comparison to the console.
+            html (bool): If True, generate an HTML report (for single pair usage).
 
         Returns:
             Union[dict, tuple]: If ``details`` is True, a dictionary describing the operation result and any messages.
@@ -199,7 +207,100 @@ class ColorPair:
 
         # Use your existing optimized function
         from .optimisation import check_and_fix_contrast
-
-        return check_and_fix_contrast(
-            self.text._rgb, self.bg._rgb, self.large_text, details,mode,premium
+        
+        result = check_and_fix_contrast(
+            self.text._rgb, self.bg._rgb, self.large_text, details, mode, premium
         )
+        
+        # Convert result back to original format
+        if details:
+            tuned_rgb_str = result.get('tuned_text')
+            # Parse tuned_rgb_str to get RGB tuple
+            if tuned_rgb_str:
+                try:
+                    c = Color(tuned_rgb_str)
+                    if c.is_valid:
+                        # Format back to original type
+                        formatted_color = format_color(c.rgb, self.text._format)
+                        result['tuned_text'] = formatted_color
+                except:
+                    pass
+        else:
+            tuned_rgb_str, success = result
+            # Always convert to original format, regardless of success status
+            if tuned_rgb_str:
+                try:
+                    c = Color(tuned_rgb_str)
+                    if c.is_valid:
+                        formatted_color = format_color(c.rgb, self.text._format)
+                        result = (formatted_color, success)
+                except:
+                    pass
+
+        # Handle visualizers
+        if show or html:
+            from .visualiser import to_console, to_html_bulk
+            
+            # Extract needed data
+            tuned_rgb = None
+            original_level = self.wcag_level
+            new_level = None
+            
+            if details:
+                tuned_rgb = result.get('tuned_text')
+                new_level = result.get('wcag_level')
+            else:
+                tuned_rgb, success = result
+                # Always use tuned_rgb (even if success=False, it's the best attempt)
+                # Calculate new level for the tuned color
+                new_pair = ColorPair(tuned_rgb, self.bg.original)
+                new_level = new_pair.wcag_level
+
+            if show:
+                # Convert to hex for safer rich compatibility
+                fg_hex = self.text.to_hex()
+                bg_hex = self.bg.to_hex()
+                
+                # tuned_rgb is now in original format, parse it to get hex for visualizer
+                tuned_hex = tuned_rgb
+                
+                # Handle different types of tuned_rgb
+                if isinstance(tuned_rgb, tuple):
+                    # It's an RGB tuple, convert to hex
+                    r, g, b = tuned_rgb
+                    tuned_hex = f'#{r:02x}{g:02x}{b:02x}'
+                else:
+                    try:
+                        c = Color(str(tuned_rgb))
+                        if c.is_valid:
+                            tuned_hex = c.to_hex()
+                    except:
+                        pass
+
+                # Check if colors are effectively the same
+                if isinstance(fg_hex, str) and isinstance(tuned_hex, str) and fg_hex.lower() == tuned_hex.lower():
+                    print("Colors are already accessible. No changes needed.")
+                else:
+                    to_console(
+                        fg_hex, 
+                        bg_hex, 
+                        tuned_hex,
+                        original_level,
+                        new_level
+                    )
+                
+            if html:
+                # For single pair, generate a quick report
+                pair_data = {
+                    'fg': self.text.to_rgb_string(),
+                    'bg': self.bg.to_rgb_string(),
+                    'tuned_fg': str(tuned_rgb),
+                    'original_level': original_level,
+                    'new_level': new_level,
+                    'selector': 'Manual Check',
+                    'file': 'Python API'
+                }
+                report_path = to_html_bulk([pair_data], output_path="cm_colors_quick_report.html")
+                print(f"Report generated: {report_path}")
+
+        return result

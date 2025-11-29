@@ -151,6 +151,12 @@ tuned_text, success = pair.tune_colors(premium=True)
 # mode=1: Default (best balance of readability and style)
 # mode=2: Relaxed (allows more change to ensure readability)
 tuned_text, success = pair.tune_colors(mode=2)
+
+# See a visual comparison in your terminal
+tuned_text, success = pair.tune_colors(show=True)
+
+# Generate a detailed HTML report
+tuned_text, success = pair.tune_colors(html=True)
 ```
 
 ### Color class
