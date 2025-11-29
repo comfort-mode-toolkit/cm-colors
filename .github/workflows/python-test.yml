@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main, RgbaSupport, cli-development]
+    branches: [main, RgbaSupport, cli-development, alg-dev]
 
 jobs:
   build:
@@ -23,7 +23,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         # Install pytest, hypothesis, and any other dependencies for your library
-        pip install pytest hypothesis click tinycss2
+        pip install pytest hypothesis click tinycss2 rich
         # If your library has other dependencies, install them here
     - name: Run tests with pytest
       run: |
