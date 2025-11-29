@@ -174,7 +174,7 @@ if color.is_valid:
     print(color.to_rgb_string())  # 'rgb(199, 72, 59)'
     print(color.to_hex())         # #c7483b
 ```
-
+ 
 ## Documentation
 
 For more details, see the [full documentation](https://comfort-mode-toolkit.readthedocs.io/en/latest/cm_colors/index.html).
