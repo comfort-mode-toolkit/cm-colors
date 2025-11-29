@@ -43,8 +43,9 @@ def test_process_fixable_pair(runner):
             content = f.read()
             # Should not be #777 anymore
             assert "#777" not in content
-            # Should be an rgb string
-            assert "rgb(" in content
+            # Should be a hex string now (format consistency)
+            assert "#" in content
+            assert "rgb(" not in content
 
 def test_process_unfixable_pair(runner):
     """Test that unfixable pairs are reported."""
@@ -102,7 +103,9 @@ def test_process_nested_rules(runner):
         with open("test_cm.css", "r") as f:
             content = f.read()
             assert "@media" in content
-            assert "rgb(" in content
+            # Should be hex now
+            assert "#" in content
+            assert "rgb(" not in content
 
 def test_process_implicit_background(runner):
     """Test using default background when not specified."""

@@ -1,17 +1,24 @@
 # CM-Colors v0.4.1 Release Notes
 
-fix: Allow ColorPair.tune_colors() to take optional parameters mode, premium
-fix: set contrast target difference based on large when premium=True
+### Fixing the details
+We smoothed out a few edges in our Python tools. The advanced options for tuning colors now work exactly as expected, and we improved how we handle large text when you're aiming for the highest standards.
 
 # CM-Colors v0.4.2 Release Notes
 
-<!-- feat: the cli now support the 3 different modes with `--mode` option
-     -->
+### More control at your fingertips
+You can now choose exactly how you want your colors to be tuned, right from the command line.
+
+- **Choose your mode**: Use `--mode` to decide if you want us to be strict or relaxed when adjusting your colors.
+- **Go Premium**: Use `--premium` to aim for the very highest readability standards.
 
 # CM-Colors v0.4.3 Release Notes
 
-<!-- feat: if a color pair was tuned, it writes back to css file in the same format (except for rgba,hsla,named           color ), that is if you input hex fg, you get back tuned fg in hex too
-     -->
+### See your changes right away
+
+- **Preview in your terminal**: Add `show=True` when tuning colors to see a before-and-after comparison right in your terminal.
+- **Save detailed reports**: Use `html=True` to generate a visual report showing exactly what changed and why.
+
+We also made some improvements under the hood. Now when we fix your colors, we keep them in the same format you gave us—if you use hex codes, you get hex codes back. If you use RGB, you get RGB back. This makes it easier to work with the output and keeps your code consistent.
 
 # CM-Colors v0.5.0 Release Notes
 

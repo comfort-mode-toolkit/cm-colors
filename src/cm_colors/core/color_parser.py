@@ -48,10 +48,9 @@ def _parse_number_token(tok: str, component: bool = True) -> float:
         raise ValueError(f"Invalid numeric value: '{tok}'")
 
     if component:
-        # allow 0..255, or 0..1 style floats
-        if 0.0 <= v <= 1.0:
-            # treat as fraction of 255
-            return v * 255.0
+        # allow 0..255
+        # We do NOT treat 0-1 as normalized floats because that makes '1' ambiguous (1/255 vs 255/255).
+        # CSS standard treats numbers as 0-255. Percentages are handled above.
         if 0.0 <= v <= 255.0:
             return float(v)
         raise ValueError(f'RGB component out of range: {v}')
@@ -287,3 +286,67 @@ def parse_color_to_rgb(
     raise ValueError(
         f'Unsupported color input type: {type(color).__name__}. Expected string, tuple, or list.'
     )
+
+
+def detect_color_format(color: ColorInput) -> str:
+    """
+    Detect the format of the input color.
+    
+    Returns:
+        str: One of 'hex', 'rgb', 'hsl', 'named', 'rgba', 'hsla', 'rgb_tuple', 'rgba_tuple', 'unknown'.
+    """
+    if isinstance(color, str):
+        s = color.strip().lower()
+        if s in CSS_NAMED_COLORS:
+            return 'named'
+        if s.startswith('#'):
+            return 'hex'
+        if s.startswith('rgb('):
+            return 'rgb'
+        if s.startswith('rgba('):
+            return 'rgba'
+        if s.startswith('hsl('):
+            return 'hsl'
+        if s.startswith('hsla('):
+            return 'hsla'
+        # Check for hex without #
+        if re.fullmatch(r'[0-9a-f]{3}|[0-9a-f]{6}', s):
+            return 'hex'
+        # Check for informal rgb "r, g, b"
+        if ',' in s or ' ' in s:
+             # Heuristic, assume rgb-like if not handled
+             return 'rgb'
+    elif isinstance(color, (tuple, list)):
+        if len(color) == 3:
+            return 'rgb_tuple'
+        if len(color) == 4:
+            return 'rgba_tuple'
+    return 'unknown'
+
+
+def format_color(rgb: Tuple[int, int, int], format_type: str) -> Union[str, Tuple[int, int, int]]:
+    """
+    Convert an RGB tuple to the specified format.
+    
+    Args:
+        rgb: RGB tuple (r, g, b)
+        format_type: The target format ('hex', 'rgb', 'hsl', etc.)
+        
+    Returns:
+        The color in the requested format. Defaults to hex for alpha/named types.
+    """
+    from .conversions import rgb_to_hex, rgbint_to_string, rgb_to_hsl
+    
+    if format_type == 'hex':
+        return rgb_to_hex(rgb)
+    if format_type == 'rgb':
+        return rgbint_to_string(rgb)
+    if format_type == 'hsl':
+        return rgb_to_hsl(rgb)
+    if format_type == 'rgb_tuple':
+        return rgb
+        
+    # Default to hex for named, rgba, hsla, and unknown types
+    # as per user request to avoid returning complex formats like rgba/hsla 
+    # when we don't have the original alpha or it's a named color
+    return rgb_to_hex(rgb)
