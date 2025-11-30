@@ -67,4 +67,4 @@ html_file_options = {
 # })
 
 html_extra_path = ['verification_file.html'] 
-    html_baseurl = 'https://cm-colors.readthedocs.io/en/stable/' # Or your custom domain
+html_baseurl = 'https://cm-colors.readthedocs.io/en/stable/' # Or your custom domain
