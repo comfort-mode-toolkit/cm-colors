@@ -1,16 +1,17 @@
 import os
 import html
 
-def generate_report(fixed_pairs, output_path="cm_colors_report.html"):
+
+def generate_report(fixed_pairs, output_path='cm_colors_report.html'):
     """
     Generates a minimal HTML report for fixed color pairs.
-    
+
     Args:
         fixed_pairs (list): List of dicts containing details of fixed pairs.
                             Each dict should have: file, selector, bg, original_text, tuned_text, original_level, new_level.
         output_path (str): Path to save the HTML report.
     """
-    
+
     html_content = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -61,7 +62,7 @@ def generate_report(fixed_pairs, output_path="cm_colors_report.html"):
         }}
         
         .container {{
-            max_width: 900px;
+            max-width: 900px;
             margin: 0 auto;
         }}
         
@@ -186,7 +187,7 @@ def generate_report(fixed_pairs, output_path="cm_colors_report.html"):
         
         <main>
     """
-    
+
     if not fixed_pairs:
         html_content += """
             <div class="card" style="text-align: center; padding: 50px;">
@@ -205,12 +206,12 @@ def generate_report(fixed_pairs, output_path="cm_colors_report.html"):
             original_level = html.escape(str(pair['original_level']))
             new_level = html.escape(str(pair['new_level']))
 
-            bg_style = f"background-color: {bg};"
-            
+            bg_style = f'background-color: {bg};'
+
             # Ensure text colors are valid for CSS
-            orig_text_style = f"color: {original_text};"
-            tuned_text_style = f"color: {tuned_text};"
-            
+            orig_text_style = f'color: {original_text};'
+            tuned_text_style = f'color: {tuned_text};'
+
             html_content += f"""
             <div class="card">
                 <div class="card-header">
@@ -239,7 +240,7 @@ def generate_report(fixed_pairs, output_path="cm_colors_report.html"):
                 </div>
             </div>
             """
-            
+
     html_content += """
         </main>
         
@@ -250,8 +251,8 @@ def generate_report(fixed_pairs, output_path="cm_colors_report.html"):
 </body>
 </html>
     """
-    
-    with open(output_path, "w", encoding="utf-8") as f:
+
+    with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html_content)
-    
+
     return os.path.abspath(output_path)

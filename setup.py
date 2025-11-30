@@ -6,15 +6,15 @@ with open('README.md', 'r', encoding='utf-8') as fh:
 
 setup(
     name='cm-colors',
-    version='0.4.3',
+    version='0.5.0',
     author='Lalitha A R',
     author_email='arlalithablogs@gmail.com',
-    description='You pick your colors, we make it readable',
+    description='Automatically fix hard-to-read text colors by making your website readable without changing your original color theme—simple Python API and CLI.',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/comfort-mode-toolkit/cm-colors',
     project_urls={
-        'Documentation': 'https://comfort-mode-toolkit.readthedocs.io/en/latest/cm_colors/index.html',
+        'Documentation': 'https://cm-colors.readthedocs.io/en/latest/',
         'Bug Reports': 'https://github.com/comfort-mode-toolkit/cm-colors/issues',
         'Source': 'https://github.com/comfort-mode-toolkit/cm-colors',
     },
@@ -31,11 +31,13 @@ setup(
         'Topic :: Scientific/Engineering',
     ],
     package_dir={'': 'src'},
-    packages=find_packages(where="src"), # Updated to use find_packages directly
-    install_requires=[ # Added install_requires
-     "tinycss2>=1.2.0,<2.0.0",
-     "click>=8.0.0,<9.0.0",
-     "rich>=10.0.0",
+    packages=find_packages(
+        where='src'
+    ),  # Updated to use find_packages directly
+    install_requires=[  # Added install_requires
+        'tinycss2>=1.2.0,<2.0.0',
+        'click>=8.0.0,<9.0.0',
+        'rich>=10.0.0',
     ],
     entry_points={
         'console_scripts': [
@@ -43,9 +45,9 @@ setup(
         ],
     },
     python_requires='>=3.7',
-        keywords=[
+    keywords=[
         'accessibility',
-        'color-contrast', 
+        'color-contrast',
         'wcag',
         'a11y',
         'css-colors',
@@ -53,6 +55,6 @@ setup(
         'color-fixing',
         'contrast-tuning',
         'readable',
-        'legible'
-    ]
+        'legible',
+    ],
 )

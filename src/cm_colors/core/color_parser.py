@@ -8,7 +8,7 @@ from cm_colors.core.conversions import (
 )
 
 import re
-from typing import Tuple, Union,Optional
+from typing import Tuple, Union
 
 NumberLike = Union[int, float, str]
 ColorInput = Union[str, Tuple, list]
@@ -173,7 +173,10 @@ def parse_color_to_rgb(
             else:
                 bg_rgb = None
                 if background is not None:
-                    if isinstance(background, (tuple, list)) and len(background) == 3:
+                    if (
+                        isinstance(background, (tuple, list))
+                        and len(background) == 3
+                    ):
                         bg_rgb = tuple(background)
                     else:
                         bg_rgb = parse_color_to_rgb(background)
@@ -207,7 +210,10 @@ def parse_color_to_rgb(
             if s_lower.startswith('hsla('):
                 bg_rgb = None
                 if background is not None:
-                    if isinstance(background, (tuple, list)) and len(background) == 3:
+                    if (
+                        isinstance(background, (tuple, list))
+                        and len(background) == 3
+                    ):
                         bg_rgb = tuple(background)
                     else:
                         bg_rgb = parse_color_to_rgb(background)
@@ -291,7 +297,7 @@ def parse_color_to_rgb(
 def detect_color_format(color: ColorInput) -> str:
     """
     Detect the format of the input color.
-    
+
     Returns:
         str: One of 'hex', 'rgb', 'hsl', 'named', 'rgba', 'hsla', 'rgb_tuple', 'rgba_tuple', 'unknown'.
     """
@@ -314,8 +320,8 @@ def detect_color_format(color: ColorInput) -> str:
             return 'hex'
         # Check for informal rgb "r, g, b"
         if ',' in s or ' ' in s:
-             # Heuristic, assume rgb-like if not handled
-             return 'rgb'
+            # Heuristic, assume rgb-like if not handled
+            return 'rgb'
     elif isinstance(color, (tuple, list)):
         if len(color) == 3:
             return 'rgb_tuple'
@@ -324,19 +330,21 @@ def detect_color_format(color: ColorInput) -> str:
     return 'unknown'
 
 
-def format_color(rgb: Tuple[int, int, int], format_type: str) -> Union[str, Tuple[int, int, int]]:
+def format_color(
+    rgb: Tuple[int, int, int], format_type: str
+) -> Union[str, Tuple[int, int, int]]:
     """
     Convert an RGB tuple to the specified format.
-    
+
     Args:
         rgb: RGB tuple (r, g, b)
         format_type: The target format ('hex', 'rgb', 'hsl', etc.)
-        
+
     Returns:
         The color in the requested format. Defaults to hex for alpha/named types.
     """
     from .conversions import rgb_to_hex, rgbint_to_string, rgb_to_hsl
-    
+
     if format_type == 'hex':
         return rgb_to_hex(rgb)
     if format_type == 'rgb':
@@ -345,8 +353,8 @@ def format_color(rgb: Tuple[int, int, int], format_type: str) -> Union[str, Tupl
         return rgb_to_hsl(rgb)
     if format_type == 'rgb_tuple':
         return rgb
-        
+
     # Default to hex for named, rgba, hsla, and unknown types
-    # as per user request to avoid returning complex formats like rgba/hsla 
+    # as per user request to avoid returning complex formats like rgba/hsla
     # when we don't have the original alpha or it's a named color
     return rgb_to_hex(rgb)

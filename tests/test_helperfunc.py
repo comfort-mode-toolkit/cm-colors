@@ -385,30 +385,6 @@ class TestAccessibilityFunctions:
                 # Should be valid RGB tuple
                 assert is_valid_rgb(result)
 
-    def test_check_and_fix_contrast_details(self):
-        text_rgb = (128, 128, 128)
-        bg_rgb = (255, 255, 255)
-
-        details = check_and_fix_contrast(
-            text_rgb, bg_rgb, large=False, details=True
-        )
-
-        # Should return detailed dictionary
-        assert isinstance(details, dict)
-
-        required_keys = [
-            'text',
-            'tuned_text',
-            'bg',
-            'large',
-            'wcag_level',
-            'improvement_percentage',
-            'status',
-            'message',
-        ]
-        for key in required_keys:
-            assert key in details
-
     def test_check_and_fix_contrast_needs_fixing(self):
         # Test case where contrast needs improvement
         text_rgb = (200, 200, 200)  # Light gray

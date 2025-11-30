@@ -1,6 +1,6 @@
-from cm_colors.core.cm_colors import CMColors
-from cm_colors.core.colors import Color,ColorPair
+from cm_colors.core.cm_colors import make_readable_bulk
+from cm_colors.core.colors import Color, ColorPair
 
-__version__ = "0.4.3"
+__version__ = '0.5.0'
 
-__all__ = ['CMColors','Color','ColorPair']
+__all__ = ['make_readable_bulk', 'Color', 'ColorPair']
