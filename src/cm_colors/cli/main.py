@@ -240,7 +240,7 @@ def process_nodes_recursive(
                                         'text': text_color_str,
                                         'bg': bg_color_str,
                                         'contrast': contrast,
-                                        'reason': 'Could not tune without too much changes',
+                                        'reason': 'Could not tune without too many changes',
                                     }
                                 )
                 except Exception as e:
@@ -430,7 +430,7 @@ def main(path, default_bg, mode, premium):
 
             if reason:
                 # If reason is the generic "Could not tune...", replace it with the friendly one
-                if 'Could not tune without too much changes' in reason:
+                if 'Could not tune without too many changes' in reason:
                     reason = (
                         "Couldn't find a similar color that's easy to read"
                     )

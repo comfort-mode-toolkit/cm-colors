@@ -192,7 +192,7 @@ class ColorPair:
                 if c.is_valid:
                     formatted_color = format_color(c.rgb, self.text._format)
                     result = (formatted_color, success)
-            except:
+            except Exception:
                 pass
 
         # Handle visualizers
@@ -218,7 +218,7 @@ class ColorPair:
                         new_level = get_wcag_level(
                             c_tuned.rgb, self.bg.rgb, self.large
                         )
-                except:
+                except Exception:
                     pass
 
             if show:

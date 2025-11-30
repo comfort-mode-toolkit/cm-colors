@@ -1,6 +1,5 @@
 """Tests for make_readable_bulk API"""
 
-import pytest
 from cm_colors import make_readable_bulk
 
 

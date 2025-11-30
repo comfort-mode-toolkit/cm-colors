@@ -235,7 +235,7 @@ def to_html_bulk(pairs, output_path='cm_colors_report.html'):
         }}
         
         .container {{
-            max_width: 900px;
+            max-width: 900px;
             margin: 0 auto;
         }}
         

@@ -8,7 +8,7 @@ from cm_colors.core.conversions import (
 )
 
 import re
-from typing import Tuple, Union, Optional
+from typing import Tuple, Union
 
 NumberLike = Union[int, float, str]
 ColorInput = Union[str, Tuple, list]

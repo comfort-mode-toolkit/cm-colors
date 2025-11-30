@@ -77,7 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - CLI terminology: Uses "tuned" instead of "fixed" for color adjustments
 - CLI output structure: Summary statistics moved to top for better visibility
-- Failure messages: More user-friendly explanations ("Could not tune without too much changes")
+- Failure messages: More user-friendly explanations ("Could not tune without too many changes")
 
 ### Documentation
 

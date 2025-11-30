@@ -110,7 +110,6 @@ class TestSuccessFlagAccuracy:
             # Create new pair with tuned color and verify it's accessible
             new_pair = ColorPair(result, 'white')
             assert new_pair.is_readable in [
-                'Not Readable',
                 'Very Readable',
                 'Readable',
             ]

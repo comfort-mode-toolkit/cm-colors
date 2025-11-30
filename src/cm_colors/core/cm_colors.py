@@ -35,7 +35,7 @@ def make_readable_bulk(pairs, mode=1, very_readable=False, save_report=False):
     Example:
         >>> pairs = [("#777", "#fff"), ("#000", "#000")]
         >>> make_readable_bulk(pairs)
-        >>> [('#757575', 'readable'), ('#8e8e8e', 'not readable')]
+        [('#757575', 'readable'), ('#8e8e8e', 'not readable')]
     """
     results = []
     report_data = []
