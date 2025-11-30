@@ -21,6 +21,7 @@ extensions = [
     # ... other extensions
     "sphinx_copybutton",
     'sphinxcontrib.googleanalytics',
+    'sphinx_sitemap'
 
 ]
 
@@ -66,3 +67,4 @@ html_file_options = {
 # })
 
 html_extra_path = ['verification_file.html'] 
+    html_baseurl = 'https://cm-colors.readthedocs.io/en/stable/' # Or your custom domain
