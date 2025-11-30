@@ -1,37 +1,23 @@
-# CM-Colors v0.4.1 Release Notes
+# Release Notes
 
-### Fixing the details
-We smoothed out a few edges in our Python tools. The advanced options for tuning colors now work exactly as expected, and we improved how we handle large text when you're aiming for the highest standards.
+## [0.5.0] - 2025-11-30
 
-# CM-Colors v0.4.2 Release Notes
+### Focused
+**We made the tool do one thing really well.**
 
-### More control at your fingertips
-You can now choose exactly how you want your colors to be tuned, right from the command line.
+We simplified everything to focus on the main goal: fixing colors to make them readable. We removed complicated options that got in the way.
 
-- **Choose your mode**: Use `--mode` to decide if you want us to be strict or relaxed when adjusting your colors.
-- **Go Premium**: Use `--premium` to aim for the very highest readability standards.
+- **New Simple API**: Just use `make_readable()` or `make_readable_bulk()`.
+- **Clearer Names**: Changed `tune_colors` to `make_readable` because that's what it does.
+- **Better Defaults**: The tool now makes smart decisions for you, so you don't need to tweak settings.
 
-# CM-Colors v0.4.3 Release Notes
+### Changed
+- **Renamed**: `ColorPair.tune_colors()` is now `ColorPair.make_readable()`.
+- **Renamed**: `extra_readable` is now `very_readable` to be clearer.
+- **Renamed**: `large` is now `large_text` so you know exactly what it means.
+- **Removed**: The `CMColors` class. You don't need it anymore. Just import the functions you need.
+- **Removed**: `details` parameter. We now always give you the fixed color and whether it worked.
 
-### See your changes right away
-
-- **Preview in your terminal**: Add `show=True` when tuning colors to see a before-and-after comparison right in your terminal.
-- **Save detailed reports**: Use `html=True` to generate a visual report showing exactly what changed and why.
-
-We also made some improvements under the hood. Now when we fix your colors, we keep them in the same format you gave us—if you use hex codes, you get hex codes back. If you use RGB, you get RGB back. This makes it easier to work with the output and keeps your code consistent.
-
-# CM-Colors v0.5.0 Release Notes
-
-<!-- All breaking changes, removed any function that someone who wants to fix color contrast wouldn't use
-     + All tests updated to match the API changes
-     + All docstrings and function names on the public facing API's and outputs alone are refactored to strictly          follow tone_guide.md + Google Docstring style + Google Documentation Style Guide
-     -->
-
-# CM-Colors v0.5.1 Release Notes
-<!-- Updated Sphinx Documentation to reflect latest changes + strictly follow tone_guide.md + Google Documentation        Style Guide, optimised for SEO + gsearchconsole + ganalytics +
-     not 'Here are all functions we have and all our API's dumped together for reference' but rather 'How to fix          color contrast issue?' 'How to make the colors more readable without changing the theme?' 'How to fix all color      contrast issues in website in 5 minutes' basically things people would actually search for - relevant and short      scripts and guides to guide people - Diataxis
-     -->
-
-# CM-Colors v0.6.0 Release Notes
-<!-- Include the cdp scanner with optional install `pip install cm-colors[scan]`- now it visually checks the site         and gives back a css file with element specific color changes written into it
-     -->
+### Added
+- **Bulk Fixing**: New `make_readable_bulk()` function to fix lists of colors easily.
+- **Reports**: Built-in HTML reporting to see exactly what changed.
