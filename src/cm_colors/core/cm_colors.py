@@ -64,7 +64,6 @@ def make_readable_bulk(pairs, mode=1, very_readable=False, save_report=False):
 
         # Check readability of the result
         # We need to create a new pair to check the level of the result
-        current_readability = 'not readable'
         original_level = get_wcag_level(
             pair.text.rgb, pair.bg.rgb, large
         )   # Get original WCAG level
