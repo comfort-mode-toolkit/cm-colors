@@ -1,0 +1,16 @@
+{% extends "furo/sidebar/brand.html" %}
+
+{% block brand_content %}
+  {{ super() }}
+  <div class="sidebar-badges" style="text-align: center;">
+    <a href="https://github.com/comfort-mode-toolkit/cm-colors/actions/workflows/python-test.yml" style="border-bottom: none;">
+      <img src="https://github.com/comfort-mode-toolkit/cm-colors/actions/workflows/python-test.yml/badge.svg" alt="Python Tests" style="margin-bottom: 5px;">
+    </a>
+    <a href="https://pypi.org/project/cm-colors/" style="border-bottom: none;">
+      <img src="https://img.shields.io/pypi/v/cm-colors" alt="PyPI Version" style="margin-bottom: 5px;">
+    </a>
+    <a href="https://pypi.org/project/cm-colors/" style="border-bottom: none;">
+      <img src="https://img.shields.io/pypi/dm/cm-colors" alt="Downloads" style="margin-bottom: 5px;">
+    </a>
+  </div>
+{% endblock %}
