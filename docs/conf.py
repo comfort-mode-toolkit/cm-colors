@@ -20,7 +20,11 @@ html_short_title = 'cm-colors'
 extensions = [
     # ... other extensions
     "sphinx_copybutton",
+    'sphinxcontrib.googleanalytics',
+
 ]
+
+googleanalytics_id = "G-YK8NDXS8YW"
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
@@ -60,3 +64,5 @@ html_file_options = {
 #         }
 #     ],
 # })
+
+html_extra_path = ['verification_file.html'] 
