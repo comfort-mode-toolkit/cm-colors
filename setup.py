@@ -14,7 +14,7 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/comfort-mode-toolkit/cm-colors',
     project_urls={
-        'Documentation': 'https://comfort-mode-toolkit.readthedocs.io/en/latest/cm_colors/index.html',
+        'Documentation': 'https://cm-colors.readthedocs.io/en/latest/',
         'Bug Reports': 'https://github.com/comfort-mode-toolkit/cm-colors/issues',
         'Source': 'https://github.com/comfort-mode-toolkit/cm-colors',
     },
