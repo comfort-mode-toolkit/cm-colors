@@ -212,7 +212,9 @@ _build/
 
 # Generated reports
 cm_colors_report.html
+cm_colors_bulk_report.html
 *_cm.css
+jsson.py
 
 ab_test.py
 test.py

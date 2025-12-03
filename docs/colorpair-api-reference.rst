@@ -1,5 +1,5 @@
-ColorPair API Reference for CM-Colors
-======================================
+ColorPair API Reference
+=======================
 
 .. meta::
    :description: Complete API reference for ColorPair class in CM-Colors. Fix single text/background color pairs programmatically in Python.

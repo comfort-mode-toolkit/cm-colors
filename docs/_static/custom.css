@@ -1,0 +1,28 @@
+body {
+    font-family:'goudy old style', 'minion pro', 'bell mt', Georgia, 'Hiragino Mincho Pro', serif;
+
+    font-size:1.1rem;
+}
+
+h1,h2 {
+    font-family: 'Garamond', 'Georgia', serif;
+}
+
+.sidebar-scroll, .toc-scrol, img {
+    font-size:1rem;
+}
+
+
+.sidebar-scroll > a.reference.internal {
+    font-size:1rem;
+}
+
+/* .sidebar-tree .caption, .sidebar-tree :not(.caption)>.caption-text {
+    background-color:#1a1c1e;
+    color:#81868d;
+} */
+
+a.sidebar-brand {
+    padding-bottom:0px;
+}
+

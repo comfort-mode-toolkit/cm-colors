@@ -86,7 +86,7 @@ For extra readability:
 
 .. code-block:: bash
 
-   cm-colors styles.css --very-readable
+   cm-colors styles.css --premium
 
 What the tool shows
 -------------------

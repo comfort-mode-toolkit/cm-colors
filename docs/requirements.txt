@@ -2,4 +2,6 @@ sphinx
 sphinx-copybutton
 furo
 sphinxcontrib-googleanalytics
-sphinx_sitemap
+sphinxcontrib-htmlhelp
+sphinxext-opengraph>=0.13.0
+sphinx-sitemap>=2.0

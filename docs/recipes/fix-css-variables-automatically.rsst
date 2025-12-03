@@ -1,0 +1,83 @@
+Auto-Fix CSS Variables
+======================
+
+.. meta::
+   :description: A Python script to automatically find and fix color pairs defined in your CSS variables.
+
+If you store your colors in CSS variables, you can use this script to audit and fix them automatically.
+
+The Script
+----------
+
+Save this as ``fix_variables.py``:
+
+.. code-block:: python
+
+   import re
+   from cm_colors import ColorPair
+
+   # Configuration
+   CSS_FILE = "styles.css"
+   
+   # Regex to find variable definitions
+   # Matches: --name: #color;
+   VAR_REGEX = r"(--[\w-]+):\s*(#[0-9a-fA-F]{3,6}|rgb\([^)]+\)|[a-z]+);"
+
+   def fix_css_variables():
+       with open(CSS_FILE, 'r') as f:
+           content = f.read()
+
+       # Find all variables
+       variables = dict(re.findall(VAR_REGEX, content))
+       
+       # Define pairs to check (customize this!)
+       # Format: (Text Variable, Background Variable)
+       pairs_to_check = [
+           ("--text-primary", "--bg-primary"),
+           ("--text-secondary", "--bg-primary"),
+           ("--btn-text", "--btn-bg"),
+       ]
+
+       new_content = content
+
+       for text_var, bg_var in pairs_to_check:
+           if text_var in variables and bg_var in variables:
+               text_val = variables[text_var]
+               bg_val = variables[bg_var]
+
+               print(f"Checking {text_var} ({text_val}) on {bg_var} ({bg_val})...")
+
+               pair = ColorPair(text_val, bg_val)
+               fixed, success = pair.make_readable()
+
+               if success and fixed != text_val:
+                   print(f"  -> Fixed! New value: {fixed}")
+                   # Replace in content
+                   new_content = new_content.replace(
+                       f"{text_var}: {text_val}", 
+                       f"{text_var}: {fixed}"
+                   )
+               else:
+                   print("  -> Already readable or could not fix.")
+
+       with open("styles_fixed.css", 'w') as f:
+           f.write(new_content)
+       
+       print("Done! Saved to styles_fixed.css")
+
+   if __name__ == "__main__":
+       fix_css_variables()
+
+How to use
+----------
+
+1. Save the script in your project folder.
+2. Edit ``CSS_FILE`` to point to your CSS file.
+3. Edit ``pairs_to_check`` to list the variable pairs you want to validate.
+4. Run it:
+
+.. code-block:: bash
+
+   python fix_variables.py
+
+It will create a new CSS file with the fixed color values.

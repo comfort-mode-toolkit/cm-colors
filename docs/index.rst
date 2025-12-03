@@ -1,94 +1,106 @@
 Fix Unreadable Colors in Python
-==================================
+=================================
 
 .. meta::
-   :description: Make your text colors readable while keeping them visually similar to the original. No accessibility knowledge required. Works with hex, RGB, and any color format.
+   :description: Check color contrast and make text readable in seconds. Run local checks, automate accessibility in CI/CD, and instantly fix failing color pairs with Python or CLI.
 
-Make text readable on any background. Keep colors visually similar.
+Make your text readable for everyone.
 
-Quick fixes
+Quick Start
 -----------
 
-**Problem**: Text is hard to read
+**Fix a hard-to-read color:**
 
 .. code-block:: python
 
    from cm_colors import ColorPair
    
+   # 1. Define the problem
    pair = ColorPair("#777777", "#ffffff")
-   readable_color, success = pair.make_readable()
-   # Use readable_color instead of #777777
-
-**Problem**: Need to fix many colors
-
-.. code-block:: python
-
-   from cm_colors import make_readable_bulk
    
-   pairs = [
-       ("#777", "#fff"),
-       ("#888", "#000"),
-       ((100, 100, 100), (255, 255, 255)),
-   ]
-   results = make_readable_bulk(pairs)
-   # [(fixed_color, "readable"), ...]
+   # 2. Get the solution
+   fixed_color, success = pair.make_readable()
+   
+   print(fixed_color) 
+   # Output: #757575 (Readable!)
 
-**Problem**: Have colors in CSS files
+**Check your project:**
 
 .. code-block:: bash
 
-   cm-colors path/to/styles.css
+   # Run the linter
+   cc-lint lint
 
-When to use this
-----------------
-
-* If you have text that's hard to read on its background
-* If PM assigned you an accessibility ticket
-* If accessibility or color contrast ticket is in your backlog
-* If you found theme that's really good but isn't readable or isn't passing color contrast tests
-* If users created an issue about low contrast
-* If you want to keep brand colors but make them readable
-.. * If you need to fix entire color palette to make it more readable
-* If you need to fix entire color palette to pass color contrast tests but keep the colors as similar as possible to the original
-
-What you get
+Installation
 ------------
 
-* Colors that are readable
-* Original colors preserved as much as possible
-* Works with hex codes, RGB tuples, CSS color names
-* Bulk processing for multiple colors
-* HTML reports showing before/after
-* Preview changes right in the terminal
-* Use mode=0 to be more strict with color changes if that's needed
+.. code-block:: bash
 
-How-to guides
+   pip install cm-colors
+
+How to use it
 -------------
 
-* :doc:`how-to-fix-single-color-pair` - Fix one color (takes 2 lines)
-* :doc:`how-to-fix-multiple-colors-bulk` - Fix many colors at once
-* :doc:`how-to-fix-colors-in-css-files` - Fix CSS files from command line
+Follow these steps to ensure your colors work for everyone:
 
-API reference
--------------
+1. **Check Locally**
+   
+   Run the linter in your terminal to catch issues while you work.
+   
+   * :doc:`how-to-use-color-contrast-linter`
 
-* :doc:`colorpair-api-reference` - ColorPair class for single colors
-* :doc:`make-readable-bulk-api-reference` - Bulk processing function
+2. **Automate Checks**
+   
+   Stop bad colors from being merged by adding a check to GitHub Actions.
+   
+   * :doc:`how-to-add-linter-to-github-actions`
 
-Help
-----
+3. **Fix the Issues**
+   
+   When you find a problem, use our tools to fix it automatically.
+   
+   * :doc:`how-to-fix-single-color-pair` - Fix one pair in Python
+   * :doc:`how-to-fix-multiple-colors-bulk` - Fix lists of colors
+   * :doc:`how-to-fix-colors-in-css-files` - Fix CSS files automatically
 
-* :doc:`troubleshooting-common-issues` - Solutions to common problems
-* :doc:`understanding-readability-levels` - What "readable" means
+Deep Dive
+---------
+
+* :doc:`what-makes-cm-colors-work` - The science of preserving your design
+* :doc:`accessibility-explained` - Mapping "Readable" to standards
 
 .. toctree::
    :hidden:
    :maxdepth: 2
+   :caption: Check & Automate
+
+   how-to-use-color-contrast-linter
+   how-to-add-linter-to-github-actions
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+   :caption: Fix Colors
 
    how-to-fix-single-color-pair
    how-to-fix-multiple-colors-bulk
    how-to-fix-colors-in-css-files
+   recipes/use-without-programming
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+   :caption: Understand
+
+   what-makes-cm-colors-work
+   accessibility-explained
+   understanding-readability-levels
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+   :caption: Reference
+
    colorpair-api-reference
    make-readable-bulk-api-reference
    troubleshooting-common-issues
-   understanding-readability-levels

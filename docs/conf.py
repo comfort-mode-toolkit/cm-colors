@@ -18,16 +18,16 @@ html_short_title = 'cm-colors'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    # ... other extensions
     "sphinx_copybutton",
     'sphinxcontrib.googleanalytics',
-    'sphinx_sitemap'
-
+    "sphinx_sitemap"
 ]
+
 
 googleanalytics_id = "G-YK8NDXS8YW"
 
 templates_path = ['_templates']
+html_css_files = ['custom.css']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 
@@ -41,30 +41,25 @@ pygments_style = "friendly"
 pygments_dark_style = "github-dark"
 
 html_static_path = ['_static']
+html_favicon = "_static/logo.png"
+
 
 html_file_options = {
     'description': 'Automatically fix hard-to-read text colors by making your website readable without changing your original color theme—simple Python API and CLI.',
     'dark_mode_toggle': True,
 }
 
-# extensions = [
-# 'myst_parser',  # For Markdown support
-#     'sphinx_design',
-# ]
+html_meta = {
+    'description': 'Check color contrast and make text readable in seconds. Run local checks, automate accessibility in CI/CD, and instantly fix failing color pairs with Python or CLI.',
+    'keywords': 'check color contrast, make text readable, fix color contrast issues, WCAG compliance, accessibility',
+    'author': 'Lalitha A R & Contributors to cm-colors',
+    'viewport': 'width=device-width, initial-scale=1',
+    'robots': 'index, follow'
+}
 
-# html_theme_options.update({
-#     "source_repository": "https://github.com/comfort-mode-toolkit/cm-colors/",
-#     "source_branch": "main",
-#     "source_dir": "docs",  # code-heavy → always show edit links
-#     "footer_icons": [     # credibility signals
-#         {
-#             "name": "GitHub",
-#             "url": "https://github.com/comfort-mode-toolkit/cm-colors",
-#             "html": '<img src="github.svg"/>',
-#             "class": "",
-#         }
-#     ],
-# })
+extensions.append('sphinxext.opengraph')
+ogp_site_url = 'https://cm-colors.readthedocs.io/'
+ogp_image = '_static/logo.png'
 
-html_extra_path = ['verification_file.html'] 
-html_baseurl = 'https://cm-colors.readthedocs.io/en/stable/' # Or your custom domain
+html_baseurl = 'https://cm-colors.readthedocs.io/en/latest/'
+sitemap_filename = 'sitemap.xml'

@@ -1,5 +1,5 @@
-Bulk Processing API Reference for CM-Colors
-===========================================
+Bulk Processing API Reference
+=============================
 
 .. meta::
    :description: Complete API reference for make_readable_bulk function in CM-Colors. Process hundreds of color pairs efficiently in Python.
