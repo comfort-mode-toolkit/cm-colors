@@ -61,5 +61,6 @@ extensions.append('sphinxext.opengraph')
 ogp_site_url = 'https://cm-colors.readthedocs.io/'
 ogp_image = '_static/logo.png'
 
+sitemap_url_scheme = "{link}"
 html_baseurl = 'https://cm-colors.readthedocs.io/en/latest/'
 sitemap_filename = 'sitemap.xml'
