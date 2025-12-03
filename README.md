@@ -9,6 +9,11 @@
 
 CM-Colors automatically fixes your colors so they are easy to read. It finds similar colors that work for everyone, so you don't have to guess.
 
+> "Fortunately, there's a tool that's just come out that's going to change your life: CM-Colors. You give it your colors, and it automatically adjusts them so they're accessible, all while changing the shades as little as possible to keep your design intact."
+>
+> — [Korben.info](https://korben.info/cm-colors-accessibilite-contraste-couleurs-wcag.html)
+
+
 The percentage shows how much easier the text is to read:
 
 <img width="1189" height="1110" alt="an image showing side by side comparision of before and after change of colors" src="https://github.com/user-attachments/assets/4ce92c65-cd27-4bae-8756-bbbe9bf70a91"  />
