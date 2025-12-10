@@ -73,12 +73,6 @@ def rgb_to_oklch(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
     r, g, b = [x / 255.0 for x in rgb]
 
     # Step 1: Convert sRGB to linear RGB with precise gamma correction
-    def srgb_to_linear(channel):
-        if channel <= 0.04045:
-            return channel / 12.92
-        else:
-            return pow((channel + 0.055) / 1.055, 2.4)
-
     r_linear = srgb_to_linear(r)
     g_linear = srgb_to_linear(g)
     b_linear = srgb_to_linear(b)
@@ -189,12 +183,6 @@ def oklch_to_rgb(oklch: Tuple[float, float, float]) -> Tuple[int, int, int]:
     )
 
     # Step 5: Linear RGB to sRGB with precise gamma correction
-    def linear_to_srgb(channel):
-        if channel <= 0.0031308:
-            return 12.92 * channel
-        else:
-            return 1.055 * pow(channel, 1.0 / 2.4) - 0.055
-
     # Clamp to valid range before gamma correction
     r_linear = max(0.0, min(1.0, r_linear))
     g_linear = max(0.0, min(1.0, g_linear))
@@ -212,20 +200,52 @@ def oklch_to_rgb(oklch: Tuple[float, float, float]) -> Tuple[int, int, int]:
     return (r_8bit, g_8bit, b_8bit)
 
 
+def rgb_to_linear(channel: float | int) -> float:
+    """Convert an 8‑bit RGB channel (0–255) to linear RGB (0.0–1.0)."""
+    return srgb_to_linear(channel / 255.0)
+
+
+def srgb_to_linear(channel: float) -> float:
+    """
+    Convert a single standard RGB channel value to its linear RGB equivalent,
+    with precise gamma correction, used for luminance.
+
+    Parameters:
+        channel (float): The sRGB channel intensity in the range 0.0 to 1.0.
+
+    Returns:
+        float: The linear RGB channel value between 0.0 and 1.0.
+    """
+    if channel <= 0.04045:
+        return channel / 12.92
+    else:
+        return pow((channel + 0.055) / 1.055, 2.4)
+
+def linear_to_srgb(channel: float) -> float:
+    """
+    Convert a single linear RGB channel value to its standard RGB equivalent,
+    with precise gamma correction.
+
+    Parameters:
+        channel (float): The linear RGB channel value in the range 0.0 to 1.0.
+
+    Returns:
+        float: The sRGB channel intensity between 0.0 and 1.0.
+    """
+    if channel <= 0.0031308:
+        return 12.92 * channel
+    else:
+        return 1.055 * pow(channel, 1.0 / 2.4) - 0.055
+
+
 def rgb_to_xyz(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
     """Convert RGB to XYZ color space with proper gamma correction"""
     r, g, b = [x / 255.0 for x in rgb]
 
     # Apply gamma correction (sRGB to linear RGB)
-    def gamma_correct(channel):
-        if channel <= 0.04045:
-            return channel / 12.92
-        else:
-            return pow((channel + 0.055) / 1.055, 2.4)
-
-    r_linear = gamma_correct(r)
-    g_linear = gamma_correct(g)
-    b_linear = gamma_correct(b)
+    r_linear = srgb_to_linear(r)
+    g_linear = srgb_to_linear(g)
+    b_linear = srgb_to_linear(b)
 
     # Convert to XYZ using sRGB matrix (D65 illuminant)
     x = r_linear * 0.4124564 + g_linear * 0.3575761 + b_linear * 0.1804375
@@ -280,13 +300,13 @@ def rgb_to_oklch_safe(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
     try:
         # Validate RGB input
         if not is_valid_rgb(rgb):
-            raise ValueError(f'Invalid RGB values: {rgb}')
+            raise ValueError(f"Invalid RGB values: {rgb}")
 
         oklch = rgb_to_oklch(rgb)
 
         # Validate OKLCH output
         if not is_valid_oklch(oklch):
-            raise ValueError(f'Invalid OKLCH conversion result: {oklch}')
+            raise ValueError(f"Invalid OKLCH conversion result: {oklch}")
 
         return oklch
 
@@ -298,22 +318,20 @@ def rgb_to_oklch_safe(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
         return (gray_normalized, 0.0, 0.0)  # Achromatic color
 
 
-def oklch_to_rgb_safe(
-    oklch: Tuple[float, float, float]
-) -> Tuple[int, int, int]:
+def oklch_to_rgb_safe(oklch: Tuple[float, float, float]) -> Tuple[int, int, int]:
     """
     Safe OKLCH to RGB conversion with validation and error handling
     """
     try:
         # Validate OKLCH input
         if not is_valid_oklch(oklch):
-            raise ValueError(f'Invalid OKLCH values: {oklch}')
+            raise ValueError(f"Invalid OKLCH values: {oklch}")
 
         rgb = oklch_to_rgb(oklch)
 
         # Validate RGB output
         if not is_valid_rgb(rgb):
-            raise ValueError(f'Invalid RGB conversion result: {rgb}')
+            raise ValueError(f"Invalid RGB conversion result: {rgb}")
 
         return rgb
 
@@ -371,16 +389,16 @@ def rgba_to_rgb(rgba, background=(255, 255, 255)):
         ValueError: If `rgba` or `background` have incorrect lengths or values outside their allowed ranges.
     """
     if not (isinstance(rgba, (list, tuple)) and len(rgba) == 4):
-        raise ValueError('RGBA must be a tuple or list of 4 values.')
+        raise ValueError("RGBA must be a tuple or list of 4 values.")
     r, g, b, a = rgba
     if not all(isinstance(v, int) and 0 <= v <= 255 for v in (r, g, b)):
-        raise ValueError('RGBA r, g, b must be integers in 0–255.')
+        raise ValueError("RGBA r, g, b must be integers in 0–255.")
     if not isinstance(a, (float, int)) or not (0.0 <= a <= 1.0):
-        raise ValueError('RGBA a must be a float in 0–1.')
+        raise ValueError("RGBA a must be a float in 0–1.")
     if not (isinstance(background, (list, tuple)) and len(background) == 3):
-        raise ValueError('background must be a tuple or list of 3 values.')
+        raise ValueError("background must be a tuple or list of 3 values.")
     if not all(isinstance(v, int) and 0 <= v <= 255 for v in background):
-        raise ValueError('background r, g, b must be integers in 0–255.')
+        raise ValueError("background r, g, b must be integers in 0–255.")
 
     r_bg, g_bg, b_bg = background
     r_out = int(round(r * a + r_bg * (1 - a)))
@@ -399,8 +417,8 @@ def rgbint_to_string(rgb: Tuple[int, int, int]) -> str:
         str: CSS rgb() string, e.g. 'rgb(255, 0, 0)'.
     """
     if not is_valid_rgb(rgb):
-        raise ValueError(f'Invalid RGB values: {rgb}')
-    return f'rgb({rgb[0]}, {rgb[1]}, {rgb[2]})'
+        raise ValueError(f"Invalid RGB values: {rgb}")
+    return f"rgb({rgb[0]}, {rgb[1]}, {rgb[2]})"
 
 
 import re
@@ -422,7 +440,7 @@ def _parse_rgb_component(v):
         float: Component value scaled to the 0–255 range (percentages are converted so "100%" → 255.0).
     """
     v = v.strip()
-    if v.endswith('%'):
+    if v.endswith("%"):
         return float(v[:-1]) * 2.55  # 100% → 255
     return float(v)
 
@@ -443,12 +461,12 @@ def _parse_hsl_percentage_or_decimal(v):
         ValueError: If the input is not a percentage or a decimal in the range 0–1.
     """
     v = v.strip()
-    if v.endswith('%'):
+    if v.endswith("%"):
         return float(v[:-1]) / 100.0
     x = float(v)
     if 0 <= x <= 1:
         return x
-    raise ValueError(f'S/L must be either percentage or decimal 0–1: {v}')
+    raise ValueError(f"S/L must be either percentage or decimal 0–1: {v}")
 
 
 def _parse_hue(v):
@@ -491,20 +509,20 @@ def rgb_to_hsl(rgb_color):
     if isinstance(rgb_color, str):
         text = rgb_color.strip().lower()
 
-        if not (text.startswith('rgb(') or text.startswith('rgba(')):
-            raise ValueError(f'Invalid RGB/RGBA string: {rgb_color}')
+        if not (text.startswith("rgb(") or text.startswith("rgba(")):
+            raise ValueError(f"Invalid RGB/RGBA string: {rgb_color}")
 
-        inside = text[text.find('(') + 1 : text.rfind(')')].strip()
-        inside = inside.replace(',', ' ')
+        inside = text[text.find("(") + 1 : text.rfind(")")].strip()
+        inside = inside.replace(",", " ")
 
         # strip alpha if present
-        if '/' in inside:
-            inside, _alpha = inside.split('/', 1)
+        if "/" in inside:
+            inside, _alpha = inside.split("/", 1)
             inside = inside.strip()
 
-        parts = re.split(r'\s+', inside)
+        parts = re.split(r"\s+", inside)
         if len(parts) < 3:
-            raise ValueError(f'Invalid RGB (missing components): {rgb_color}')
+            raise ValueError(f"Invalid RGB (missing components): {rgb_color}")
 
         r = _parse_rgb_component(parts[0])
         g = _parse_rgb_component(parts[1])
@@ -513,15 +531,15 @@ def rgb_to_hsl(rgb_color):
     # ---- Parse tuple/list ----
     elif isinstance(rgb_color, (tuple, list)):
         if len(rgb_color) < 3:
-            raise ValueError('RGB tuple must have ≥ 3 components')
+            raise ValueError("RGB tuple must have ≥ 3 components")
         r, g, b = rgb_color[:3]
     else:
-        raise TypeError('Unsupported RGB format')
+        raise TypeError("Unsupported RGB format")
 
     # validate range
     for c in (r, g, b):
         if not (0 <= c <= 255):
-            raise ValueError(f'RGB component out of range: {c}')
+            raise ValueError(f"RGB component out of range: {c}")
 
     # normalize
     r /= 255
@@ -551,7 +569,7 @@ def rgb_to_hsl(rgb_color):
         h *= 60
 
     # return CSS string form
-    return f'hsl({h}, {s*100}%, {l*100}%)'
+    return f"hsl({h}, {s*100}%, {l*100}%)"
 
 
 # -------------------------
@@ -579,18 +597,18 @@ def hsl_to_rgb(hsl_color):
     # ---- Parse CSS string ----
     if isinstance(hsl_color, str):
         text = hsl_color.strip().lower()
-        if not text.startswith('hsl(') or not text.endswith(')'):
-            raise ValueError(f'Invalid HSL string: {hsl_color}')
+        if not text.startswith("hsl(") or not text.endswith(")"):
+            raise ValueError(f"Invalid HSL string: {hsl_color}")
 
         inside = text[4:-1].strip()
-        inside = inside.replace(',', ' ')
-        inside = inside.replace('%', '% ')  # so split doesn't glue them
+        inside = inside.replace(",", " ")
+        inside = inside.replace("%", "% ")  # so split doesn't glue them
 
-        parts = re.split(r'\s+', inside)
+        parts = re.split(r"\s+", inside)
         parts = [p for p in parts if p]  # trim empties
 
         if len(parts) < 3:
-            raise ValueError(f'Invalid HSL string components: {hsl_color}')
+            raise ValueError(f"Invalid HSL string components: {hsl_color}")
 
         h = _parse_hue(parts[0])
         s = _parse_hsl_percentage_or_decimal(parts[1])
@@ -599,7 +617,7 @@ def hsl_to_rgb(hsl_color):
     # ---- Parse tuple/list ----
     elif isinstance(hsl_color, (tuple, list)):
         if len(hsl_color) != 3:
-            raise ValueError('HSL tuple must be length 3')
+            raise ValueError("HSL tuple must be length 3")
 
         raw_h, raw_s, raw_l = hsl_color
 
@@ -610,11 +628,11 @@ def hsl_to_rgb(hsl_color):
         l = _parse_hsl_percentage_or_decimal(str(raw_l))
 
     else:
-        raise TypeError('Unsupported HSL format')
+        raise TypeError("Unsupported HSL format")
 
     # ---- Validate ----
     if not (0 <= s <= 1 and 0 <= l <= 1):
-        raise ValueError('S and L must be in [0, 1] after parsing')
+        raise ValueError("S and L must be in [0, 1] after parsing")
 
     # ---- Convert to RGB ----
     if s == 0:
@@ -677,13 +695,11 @@ def hsla_to_rgb(hsla_color, background=None):
     if isinstance(hsla_color, str):
         # Parse CSS string
         hsla_color = hsla_color.strip().lower()
-        if hsla_color.startswith('hsla(') and hsla_color.endswith(')'):
+        if hsla_color.startswith("hsla(") and hsla_color.endswith(")"):
             content = hsla_color[5:-1].strip()
             # Handle both comma and space separation, and slash for alpha
-            content = content.replace(
-                '/', ','
-            )  # Convert slash format to comma
-            parts = [p.strip().replace('%', '') for p in content.split(',')]
+            content = content.replace("/", ",")  # Convert slash format to comma
+            parts = [p.strip().replace("%", "") for p in content.split(",")]
 
             if len(parts) == 4:
                 h = float(parts[0]) % 360  # Wrap hue
@@ -695,11 +711,9 @@ def hsla_to_rgb(hsla_color, background=None):
                     else float(parts[3]) / 100.0
                 )
             else:
-                raise ValueError('Invalid HSLA CSS string format')
+                raise ValueError("Invalid HSLA CSS string format")
         else:
-            raise ValueError(
-                "Invalid HSLA string format - must start with 'hsla('"
-            )
+            raise ValueError("Invalid HSLA string format - must start with 'hsla('")
 
     elif isinstance(hsla_color, (tuple, list)):
         if len(hsla_color) == 4:
@@ -709,15 +723,13 @@ def hsla_to_rgb(hsla_color, background=None):
             l = float(l)
             a = float(a)
         else:
-            raise ValueError(
-                'Invalid HSLA tuple/list - must have 4 components'
-            )
+            raise ValueError("Invalid HSLA tuple/list - must have 4 components")
     else:
-        raise TypeError('HSLA color must be string, tuple, or list')
+        raise TypeError("HSLA color must be string, tuple, or list")
 
     # Validate ranges
     if not (0 <= s <= 1 and 0 <= l <= 1 and 0 <= a <= 1):
-        raise ValueError('HSLA values out of range: s, l, a must be in [0, 1]')
+        raise ValueError("HSLA values out of range: s, l, a must be in [0, 1]")
 
     # Convert HSL to RGB first
     rgb = hsl_to_rgb((h, s, l))
@@ -734,9 +746,7 @@ def hsla_to_rgb(hsla_color, background=None):
         if isinstance(background, (tuple, list)) and len(background) == 3:
             bg_rgb = background
         else:
-            raise ValueError(
-                'Invalid format, please input RGB Tuple (int,int,int)'
-            )
+            raise ValueError("Invalid format, please input RGB Tuple (int,int,int)")
 
     # Alpha composite: result = alpha * foreground + (1 - alpha) * background
     r, g, b = rgb
@@ -761,20 +771,20 @@ def rgb_to_hsla(rgb_tuple, alpha=1.0):
         str: HSLA CSS string in the form "hsla(h, s%, l%, a)" where h is degrees, s and l are percentages, and a is the provided alpha.
     """
     if not isinstance(rgb_tuple, (tuple, list)) or len(rgb_tuple) != 3:
-        raise ValueError('RGB must be a tuple/list of 3 values')
+        raise ValueError("RGB must be a tuple/list of 3 values")
 
     r, g, b = rgb_tuple
     if not all(0 <= val <= 255 for val in (r, g, b)):
-        raise ValueError('RGB values must be in range [0, 255]')
+        raise ValueError("RGB values must be in range [0, 255]")
 
     if not (0 <= alpha <= 1):
-        raise ValueError('Alpha must be in range [0, 1]')
+        raise ValueError("Alpha must be in range [0, 1]")
 
     hsl_string = rgb_to_hsl(rgb_tuple)
 
     # Extract h, s, l from the HSL string and add alpha
     # hsl_string format: "hsl(120, 100%, 50%)"
     content = hsl_string[4:-1]  # Remove "hsl(" and ")"
-    h_part, s_part, l_part = content.split(', ')
+    h_part, s_part, l_part = content.split(", ")
 
-    return f'hsla({h_part}, {s_part}, {l_part}, {alpha})'
+    return f"hsla({h_part}, {s_part}, {l_part}, {alpha})"

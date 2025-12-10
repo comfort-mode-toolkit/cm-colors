@@ -11,13 +11,13 @@ sys.path.insert(
 
 try:
     from cm_colors.core.contrast import (
-        rgb_to_linear,
         calculate_relative_luminance,
         calculate_contrast_ratio,
         get_contrast_level,
         get_wcag_level,
     )
     from cm_colors.core.conversions import (
+        rgb_to_linear,
         rgb_to_oklch,
         oklch_to_rgb,
         rgb_to_xyz,
