@@ -200,6 +200,10 @@ def oklch_to_rgb(oklch: Tuple[float, float, float]) -> Tuple[int, int, int]:
     return (r_8bit, g_8bit, b_8bit)
 
 
+def rgb_to_linear(channel: int) -> int:
+    return srgb_to_linear(channel / 255.0)
+
+
 def srgb_to_linear(channel: float) -> float:
     """
     Convert a single standard RGB channel value to its linear RGB equivalent,
