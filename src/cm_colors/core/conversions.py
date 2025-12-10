@@ -216,11 +216,10 @@ def srgb_to_linear(channel: float) -> float:
     Returns:
         float: The linear RGB channel value between 0.0 and 1.0.
     """
-    if channel <= 0.04045:  # 0.03928 or 0.04045?
+    if channel <= 0.04045:
         return channel / 12.92
     else:
         return pow((channel + 0.055) / 1.055, 2.4)
-
 
 def linear_to_srgb(channel: float) -> float:
     """
