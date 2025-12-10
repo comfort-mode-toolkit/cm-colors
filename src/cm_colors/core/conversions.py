@@ -200,7 +200,8 @@ def oklch_to_rgb(oklch: Tuple[float, float, float]) -> Tuple[int, int, int]:
     return (r_8bit, g_8bit, b_8bit)
 
 
-def rgb_to_linear(channel: int) -> int:
+def rgb_to_linear(channel: float | int) -> float:
+    """Convert an 8‑bit RGB channel (0–255) to linear RGB (0.0–1.0)."""
     return srgb_to_linear(channel / 255.0)
 
 
