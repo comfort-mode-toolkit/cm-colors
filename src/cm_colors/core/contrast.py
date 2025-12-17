@@ -1,29 +1,13 @@
 from typing import Tuple
-
-
-def rgb_to_linear(rgb_value: float) -> float:
-    """
-    Convert a single 0-255 RGB channel value to its linear RGB equivalent used for luminance.
-
-    Parameters:
-        rgb_value (float): The RGB channel intensity in the range 0 to 255.
-
-    Returns:
-        float: The linear RGB channel value between 0.0 and 1.0.
-    """
-    normalized = rgb_value / 255.0
-    if normalized <= 0.03928:
-        return normalized / 12.92
-    else:
-        return pow((normalized + 0.055) / 1.055, 2.4)
+from cm_colors.core.conversions import srgb_to_linear
 
 
 def calculate_relative_luminance(rgb: Tuple[int, int, int]) -> float:
     """Calculate relative luminance according to WCAG"""
-    r, g, b = rgb
-    r_linear = rgb_to_linear(r)
-    g_linear = rgb_to_linear(g)
-    b_linear = rgb_to_linear(b)
+    r, g, b = [x / 255.0 for x in rgb]
+    r_linear = srgb_to_linear(r)
+    g_linear = srgb_to_linear(g)
+    b_linear = srgb_to_linear(b)
 
     return 0.2126 * r_linear + 0.7152 * g_linear + 0.0722 * b_linear
 
