@@ -63,9 +63,7 @@ def calculate_delta_e_2000(
 
     # Calculate delta H' (capital H)
     delta_H_prime = (
-        2
-        * math.sqrt(C1_prime * C2_prime)
-        * math.sin(math.radians(delta_h_prime / 2))
+        2 * math.sqrt(C1_prime * C2_prime) * math.sin(math.radians(delta_h_prime / 2))
     )
 
     # Calculate delta C'
@@ -95,14 +93,10 @@ def calculate_delta_e_2000(
     delta_theta = 30 * math.exp(-pow((H_mean_prime - 275) / 25, 2))
 
     # Calculate RC (rotation factor)
-    RC = 2 * math.sqrt(
-        pow(C_mean_prime, 7) / (pow(C_mean_prime, 7) + pow(25, 7))
-    )
+    RC = 2 * math.sqrt(pow(C_mean_prime, 7) / (pow(C_mean_prime, 7) + pow(25, 7)))
 
     # Calculate SL, SC, SH (weighting functions)
-    SL = 1 + (
-        (0.015 * pow(L_mean - 50, 2)) / math.sqrt(20 + pow(L_mean - 50, 2))
-    )
+    SL = 1 + ((0.015 * pow(L_mean - 50, 2)) / math.sqrt(20 + pow(L_mean - 50, 2)))
     SC = 1 + 0.045 * C_mean_prime
     SH = 1 + 0.015 * C_mean_prime * T
 

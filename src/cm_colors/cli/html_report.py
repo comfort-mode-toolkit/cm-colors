@@ -2,7 +2,7 @@ import os
 import html
 
 
-def generate_report(fixed_pairs, output_path='cm_colors_report.html'):
+def generate_report(fixed_pairs, output_path="cm_colors_report.html"):
     """
     Generates a minimal HTML report for fixed color pairs.
 
@@ -198,19 +198,19 @@ def generate_report(fixed_pairs, output_path='cm_colors_report.html'):
     else:
         for pair in fixed_pairs:
             # Escape all user-controlled values to prevent XSS
-            selector = html.escape(str(pair['selector']))
-            file_path = html.escape(str(pair['file']))
-            bg = html.escape(str(pair['bg']))
-            original_text = html.escape(str(pair['original_text']))
-            tuned_text = html.escape(str(pair['tuned_text']))
-            original_level = html.escape(str(pair['original_level']))
-            new_level = html.escape(str(pair['new_level']))
+            selector = html.escape(str(pair["selector"]))
+            file_path = html.escape(str(pair["file"]))
+            bg = html.escape(str(pair["bg"]))
+            original_text = html.escape(str(pair["original_text"]))
+            tuned_text = html.escape(str(pair["tuned_text"]))
+            original_level = html.escape(str(pair["original_level"]))
+            new_level = html.escape(str(pair["new_level"]))
 
-            bg_style = f'background-color: {bg};'
+            bg_style = f"background-color: {bg};"
 
             # Ensure text colors are valid for CSS
-            orig_text_style = f'color: {original_text};'
-            tuned_text_style = f'color: {tuned_text};'
+            orig_text_style = f"color: {original_text};"
+            tuned_text_style = f"color: {tuned_text};"
 
             html_content += f"""
             <div class="card">
@@ -252,7 +252,7 @@ def generate_report(fixed_pairs, output_path='cm_colors_report.html'):
 </html>
     """
 
-    with open(output_path, 'w', encoding='utf-8') as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(html_content)
 
     return os.path.abspath(output_path)

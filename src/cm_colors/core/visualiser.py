@@ -17,94 +17,86 @@ def to_console(fg, bg, tuned_fg, original_level=None, new_level=None):
 
     # Helper to ensure color strings are safe for rich
     def safe_color(c):
-        return str(c).replace(' ', '') if 'rgb' in str(c) else str(c)
+        return str(c).replace(" ", "") if "rgb" in str(c) else str(c)
 
     s_fg = safe_color(fg)
     s_bg = safe_color(bg)
     s_tuned_fg = safe_color(tuned_fg)
 
     def get_badge(level):
-        if level == 'FAIL':
-            return Text(' Not Readable ', style='white on red')
-        elif level == 'AA' or level == 'AA Large':
-            return Text(' Readable ', style='white on green')
-        elif level == 'AAA' or level == 'AAA Large':
-            return Text(' Very Readable ', style='white on green')
-        return Text(f' {level} ', style='black on white')
+        if level == "FAIL":
+            return Text(" Not Readable ", style="white on red")
+        elif level == "AA" or level == "AA Large":
+            return Text(" Readable ", style="white on green")
+        elif level == "AAA" or level == "AAA Large":
+            return Text(" Very Readable ", style="white on green")
+        return Text(f" {level} ", style="black on white")
 
     # Create main layout table
-    main_table = Table(
-        show_header=False, box=None, padding=0, collapse_padding=True
-    )
-    main_table.add_column('Original', ratio=1)
-    main_table.add_column('Arrow', width=4, justify='center')
-    main_table.add_column('Tuned', ratio=1)
+    main_table = Table(show_header=False, box=None, padding=0, collapse_padding=True)
+    main_table.add_column("Original", ratio=1)
+    main_table.add_column("Arrow", width=4, justify="center")
+    main_table.add_column("Tuned", ratio=1)
 
     # Original Block with label above
     orig_badge = get_badge(original_level)
-    original_text = Text('Sample Text', style=Style(color=s_fg, bgcolor=s_bg))
+    original_text = Text("Sample Text", style=Style(color=s_fg, bgcolor=s_bg))
 
     original_content = Table.grid(padding=0, expand=True)
-    original_content.add_column(justify='center')
+    original_content.add_column(justify="center")
     original_content.add_row(original_text)
-    original_content.add_row(Text('\n'))
-    original_content.add_row(Text(str(fg), style='dim'))
-    original_content.add_row(Text('\n'))
+    original_content.add_row(Text("\n"))
+    original_content.add_row(Text(str(fg), style="dim"))
+    original_content.add_row(Text("\n"))
     original_content.add_row(orig_badge)
 
     original_panel = Panel(
         original_content,
         style=Style(bgcolor=s_bg),
         padding=(1, 2),
-        border_style='dim',
+        border_style="dim",
     )
 
     # Tuned Block with label above
     new_badge = get_badge(new_level)
-    tuned_text = Text(
-        'Sample Text', style=Style(color=s_tuned_fg, bgcolor=s_bg)
-    )
+    tuned_text = Text("Sample Text", style=Style(color=s_tuned_fg, bgcolor=s_bg))
 
     tuned_content = Table.grid(padding=0, expand=True)
-    tuned_content.add_column(justify='center')
+    tuned_content.add_column(justify="center")
     tuned_content.add_row(tuned_text)
-    tuned_content.add_row(Text('\n'))
-    tuned_content.add_row(Text(str(tuned_fg), style='dim'))
-    tuned_content.add_row(Text('\n'))
+    tuned_content.add_row(Text("\n"))
+    tuned_content.add_row(Text(str(tuned_fg), style="dim"))
+    tuned_content.add_row(Text("\n"))
     tuned_content.add_row(new_badge)
 
     tuned_panel = Panel(
         tuned_content,
         style=Style(bgcolor=s_bg),
         padding=(1, 2),
-        border_style='dim',
+        border_style="dim",
     )
 
     # Create label row
-    label_table = Table(
-        show_header=False, box=None, padding=0, collapse_padding=True
-    )
-    label_table.add_column('Original Label', ratio=1, justify='right')
-    label_table.add_column('Arrow Space', width=4)
-    label_table.add_column('Tuned Label', ratio=1, justify='right')
-    label_table.add_row(
-        Text('Before', style='bold'), '', Text('After', style='bold')
-    )
+    label_table = Table(show_header=False, box=None, padding=0, collapse_padding=True)
+    label_table.add_column("Original Label", ratio=1, justify="right")
+    label_table.add_column("Arrow Space", width=4)
+    label_table.add_column("Tuned Label", ratio=1, justify="right")
+    label_table.add_row(Text("Before", style="bold"), "", Text("After", style="bold"))
 
     # Print label row then panels
     console.print(label_table)
-    main_table.add_row(original_panel, '→', tuned_panel)
+    main_table.add_row(original_panel, "→", tuned_panel)
     console.print(main_table)
 
 
 def _get_level_badge(level):
-    if level == 'FAIL':
-        return 'Not Readable', 'badge-fail'
-    elif level == 'AA' or level == 'AA Large':
-        return 'Readable', 'badge-pass'
-    elif level == 'AAA' or level == 'AAA Large':
-        return 'Very Readable', 'badge-pass'
-    return level, 'badge-pass'
+    if level == "FAIL":
+        return "Not Readable", "badge-fail"
+    elif level == "AA" or level == "AA Large":
+        return "Readable", "badge-pass"
+    elif level == "AAA" or level == "AAA Large":
+        return "Very Readable", "badge-pass"
+    return level, "badge-pass"
 
 
 def to_html(
@@ -113,8 +105,8 @@ def to_html(
     tuned_fg,
     original_level,
     new_level,
-    selector='Color Pair',
-    file_path='Manual Check',
+    selector="Color Pair",
+    file_path="Manual Check",
 ):
     """
     Returns an HTML string for a single pair card.
@@ -126,9 +118,9 @@ def to_html(
     orig_label, orig_class = _get_level_badge(original_level)
     new_label, new_class = _get_level_badge(new_level)
 
-    bg_style = f'background-color: {bg};'
-    orig_text_style = f'color: {fg};'
-    tuned_text_style = f'color: {tuned_fg};'
+    bg_style = f"background-color: {bg};"
+    orig_text_style = f"color: {fg};"
+    tuned_text_style = f"color: {tuned_fg};"
 
     return f"""
     <div class="card">
@@ -160,12 +152,12 @@ def to_html(
     """
 
 
-def to_html_bulk(pairs, output_path='cm_colors_report.html'):
+def to_html_bulk(pairs, output_path="cm_colors_report.html"):
     """
     Generates a full HTML page for multiple pairs.
     pairs: list of dicts with keys: fg, bg, tuned_fg, original_level, new_level, selector, file
     """
-    cards_html = ''
+    cards_html = ""
     if not pairs:
         cards_html = """
             <div class="card" style="text-align: center; padding: 50px;">
@@ -176,13 +168,13 @@ def to_html_bulk(pairs, output_path='cm_colors_report.html'):
     else:
         for pair in pairs:
             cards_html += to_html(
-                pair['fg'],
-                pair['bg'],
-                pair['tuned_fg'],
-                pair.get('original_level', 'FAIL'),
-                pair.get('new_level', 'AA'),
-                pair.get('selector', 'Color Pair'),
-                pair.get('file', 'Manual Check'),
+                pair["fg"],
+                pair["bg"],
+                pair["tuned_fg"],
+                pair.get("original_level", "FAIL"),
+                pair.get("new_level", "AA"),
+                pair.get("selector", "Color Pair"),
+                pair.get("file", "Manual Check"),
             )
 
     html_content = f"""
@@ -370,7 +362,7 @@ def to_html_bulk(pairs, output_path='cm_colors_report.html'):
 </html>
     """
 
-    with open(output_path, 'w', encoding='utf-8') as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(html_content)
 
     return os.path.abspath(output_path)

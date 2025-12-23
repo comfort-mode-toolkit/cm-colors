@@ -9,8 +9,8 @@ class TestMakeReadableBulk:
     def test_basic_bulk_processing(self):
         """Test basic bulk processing of multiple pairs"""
         pairs = [
-            ('#000000', '#ffffff'),  # Already readable
-            ('#777777', '#ffffff'),  # Needs fixing
+            ("#000000", "#ffffff"),  # Already readable
+            ("#777777", "#ffffff"),  # Needs fixing
         ]
 
         results = make_readable_bulk(pairs)
@@ -20,7 +20,7 @@ class TestMakeReadableBulk:
 
         # First pair should be already readable
         color1, status1 = results[0]
-        assert status1 in ['readable', 'very readable']
+        assert status1 in ["readable", "very readable"]
 
         # Second pair should be fixed
         color2, status2 = results[1]
@@ -28,12 +28,12 @@ class TestMakeReadableBulk:
 
     def test_hex_format_preservation(self):
         """Test that Hex input returns Hex output"""
-        pairs = [('#777777', '#ffffff')]
+        pairs = [("#777777", "#ffffff")]
 
         results = make_readable_bulk(pairs)
         color, status = results[0]
 
-        assert color.startswith('#')
+        assert color.startswith("#")
         assert len(color) == 7  # #RRGGBB format
 
     def test_tuple_format_preservation(self):
@@ -48,8 +48,8 @@ class TestMakeReadableBulk:
 
     def test_large_text_flag(self):
         """Test large text flag affects color tuning"""
-        text_color = '#777777'
-        bg_color = '#ffffff'
+        text_color = "#777777"
+        bg_color = "#ffffff"
 
         # Normal text
         normal_results = make_readable_bulk([(text_color, bg_color)])
@@ -65,7 +65,7 @@ class TestMakeReadableBulk:
 
     def test_extra_readable_flag(self):
         """Test very_readable flag aims for AAA"""
-        pairs = [('#777777', '#ffffff')]
+        pairs = [("#777777", "#ffffff")]
 
         # Normal
         normal_results = make_readable_bulk(pairs, very_readable=False)
@@ -78,7 +78,7 @@ class TestMakeReadableBulk:
 
     def test_mode_parameter(self):
         """Test different optimization modes"""
-        pairs = [('#777777', '#ffffff')]
+        pairs = [("#777777", "#ffffff")]
 
         # Mode 0: Strict
         results_0 = make_readable_bulk(pairs, mode=0)
@@ -96,19 +96,19 @@ class TestMakeReadableBulk:
     def test_readability_status_strings(self):
         """Test that status strings are user-friendly"""
         pairs = [
-            ('#000000', '#ffffff'),  # Very readable
-            ('#ffffff', '#ffffff'),  # Not readable
-            ('#777777', '#ffffff'),  # Should become readable
+            ("#000000", "#ffffff"),  # Very readable
+            ("#ffffff", "#ffffff"),  # Not readable
+            ("#777777", "#ffffff"),  # Should become readable
         ]
 
         results = make_readable_bulk(pairs)
 
         for color, status in results:
-            assert status in ['readable', 'very readable', 'not readable']
+            assert status in ["readable", "very readable", "not readable"]
 
     def test_invalid_color_handling(self):
         """Test handling of invalid colors"""
-        pairs = [('invalid', '#ffffff')]
+        pairs = [("invalid", "#ffffff")]
 
         results = make_readable_bulk(pairs)
 
@@ -126,7 +126,7 @@ class TestMakeReadableBulk:
     def test_mixed_formats(self):
         """Test processing pairs with mixed color formats"""
         pairs = [
-            ('#777777', '#ffffff'),  # Hex
+            ("#777777", "#ffffff"),  # Hex
             ((119, 119, 119), (255, 255, 255)),  # Tuple
         ]
 
@@ -134,14 +134,14 @@ class TestMakeReadableBulk:
 
         assert len(results) == 2
         # Each should preserve its input format
-        assert results[0][0].startswith('#')
+        assert results[0][0].startswith("#")
         assert isinstance(results[1][0], tuple)
 
     def test_save_report_generates_file(self, tmp_path):
         """Test that save_report=True generates HTML file"""
         import os
 
-        pairs = [('#777777', '#ffffff')]
+        pairs = [("#777777", "#ffffff")]
 
         # Change to temp directory
         original_dir = os.getcwd()
@@ -150,7 +150,7 @@ class TestMakeReadableBulk:
             results = make_readable_bulk(pairs, save_report=True)
 
             # Check that report file was created
-            assert os.path.exists('cm_colors_bulk_report.html')
+            assert os.path.exists("cm_colors_bulk_report.html")
 
         finally:
             os.chdir(original_dir)

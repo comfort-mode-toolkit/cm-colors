@@ -13,7 +13,7 @@ from typing import Tuple, Union
 NumberLike = Union[int, float, str]
 ColorInput = Union[str, Tuple, list]
 
-_NUM_RE = re.compile(r'[-+]?\d*\.?\d+%?')
+_NUM_RE = re.compile(r"[-+]?\d*\.?\d+%?")
 
 
 def _parse_number_token(tok: str, component: bool = True) -> float:
@@ -30,7 +30,7 @@ def _parse_number_token(tok: str, component: bool = True) -> float:
         ValueError: If the token is not a valid number/percentage or if the parsed value falls outside the allowed range for the selected mode.
     """
     tok = tok.strip()
-    if tok.endswith('%'):
+    if tok.endswith("%"):
         # percentage
         try:
             v = float(tok[:-1])
@@ -53,7 +53,7 @@ def _parse_number_token(tok: str, component: bool = True) -> float:
         # CSS standard treats numbers as 0-255. Percentages are handled above.
         if 0.0 <= v <= 255.0:
             return float(v)
-        raise ValueError(f'RGB component out of range: {v}')
+        raise ValueError(f"RGB component out of range: {v}")
     else:
         # alpha: prefer 0..1, but if given >1 and <=100 maybe user intended percent
         if 0.0 <= v <= 1.0:
@@ -61,7 +61,7 @@ def _parse_number_token(tok: str, component: bool = True) -> float:
         if 1.0 < v <= 100.0:
             # interpret as percent (e.g., "50" -> 50% -> 0.5)
             return max(0.0, min(1.0, v / 100.0))
-        raise ValueError(f'Alpha value out of range: {v}')
+        raise ValueError(f"Alpha value out of range: {v}")
 
 
 def _extract_number_tokens(s: str) -> list:
@@ -127,20 +127,18 @@ def parse_color_to_rgb(
                             comps.append(int(round(c)))
                         else:
                             raise ValueError(
-                                f'RGB component out of range or invalid: {c}'
+                                f"RGB component out of range or invalid: {c}"
                             )
                     elif isinstance(c, str):
-                        comps.append(
-                            int(round(_parse_number_token(c, component=True)))
-                        )
+                        comps.append(int(round(_parse_number_token(c, component=True))))
                     else:
                         raise ValueError(
-                            f'Unsupported RGB component type: {type(c).__name__}'
+                            f"Unsupported RGB component type: {type(c).__name__}"
                         )
 
                 rgb = tuple(max(0, min(255, int(round(x)))) for x in comps)
                 if not is_valid_rgb(rgb):
-                    raise ValueError(f'Invalid RGB tuple after parsing: {rgb}')
+                    raise ValueError(f"Invalid RGB tuple after parsing: {rgb}")
                 return rgb
 
         elif ln == 4:
@@ -173,17 +171,14 @@ def parse_color_to_rgb(
             else:
                 bg_rgb = None
                 if background is not None:
-                    if (
-                        isinstance(background, (tuple, list))
-                        and len(background) == 3
-                    ):
+                    if isinstance(background, (tuple, list)) and len(background) == 3:
                         bg_rgb = tuple(background)
                     else:
                         bg_rgb = parse_color_to_rgb(background)
                 return hsla_to_rgb(color, bg_rgb)
         else:
             raise ValueError(
-                f'Tuple/list color must have length 3 (RGB/HSL) or 4 (RGBA/HSLA). Got length {ln}'
+                f"Tuple/list color must have length 3 (RGB/HSL) or 4 (RGBA/HSLA). Got length {ln}"
             )
 
     # 2. Strings (named, hex, rgb(), rgba(), hsl(), hsla(), informal)
@@ -197,23 +192,20 @@ def parse_color_to_rgb(
             return hex_to_rgb(hex_val)
 
         # hex with or without '#'
-        if s_lower.startswith('#') or re.fullmatch(
-            r'[0-9a-fA-F]{3}|[0-9a-fA-F]{6}', s_lower
+        if s_lower.startswith("#") or re.fullmatch(
+            r"[0-9a-fA-F]{3}|[0-9a-fA-F]{6}", s_lower
         ):
-            if not s_lower.startswith('#'):
-                s = '#' + s
+            if not s_lower.startswith("#"):
+                s = "#" + s
                 s_lower = s.lower()
             return hex_to_rgb(s)
 
         # HSL/HSLA functional notation
-        if s_lower.startswith('hsl(') or s_lower.startswith('hsla('):
-            if s_lower.startswith('hsla('):
+        if s_lower.startswith("hsl(") or s_lower.startswith("hsla("):
+            if s_lower.startswith("hsla("):
                 bg_rgb = None
                 if background is not None:
-                    if (
-                        isinstance(background, (tuple, list))
-                        and len(background) == 3
-                    ):
+                    if isinstance(background, (tuple, list)) and len(background) == 3:
                         bg_rgb = tuple(background)
                     else:
                         bg_rgb = parse_color_to_rgb(background)
@@ -224,32 +216,23 @@ def parse_color_to_rgb(
 
         # RGB/RGBA functional notation and informal formats
         if (
-            s_lower.startswith('rgb(')
-            or s_lower.startswith('rgba(')
-            or s_lower.startswith('rgb ')
-            or s_lower.startswith('(')
-            or ',' in s
-            or ' ' in s
+            s_lower.startswith("rgb(")
+            or s_lower.startswith("rgba(")
+            or s_lower.startswith("rgb ")
+            or s_lower.startswith("(")
+            or "," in s
+            or " " in s
         ):
-
             tokens = _extract_number_tokens(s_lower)
             if not tokens:
-                raise ValueError(
-                    f"Could not parse numeric components from '{s}'"
-                )
+                raise ValueError(f"Could not parse numeric components from '{s}'")
 
             if len(tokens) >= 4:
                 # RGBA
                 try:
-                    r = int(
-                        round(_parse_number_token(tokens[0], component=True))
-                    )
-                    g = int(
-                        round(_parse_number_token(tokens[1], component=True))
-                    )
-                    b = int(
-                        round(_parse_number_token(tokens[2], component=True))
-                    )
+                    r = int(round(_parse_number_token(tokens[0], component=True)))
+                    g = int(round(_parse_number_token(tokens[1], component=True)))
+                    b = int(round(_parse_number_token(tokens[2], component=True)))
                     a = _parse_number_token(tokens[3], component=False)
                 except ValueError as e:
                     raise ValueError(f"Invalid RGBA components in '{s}': {e}")
@@ -261,15 +244,9 @@ def parse_color_to_rgb(
             elif len(tokens) == 3:
                 # RGB
                 try:
-                    r = int(
-                        round(_parse_number_token(tokens[0], component=True))
-                    )
-                    g = int(
-                        round(_parse_number_token(tokens[1], component=True))
-                    )
-                    b = int(
-                        round(_parse_number_token(tokens[2], component=True))
-                    )
+                    r = int(round(_parse_number_token(tokens[0], component=True)))
+                    g = int(round(_parse_number_token(tokens[1], component=True)))
+                    b = int(round(_parse_number_token(tokens[2], component=True)))
                 except ValueError as e:
                     raise ValueError(f"Invalid RGB components in '{s}': {e}")
                 rgb = (
@@ -278,9 +255,7 @@ def parse_color_to_rgb(
                     max(0, min(255, b)),
                 )
                 if not is_valid_rgb(rgb):
-                    raise ValueError(
-                        f"Invalid RGB values parsed from '{s}': {rgb}"
-                    )
+                    raise ValueError(f"Invalid RGB values parsed from '{s}': {rgb}")
                 return rgb
             else:
                 raise ValueError(f"Unrecognized color format: '{s}'")
@@ -290,7 +265,7 @@ def parse_color_to_rgb(
 
     # unsupported types
     raise ValueError(
-        f'Unsupported color input type: {type(color).__name__}. Expected string, tuple, or list.'
+        f"Unsupported color input type: {type(color).__name__}. Expected string, tuple, or list."
     )
 
 
@@ -304,30 +279,30 @@ def detect_color_format(color: ColorInput) -> str:
     if isinstance(color, str):
         s = color.strip().lower()
         if s in CSS_NAMED_COLORS:
-            return 'named'
-        if s.startswith('#'):
-            return 'hex'
-        if s.startswith('rgb('):
-            return 'rgb'
-        if s.startswith('rgba('):
-            return 'rgba'
-        if s.startswith('hsl('):
-            return 'hsl'
-        if s.startswith('hsla('):
-            return 'hsla'
+            return "named"
+        if s.startswith("#"):
+            return "hex"
+        if s.startswith("rgb("):
+            return "rgb"
+        if s.startswith("rgba("):
+            return "rgba"
+        if s.startswith("hsl("):
+            return "hsl"
+        if s.startswith("hsla("):
+            return "hsla"
         # Check for hex without #
-        if re.fullmatch(r'[0-9a-f]{3}|[0-9a-f]{6}', s):
-            return 'hex'
+        if re.fullmatch(r"[0-9a-f]{3}|[0-9a-f]{6}", s):
+            return "hex"
         # Check for informal rgb "r, g, b"
-        if ',' in s or ' ' in s:
+        if "," in s or " " in s:
             # Heuristic, assume rgb-like if not handled
-            return 'rgb'
+            return "rgb"
     elif isinstance(color, (tuple, list)):
         if len(color) == 3:
-            return 'rgb_tuple'
+            return "rgb_tuple"
         if len(color) == 4:
-            return 'rgba_tuple'
-    return 'unknown'
+            return "rgba_tuple"
+    return "unknown"
 
 
 def format_color(
@@ -345,13 +320,13 @@ def format_color(
     """
     from .conversions import rgb_to_hex, rgbint_to_string, rgb_to_hsl
 
-    if format_type == 'hex':
+    if format_type == "hex":
         return rgb_to_hex(rgb)
-    if format_type == 'rgb':
+    if format_type == "rgb":
         return rgbint_to_string(rgb)
-    if format_type == 'hsl':
+    if format_type == "hsl":
         return rgb_to_hsl(rgb)
-    if format_type == 'rgb_tuple':
+    if format_type == "rgb_tuple":
         return rgb
 
     # Default to hex for named, rgba, hsla, and unknown types
