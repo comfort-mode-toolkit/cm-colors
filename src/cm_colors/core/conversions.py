@@ -132,9 +132,7 @@ def rgb_to_oklch(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
     if C < 1e-10:  # Very small chroma, hue is undefined
         H = 0.0
     else:
-        H = math.atan2(b, a) * 180.0 / math.pi
-        if H < 0:
-            H += 360.0
+        H = calculate_hue_angle(a, b)
 
     # Clamp lightness to valid range
     L = max(0.0, min(1.0, L))
@@ -291,6 +289,14 @@ def rgb_to_lab(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
     """Convert RGB directly to LAB"""
     xyz = rgb_to_xyz(rgb)
     return xyz_to_lab(xyz)
+
+
+def calculate_hue_angle(a, b):
+    """Convert LAB's a and b values to hue with proper angle correction"""
+    if a == 0 and b == 0:
+        return 0
+    hue = math.atan2(b, a) * 180 / math.pi
+    return hue + 360 if hue < 0 else hue
 
 
 def rgb_to_oklch_safe(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:

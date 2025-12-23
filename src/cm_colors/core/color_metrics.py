@@ -1,6 +1,6 @@
 import math
 from typing import Tuple
-from cm_colors.core.conversions import rgb_to_lab
+from cm_colors.core.conversions import rgb_to_lab, calculate_hue_angle
 
 
 def calculate_delta_e_2000(
@@ -47,12 +47,6 @@ def calculate_delta_e_2000(
     C_mean_prime = (C1_prime + C2_prime) / 2
 
     # Calculate h' (adjusted hue values)
-    def calculate_hue_angle(a_prime, b):
-        if a_prime == 0 and b == 0:
-            return 0
-        hue = math.atan2(b, a_prime) * 180 / math.pi
-        return hue + 360 if hue < 0 else hue
-
     h1_prime = calculate_hue_angle(a1_prime, b1)
     h2_prime = calculate_hue_angle(a2_prime, b2)
 
