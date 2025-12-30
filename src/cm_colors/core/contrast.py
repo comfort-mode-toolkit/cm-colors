@@ -29,18 +29,18 @@ def get_contrast_level(contrast_ratio: float, large: bool = False) -> str:
     """Return WCAG contrast level based on ratio and text size"""
     if large:
         if contrast_ratio >= 4.5:
-            return 'AAA'
+            return "AAA"
         elif contrast_ratio >= 3.0:
-            return 'AA'
+            return "AA"
         else:
-            return 'FAIL'
+            return "FAIL"
     else:
         if contrast_ratio >= 7.0:
-            return 'AAA'
+            return "AAA"
         elif contrast_ratio >= 4.5:
-            return 'AA'
+            return "AA"
         else:
-            return 'FAIL'
+            return "FAIL"
 
 
 def get_wcag_level(

@@ -2,9 +2,7 @@ import math
 from typing import Tuple
 
 
-def hex_to_rgb(
-    hex_str: str, string: bool = False
-) -> Tuple[int, int, int] | str:
+def hex_to_rgb(hex_str: str, string: bool = False) -> Tuple[int, int, int] | str:
     """
     Converts a hex color string to an RGB tuple or CSS rgb() string.
 
@@ -18,18 +16,16 @@ def hex_to_rgb(
     Raises:
         ValueError: If hex_str is not a valid hex color.
     """
-    hex_str = hex_str.strip().lstrip('#')
+    hex_str = hex_str.strip().lstrip("#")
     if len(hex_str) == 3:
-        hex_str = ''.join([c * 2 for c in hex_str])
-    if len(hex_str) != 6 or not all(
-        c in '0123456789abcdefABCDEF' for c in hex_str
-    ):
-        raise ValueError(f'Invalid hex color: {hex_str}')
+        hex_str = "".join([c * 2 for c in hex_str])
+    if len(hex_str) != 6 or not all(c in "0123456789abcdefABCDEF" for c in hex_str):
+        raise ValueError(f"Invalid hex color: {hex_str}")
     r = int(hex_str[0:2], 16)
     g = int(hex_str[2:4], 16)
     b = int(hex_str[4:6], 16)
     if string:
-        return f'rgb({r}, {g}, {b})'
+        return f"rgb({r}, {g}, {b})"
     return (r, g, b)
 
 
@@ -50,19 +46,19 @@ def rgb_to_hex(rgb: Tuple[int, int, int] | str) -> str:
         import re
 
         match = re.fullmatch(
-            r'rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)',
+            r"rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)",
             rgb.strip(),
         )
         if not match:
-            raise ValueError(f'Invalid CSS rgb() string: {rgb}')
+            raise ValueError(f"Invalid CSS rgb() string: {rgb}")
         r, g, b = map(int, match.groups())
     elif isinstance(rgb, tuple) and len(rgb) == 3:
         r, g, b = rgb
     else:
-        raise ValueError(f'Invalid RGB input: {rgb}')
+        raise ValueError(f"Invalid RGB input: {rgb}")
     if not all(isinstance(x, int) and 0 <= x <= 255 for x in (r, g, b)):
-        raise ValueError(f'RGB values must be integers in 0-255: {rgb}')
-    return '#{:02x}{:02x}{:02x}'.format(r, g, b)
+        raise ValueError(f"RGB values must be integers in 0-255: {rgb}")
+    return "#{:02x}{:02x}{:02x}".format(r, g, b)
 
 
 def rgb_to_oklch(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
@@ -79,21 +75,9 @@ def rgb_to_oklch(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
 
     # Step 2: Linear RGB to LMS (Long, Medium, Short cone responses)
     # Using the official OKLab transformation matrix
-    l_cone = (
-        0.4122214708 * r_linear
-        + 0.5363325363 * g_linear
-        + 0.0514459929 * b_linear
-    )
-    m_cone = (
-        0.2119034982 * r_linear
-        + 0.6806995451 * g_linear
-        + 0.1073969566 * b_linear
-    )
-    s_cone = (
-        0.0883024619 * r_linear
-        + 0.2817188376 * g_linear
-        + 0.6299787005 * b_linear
-    )
+    l_cone = 0.4122214708 * r_linear + 0.5363325363 * g_linear + 0.0514459929 * b_linear
+    m_cone = 0.2119034982 * r_linear + 0.6806995451 * g_linear + 0.1073969566 * b_linear
+    s_cone = 0.0883024619 * r_linear + 0.2817188376 * g_linear + 0.6299787005 * b_linear
 
     # Step 3: Apply cube root transformation (perceptual uniformity)
     # Handle negative values properly
@@ -108,21 +92,9 @@ def rgb_to_oklch(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
     s_prime = safe_cbrt(s_cone)
 
     # Step 4: LMS' to OKLab using the official transformation matrix
-    L = (
-        0.2104542553 * l_prime
-        + 0.7936177850 * m_prime
-        - 0.0040720468 * s_prime
-    )
-    a = (
-        1.9779984951 * l_prime
-        - 2.4285922050 * m_prime
-        + 0.4505937099 * s_prime
-    )
-    b = (
-        0.0259040371 * l_prime
-        + 0.7827717662 * m_prime
-        - 0.8086757660 * s_prime
-    )
+    L = 0.2104542553 * l_prime + 0.7936177850 * m_prime - 0.0040720468 * s_prime
+    a = 1.9779984951 * l_prime - 2.4285922050 * m_prime + 0.4505937099 * s_prime
+    b = 0.0259040371 * l_prime + 0.7827717662 * m_prime - 0.8086757660 * s_prime
 
     # Step 5: OKLab to OKLCH conversion
     # Chroma calculation
@@ -132,9 +104,7 @@ def rgb_to_oklch(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
     if C < 1e-10:  # Very small chroma, hue is undefined
         H = 0.0
     else:
-        H = math.atan2(b, a) * 180.0 / math.pi
-        if H < 0:
-            H += 360.0
+        H = calculate_hue_angle(a, b)
 
     # Clamp lightness to valid range
     L = max(0.0, min(1.0, L))
@@ -172,15 +142,9 @@ def oklch_to_rgb(oklch: Tuple[float, float, float]) -> Tuple[int, int, int]:
     s_cone = safe_cube(s_prime)
 
     # Step 4: LMS to Linear RGB using inverse transformation matrix
-    r_linear = (
-        +4.0767416621 * l_cone - 3.3077115913 * m_cone + 0.2309699292 * s_cone
-    )
-    g_linear = (
-        -1.2684380046 * l_cone + 2.6097574011 * m_cone - 0.3413193965 * s_cone
-    )
-    b_linear = (
-        -0.0041960863 * l_cone - 0.7034186147 * m_cone + 1.7076147010 * s_cone
-    )
+    r_linear = +4.0767416621 * l_cone - 3.3077115913 * m_cone + 0.2309699292 * s_cone
+    g_linear = -1.2684380046 * l_cone + 2.6097574011 * m_cone - 0.3413193965 * s_cone
+    b_linear = -0.0041960863 * l_cone - 0.7034186147 * m_cone + 1.7076147010 * s_cone
 
     # Step 5: Linear RGB to sRGB with precise gamma correction
     # Clamp to valid range before gamma correction
@@ -220,6 +184,7 @@ def srgb_to_linear(channel: float) -> float:
         return channel / 12.92
     else:
         return pow((channel + 0.055) / 1.055, 2.4)
+
 
 def linear_to_srgb(channel: float) -> float:
     """
@@ -291,6 +256,14 @@ def rgb_to_lab(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
     """Convert RGB directly to LAB"""
     xyz = rgb_to_xyz(rgb)
     return xyz_to_lab(xyz)
+
+
+def calculate_hue_angle(a, b):
+    """Convert LAB's a and b values to hue with proper angle correction"""
+    if a == 0 and b == 0:
+        return 0
+    hue = math.atan2(b, a) * 180 / math.pi
+    return hue + 360 if hue < 0 else hue
 
 
 def rgb_to_oklch_safe(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:

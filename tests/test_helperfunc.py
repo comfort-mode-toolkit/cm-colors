@@ -6,7 +6,7 @@ import os
 
 # Add src to path for imports
 sys.path.insert(
-    0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src')
+    0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src")
 )
 
 try:
@@ -41,9 +41,9 @@ try:
 
 
 except ImportError as e:
-    print(f'Import error: {e}')
-    print('Current working directory:', os.getcwd())
-    print('Files in current directory:', os.listdir('.'))
+    print(f"Import error: {e}")
+    print("Current working directory:", os.getcwd())
+    print("Files in current directory:", os.listdir("."))
     raise
 
 
@@ -91,9 +91,7 @@ class TestBasicUtilities:
         assert abs(max_contrast - reverse_contrast) < 1e-10
 
         # Test same colors (minimum contrast)
-        min_contrast = calculate_contrast_ratio(
-            (128, 128, 128), (128, 128, 128)
-        )
+        min_contrast = calculate_contrast_ratio((128, 128, 128), (128, 128, 128))
         assert abs(min_contrast - 1.0) < 1e-10
 
         # Test reasonable contrast
@@ -102,20 +100,20 @@ class TestBasicUtilities:
 
     def test_get_contrast_level(self):
         # Test normal text
-        assert get_contrast_level(8.0, False) == 'AAA'
-        assert get_contrast_level(5.0, False) == 'AA'
-        assert get_contrast_level(3.0, False) == 'FAIL'
+        assert get_contrast_level(8.0, False) == "AAA"
+        assert get_contrast_level(5.0, False) == "AA"
+        assert get_contrast_level(3.0, False) == "FAIL"
 
         # Test large text
-        assert get_contrast_level(5.0, True) == 'AAA'
-        assert get_contrast_level(3.5, True) == 'AA'
-        assert get_contrast_level(2.0, True) == 'FAIL'
+        assert get_contrast_level(5.0, True) == "AAA"
+        assert get_contrast_level(3.5, True) == "AA"
+        assert get_contrast_level(2.0, True) == "FAIL"
 
         # Test boundary values
-        assert get_contrast_level(7.0, False) == 'AAA'
-        assert get_contrast_level(4.5, False) == 'AA'
-        assert get_contrast_level(4.5, True) == 'AAA'
-        assert get_contrast_level(3.0, True) == 'AA'
+        assert get_contrast_level(7.0, False) == "AAA"
+        assert get_contrast_level(4.5, False) == "AA"
+        assert get_contrast_level(4.5, True) == "AAA"
+        assert get_contrast_level(3.0, True) == "AA"
 
     def test_is_valid_rgb(self):
         assert is_valid_rgb((0, 0, 0)) == True
@@ -268,28 +266,28 @@ class TestValidationFunctions:
 
         # Invalid OKLCH values
         assert is_valid_oklch((-0.1, 0.1, 180.0)) == False  # Negative L
-        assert is_valid_oklch((1.1, 0.1, 180.0)) == False   # L > 1
+        assert is_valid_oklch((1.1, 0.1, 180.0)) == False  # L > 1
         assert is_valid_oklch((0.5, -0.1, 180.0)) == False  # Negative C
-        assert is_valid_oklch((0.5, 0.1, -10.0)) == False   # Negative H
-        assert is_valid_oklch((0.5, 0.1, 370.0)) == False   # H > 360
+        assert is_valid_oklch((0.5, 0.1, -10.0)) == False  # Negative H
+        assert is_valid_oklch((0.5, 0.1, 370.0)) == False  # H > 360
 
     def test_parse_color_to_rgb(self):
         # Test hex colors
-        assert parse_color_to_rgb('#ff0000') == (255, 0, 0)
-        assert parse_color_to_rgb('#000000') == (0, 0, 0)
-        assert parse_color_to_rgb('#ffffff') == (255, 255, 255)
+        assert parse_color_to_rgb("#ff0000") == (255, 0, 0)
+        assert parse_color_to_rgb("#000000") == (0, 0, 0)
+        assert parse_color_to_rgb("#ffffff") == (255, 255, 255)
 
         # Test RGB strings
-        assert parse_color_to_rgb('rgb(255, 0, 0)') == (255, 0, 0)
-        assert parse_color_to_rgb('rgb(0, 0, 0)') == (0, 0, 0)
+        assert parse_color_to_rgb("rgb(255, 0, 0)") == (255, 0, 0)
+        assert parse_color_to_rgb("rgb(0, 0, 0)") == (0, 0, 0)
 
         # Test RGB tuples
         assert parse_color_to_rgb((255, 0, 0)) == (255, 0, 0)
 
     def test_rgbint_to_string(self):
-        assert rgbint_to_string((255, 0, 0)) == 'rgb(255, 0, 0)'
-        assert rgbint_to_string((0, 0, 0)) == 'rgb(0, 0, 0)'
-        assert rgbint_to_string((128, 128, 128)) == 'rgb(128, 128, 128)'
+        assert rgbint_to_string((255, 0, 0)) == "rgb(255, 0, 0)"
+        assert rgbint_to_string((0, 0, 0)) == "rgb(0, 0, 0)"
+        assert rgbint_to_string((128, 128, 128)) == "rgb(128, 128, 128)"
 
 
 class TestOptimizationFunctions:
@@ -345,7 +343,7 @@ class TestAccessibilityFunctions:
     """Test accessibility and contrast fixing functions"""
 
     @pytest.mark.parametrize(
-        'text_rgb,bg_rgb,large,expected_accessible',
+        "text_rgb,bg_rgb,large,expected_accessible",
         [
             (
                 (0, 0, 0),
@@ -379,8 +377,8 @@ class TestAccessibilityFunctions:
             # Parse result if it's a string
             if isinstance(result, str):
                 # Should be in format "rgb(r, g, b)"
-                assert result.startswith('rgb(')
-                assert result.endswith(')')
+                assert result.startswith("rgb(")
+                assert result.endswith(")")
             else:
                 # Should be valid RGB tuple
                 assert is_valid_rgb(result)
@@ -388,7 +386,7 @@ class TestAccessibilityFunctions:
     def test_check_and_fix_contrast_needs_fixing(self):
         # Test case where contrast needs improvement
         text_rgb = (200, 200, 200)  # Light gray
-        bg_rgb = (255, 255, 255)    # White
+        bg_rgb = (255, 255, 255)  # White
 
         # Original contrast should be poor
         original_contrast = calculate_contrast_ratio(text_rgb, bg_rgb)
@@ -403,9 +401,7 @@ class TestAccessibilityFunctions:
         text_rgb = (180, 180, 180)
         bg_rgb = (255, 255, 255)
 
-        result, accessible = check_and_fix_contrast(
-            text_rgb, bg_rgb, large=True
-        )
+        result, accessible = check_and_fix_contrast(text_rgb, bg_rgb, large=True)
 
         # Should handle large text requirements
         assert isinstance(accessible, bool)
@@ -486,7 +482,7 @@ class TestIntegration:
     """Integration tests for the complete workflow"""
 
     @pytest.mark.parametrize(
-        'text_color,bg_color',
+        "text_color,bg_color",
         [
             ((255, 0, 0), (255, 255, 255)),  # Red on white
             ((0, 100, 0), (255, 255, 255)),  # Dark green on white
@@ -511,7 +507,7 @@ class TestIntegration:
         if accessible:
             # Parse result if it's a string
             if isinstance(result, str):
-                assert result.startswith('rgb(')
+                assert result.startswith("rgb(")
 
             # Calculate color difference if changed
             if result != text_color:
@@ -524,15 +520,13 @@ class TestIntegration:
 
                     delta_e = calculate_delta_e_2000(text_color, result_rgb)
                     # Should preserve brand colors (reasonable Delta E)
-                    assert (
-                        delta_e < 20
-                    )  # Allow reasonable changes for accessibility
+                    assert delta_e < 20  # Allow reasonable changes for accessibility
                 except:
                     pass  # Skip Delta E check if parsing fails
 
     def test_already_accessible_colors(self):
         """Test that already accessible colors remain unchanged or improve"""
-        text_color = (0, 0, 0)      # Black
+        text_color = (0, 0, 0)  # Black
         bg_color = (255, 255, 255)  # White
 
         result, accessible = check_and_fix_contrast(text_color, bg_color)
@@ -551,9 +545,7 @@ class TestIntegration:
         end_time = time.time()
 
         # Should complete within reasonable time (adjust as needed)
-        assert (
-            end_time - start_time
-        ) < 10.0  # Should be much faster than 10 seconds
+        assert (end_time - start_time) < 10.0  # Should be much faster than 10 seconds
 
         # Should still produce valid results
         assert isinstance(accessible, bool)

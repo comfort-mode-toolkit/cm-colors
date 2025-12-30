@@ -45,7 +45,7 @@ def binary_search_lightness(
         high = 1.0 if search_up else l
 
         best_rgb = None
-        best_delta_e = float('inf')
+        best_delta_e = float("inf")
         best_contrast = 0.0
 
         # Precision-matched binary search (20 iterations = ~1M precision)
@@ -253,7 +253,7 @@ def generate_accessible_color(
 
     best_candidate = None
     best_contrast = current_contrast
-    best_delta_e = float('inf')
+    best_delta_e = float("inf")
 
     for max_delta_e in delta_e_sequence:
         # Phase 1: Binary search on lightness (fastest, most effective)
@@ -286,8 +286,7 @@ def generate_accessible_color(
                 return gradient_result
 
             if result_contrast > best_contrast or (
-                result_contrast == best_contrast
-                and result_delta_e < best_delta_e
+                result_contrast == best_contrast and result_delta_e < best_delta_e
             ):
                 best_contrast = result_contrast
                 best_candidate = gradient_result
@@ -299,8 +298,7 @@ def generate_accessible_color(
             best_candidate
             and best_contrast >= min_contrast
             and max_delta_e <= 2.5
-            and delta_e_sequence[-1]
-            <= 5.0  # Check if it's the strict sequence
+            and delta_e_sequence[-1] <= 5.0  # Check if it's the strict sequence
         ):
             return best_candidate
 
@@ -518,9 +516,9 @@ def check_and_fix_contrast(
     bg_color = Color(bg)
 
     if not text_color.is_valid:
-        raise ValueError(f'Invalid text color: {text_color.error}')
+        raise ValueError(f"Invalid text color: {text_color.error}")
     if not bg_color.is_valid:
-        raise ValueError(f'Invalid background color: {bg_color.error}')
+        raise ValueError(f"Invalid background color: {bg_color.error}")
 
     text_rgb = text_color.rgb
     bg_rgb = bg_color.rgb
@@ -532,7 +530,7 @@ def check_and_fix_contrast(
         # Premium always aims for AAA
         if large:
             min_contrast = 4.5
-            target_contrast = 4.5   # Aim a bit higher for buffer
+            target_contrast = 4.5  # Aim a bit higher for buffer
         else:
             min_contrast = 7.0
             target_contrast = 7.0
@@ -543,7 +541,7 @@ def check_and_fix_contrast(
 
         if large:
             min_contrast = 3.0
-            target_contrast = 4.5   # Aim a bit higher for buffer
+            target_contrast = 4.5  # Aim a bit higher for buffer
         else:
             min_contrast = 4.5
             target_contrast = (

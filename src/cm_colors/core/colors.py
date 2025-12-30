@@ -10,7 +10,7 @@ class Color:
     def __init__(
         self,
         color_input: Union[str, tuple, list],
-        background_context: Optional['Color'] = None,
+        background_context: Optional["Color"] = None,
     ):
         """Parse and store a color value.
 
@@ -23,7 +23,7 @@ class Color:
         self._rgb = None
         self._error = None
         self._parsed = False
-        self._format = 'unknown'
+        self._format = "unknown"
 
         self._parse()
 
@@ -82,7 +82,7 @@ class Color:
         if not self.is_valid:
             return None
         r, g, b = self.rgb
-        return f'#{r:02x}{g:02x}{b:02x}'
+        return f"#{r:02x}{g:02x}{b:02x}"
 
 
 class ColorPair:
@@ -117,9 +117,9 @@ class ColorPair:
         """
         errors = []
         if not self.text.is_valid:
-            errors.append(f'Text: {self.text.error}')
+            errors.append(f"Text: {self.text.error}")
         if not self.bg.is_valid:
-            errors.append(f'Background: {self.bg.error}')
+            errors.append(f"Background: {self.bg.error}")
         return errors
 
     @property
@@ -136,16 +136,16 @@ class ColorPair:
             'Very Readable'
         """
         if not self.is_valid:
-            return 'Not Readable'
+            return "Not Readable"
 
         level = get_wcag_level(self.text.rgb, self.bg.rgb, self.large)
 
-        if level == 'AAA':
-            return 'Very Readable'
-        elif level == 'AA' or level == 'AA Large':
-            return 'Readable'
+        if level == "AAA":
+            return "Very Readable"
+        elif level == "AA" or level == "AA Large":
+            return "Readable"
         else:
-            return 'Not Readable'
+            return "Not Readable"
 
     def make_readable(
         self,
@@ -202,9 +202,7 @@ class ColorPair:
             # Extract needed data
             tuned_rgb = None
             # Get original level for visualizer
-            original_level = get_wcag_level(
-                self.text.rgb, self.bg.rgb, self.large
-            )
+            original_level = get_wcag_level(self.text.rgb, self.bg.rgb, self.large)
             new_level = None
 
             tuned_rgb, success = result
@@ -215,9 +213,7 @@ class ColorPair:
                 try:
                     c_tuned = Color(str(tuned_rgb))
                     if c_tuned.is_valid:
-                        new_level = get_wcag_level(
-                            c_tuned.rgb, self.bg.rgb, self.large
-                        )
+                        new_level = get_wcag_level(c_tuned.rgb, self.bg.rgb, self.large)
                 except Exception:
                     pass
 
@@ -233,7 +229,7 @@ class ColorPair:
                 if isinstance(tuned_rgb, tuple):
                     # It's an RGB tuple, convert to hex
                     r, g, b = tuned_rgb
-                    tuned_hex = f'#{r:02x}{g:02x}{b:02x}'
+                    tuned_hex = f"#{r:02x}{g:02x}{b:02x}"
                 else:
                     try:
                         c = Color(str(tuned_rgb))
@@ -248,30 +244,28 @@ class ColorPair:
                     and isinstance(tuned_hex, str)
                     and fg_hex.lower() == tuned_hex.lower()
                 ):
-                    print('Colors are already accessible. No changes needed.')
+                    print("Colors are already accessible. No changes needed.")
                 else:
-                    to_console(
-                        fg_hex, bg_hex, tuned_hex, original_level, new_level
-                    )
+                    to_console(fg_hex, bg_hex, tuned_hex, original_level, new_level)
 
             if save_report:
                 # For single pair, generate a quick report
                 pair_data = {
-                    'fg': rgbint_to_string(self.text.rgb)
+                    "fg": rgbint_to_string(self.text.rgb)
                     if self.text.is_valid
-                    else 'Invalid',
-                    'bg': rgbint_to_string(self.bg.rgb)
+                    else "Invalid",
+                    "bg": rgbint_to_string(self.bg.rgb)
                     if self.bg.is_valid
-                    else 'Invalid',
-                    'tuned_fg': str(tuned_rgb),
-                    'original_level': original_level,
-                    'new_level': new_level,
-                    'selector': 'Manual Check',
-                    'file': 'Python API',
+                    else "Invalid",
+                    "tuned_fg": str(tuned_rgb),
+                    "original_level": original_level,
+                    "new_level": new_level,
+                    "selector": "Manual Check",
+                    "file": "Python API",
                 }
                 report_path = to_html_bulk(
-                    [pair_data], output_path='cm_colors_quick_report.html'
+                    [pair_data], output_path="cm_colors_quick_report.html"
                 )
-                print(f'Report generated: {report_path}')
+                print(f"Report generated: {report_path}")
 
         return result
