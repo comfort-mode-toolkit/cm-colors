@@ -12,8 +12,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate PDF
-        uses: openjournals/open-journal-draft-action@v1.0
+      - name: Open Journals PDF Generator
+        uses: openjournals/openjournals-draft-action@v1.0
         # with:
         #   paper-path: 'paper.md'
         #   journal: 'joss'
