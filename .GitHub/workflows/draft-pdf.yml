@@ -1,5 +1,9 @@
 name: Open Journals PDF Generator
-on: [push]
+
+on:
+  push:
+    branches:
+      - paper
 
 jobs:
   build:
@@ -7,12 +11,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Generate PDF
         uses: openjournals/open-journal-draft-action@v1.0
         # with:
-          # Optional: specify the path to your main paper Markdown file
-          # The default is 'paper.md' in the root directory
-          # paper-path: 'your-paper-folder/my_paper.md'
-          # Optional: specify the target journal (joss or jose)
-          # The default is 'joss'
-          # journal: 'jose'
+        #   paper-path: 'paper.md'
+        #   journal: 'joss'
