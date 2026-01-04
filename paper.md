@@ -79,4 +79,5 @@ Beyond immediate accessibility compliance, `CM-Colors` demonstrates that percept
 
 My deepest gratitude to Mr. Krishna, whose constancy forms the foundation upon which all my work rests. I thank Ms. Aakriti Jain for technical review assistance, and the open-source community for feedback that motivated algorithm improvements.
 
+I also gratefully acknowledge Mr. Krishna Pandey, Indian Institute of Technology Madras, for his guidance and supervision during the course of this work.
 # References
