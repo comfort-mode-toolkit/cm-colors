@@ -2,8 +2,7 @@
 
 [![Python Tests](https://github.com/comfort-mode-toolkit/cm-colors/actions/workflows/python-test.yml/badge.svg)](https://github.com/comfort-mode-toolkit/cm-colors/actions/workflows/python-test.yml)
 ![PyPI - Version](https://img.shields.io/pypi/v/cm-colors)
-![Downloads](https://img.shields.io/pypi/dm/cm-colors)
-![License](https://img.shields.io/github/license/comfort-mode-toolkit/cm-colors)
+[![PyPI Downloads](https://static.pepy.tech/personalized-badge/cm-colors?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/cm-colors)![License](https://img.shields.io/github/license/comfort-mode-toolkit/cm-colors)
 
 **Color contrast that works for everyone**
 
