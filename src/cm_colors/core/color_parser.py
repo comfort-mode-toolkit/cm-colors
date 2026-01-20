@@ -96,26 +96,10 @@ def parse_color_to_rgb(
     # 1. Normalise tuple/list inputs first
     if isinstance(color, (tuple, list)):
         ln = len(color)
-        if ln == 3:
-            # 3-component tuple/list - DEFAULT TO RGB (most common case)
-            # Only treat as HSL if explicitly float values in 0-1 range for s,l AND h <= 360
-            r_raw, g_raw, b_raw = color
 
-            # Check if this looks like HSL: h <= 360, s and l are floats in [0,1]
-            if (
-                isinstance(r_raw, (int, float))
-                and 1 < float(r_raw) <= 360
-                and isinstance(g_raw, float)
-                and 0.0 <= float(g_raw) <= 1.0
-                and isinstance(b_raw, float)
-                and 0.0 <= float(b_raw) <= 1.0
-                and not isinstance(g_raw, int)
-                and not isinstance(b_raw, int)
-            ):
-                # This looks like HSL: (hue, saturation_float, lightness_float)
-                return hsl_to_rgb(color)
-            else:
-                # Default to RGB processing
+        if ln == 3:
+            # Always try RGB first
+            try:
                 comps = []
                 for c in color:
                     if isinstance(c, (int, float)):
@@ -126,9 +110,7 @@ def parse_color_to_rgb(
                         elif isinstance(c, float) and 0.0 <= c <= 255.0:
                             comps.append(int(round(c)))
                         else:
-                            raise ValueError(
-                                f"RGB component out of range or invalid: {c}"
-                            )
+                            raise ValueError(f"RGB component out of range or invalid: {c}")
                     elif isinstance(c, str):
                         comps.append(int(round(_parse_number_token(c, component=True))))
                     else:
@@ -136,14 +118,30 @@ def parse_color_to_rgb(
                             f"Unsupported RGB component type: {type(c).__name__}"
                         )
 
-                rgb = tuple(max(0, min(255, int(round(x)))) for x in comps)
+                rgb = tuple(int(round(x)) for x in comps)
+
                 if not is_valid_rgb(rgb):
-                    raise ValueError(f"Invalid RGB tuple after parsing: {rgb}")
+                    raise ValueError(f"RGB component out of range or invalid: {rgb}")
+
                 return rgb
+
+
+            except ValueError as e:
+                # If this was clearly an RGB range error, do NOT fallback
+                if "out of range" in str(e):
+                    raise
+
+                # Otherwise, try HSL fallback
+                try:
+                    return hsl_to_rgb(color)
+                except Exception:
+                    raise ValueError(
+                        "Invalid color tuple. If you intended HSL, use hsl(...) syntax."
+                    )
+
 
         elif ln == 4:
             # 4-component tuple: RGBA or HSLA
-            # Heuristic: if any of first 3 values are > 1 or integers, treat as RGBA
             r_raw, g_raw, b_raw, a_raw = color
 
             looks_like_rgb = (
@@ -156,18 +154,18 @@ def parse_color_to_rgb(
             )
 
             if looks_like_rgb:
-                # Treat as RGBA
                 r = int(round(_parse_number_token(str(r_raw), component=True)))
                 g = int(round(_parse_number_token(str(g_raw), component=True)))
                 b = int(round(_parse_number_token(str(b_raw), component=True)))
                 a = _parse_number_token(str(a_raw), component=False)
 
-                # resolve background
                 if background is None:
                     bg_rgb = (255, 255, 255)
                 else:
                     bg_rgb = parse_color_to_rgb(background)
+
                 return rgba_to_rgb((r, g, b, a), background=bg_rgb)
+
             else:
                 bg_rgb = None
                 if background is not None:
@@ -176,6 +174,7 @@ def parse_color_to_rgb(
                     else:
                         bg_rgb = parse_color_to_rgb(background)
                 return hsla_to_rgb(color, bg_rgb)
+
         else:
             raise ValueError(
                 f"Tuple/list color must have length 3 (RGB/HSL) or 4 (RGBA/HSLA). Got length {ln}"
