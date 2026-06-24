@@ -105,6 +105,6 @@ def test_cli_premium_option(runner):
         assert "1 color pairs already readable" in result_std.output
 
         # Premium check
-        result_prem = runner.invoke(main, ["test.css", "--premium"])
+        result_prem = runner.invoke(main, ["test.css", "--very-readable"])
         assert result_prem.exit_code == 0
         assert "1 color pairs adjusted" in result_prem.output

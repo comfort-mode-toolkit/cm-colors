@@ -273,27 +273,47 @@ def cli():
     pass
 
 
-@cli.command()
-@click.argument("path", default=".", type=click.Path(exists=True))
-@click.option(
-    "--default-bg",
-    default="white",
-    help="Default background color if not specified.",
-)
-@click.option(
-    "--mode",
-    default=1,
-    type=int,
-    help="Optimization mode: 0 (Strict), 1 (Default), 2 (Relaxed).",
-)
-@click.option(
-    "--premium",
-    is_flag=True,
-    default=False,
-    help="Aim for AAA compliance (Premium Standard).",
-)
-def fix(path, default_bg, mode, premium):
-    """Automatically tune color contrast in CSS files."""
+def _fix_pair_result(fg_str, bg_str, large, mode, very_readable):
+    fg_color = Color(fg_str)
+    bg_color = Color(bg_str)
+    if not fg_color.is_valid or not bg_color.is_valid:
+        errors = []
+        if not fg_color.is_valid:
+            errors.append(f"fg: {fg_color.error}")
+        if not bg_color.is_valid:
+            errors.append(f"bg: {bg_color.error}")
+        return {"fg": fg_str, "bg": bg_str, "error": "; ".join(errors), "success": False}
+    pair = ColorPair(fg_str, bg_str, large_text=large)
+    fixed, success = pair.make_readable(mode=mode, very_readable=very_readable)
+    ratio = calculate_contrast_ratio(Color(fixed).rgb, bg_color.rgb)
+    level = get_contrast_level(ratio, large)
+    return {
+        "fg": fg_color.to_hex(),
+        "bg": bg_color.to_hex(),
+        "fixed": fixed,
+        "ratio": round(ratio, 2),
+        "level": level,
+        "success": success,
+    }
+
+
+def _pairs_from_file(path):
+    pairs = []
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or (line.startswith("#") and len(line) > 1 and not line[1].isalnum()):
+                continue
+            parts = line.split()
+            if len(parts) >= 2:
+                pairs.append((parts[0], parts[1]))
+            else:
+                console.print(f"[yellow]Skipped malformed line:[/yellow] {line}")
+    return pairs
+
+
+def _run_css_fix(path, default_bg, mode, very_readable):
+    """Inner CSS-file fix logic, returns stats dict."""
     stats = {
         "accessible": 0,
         "tuned": 0,
@@ -349,7 +369,7 @@ def fix(path, default_bg, mode, premium):
                 file_path,
                 variables,
                 mode=mode,
-                premium=premium,
+                premium=very_readable,
             )
 
             for rule in rules:
@@ -412,66 +432,186 @@ def fix(path, default_bg, mode, premium):
 
 
 @cli.command()
-@click.argument("fg", required=False)
-@click.argument("bg", required=False)
+@click.argument("fg_or_path", default=".", metavar="FG_OR_PATH")
+@click.argument("bg", required=False, default=None)
+@click.option(
+    "--pairs",
+    multiple=True,
+    help='Inline pair as "FG BG" string. Repeat for bulk.',
+)
 @click.option(
     "--file",
     "pairs_file",
     type=click.Path(exists=True),
     default=None,
-    help="Text file with one 'FG BG' pair per line. Use '-' for stdin.",
+    help="File with one 'FG BG' pair per line.",
 )
-@click.option(
-    "--large",
-    is_flag=True,
-    default=False,
-    help="Use large-text WCAG thresholds (AA≥3.0, AAA≥4.5).",
-)
+@click.option("--large", is_flag=True, default=False, help="Large-text WCAG thresholds.")
 @click.option(
     "--json",
     "as_json",
     is_flag=True,
     default=False,
-    help="Output results as JSON (machine-readable, for agents and scripts).",
+    help="JSON output (pair/bulk mode).",
 )
-def contrast(fg, bg, pairs_file, large, as_json):
+@click.option("--default-bg", default="white", help="Default background for CSS mode.")
+@click.option(
+    "--mode",
+    default=1,
+    type=int,
+    help="Optimization mode: 0 (Strict), 1 (Default), 2 (Relaxed).",
+)
+@click.option("--very-readable", is_flag=True, default=False, help="Aim for AAA (same as very_readable=True in the Python API).")
+def fix(fg_or_path, bg, pairs, pairs_file, large, as_json, default_bg, mode, very_readable):
+    """Fix color contrast — for a pair, a bulk list, or CSS files.
+
+    Fix a single pair:
+
+      cm-colors fix '#777777' '#ffffff'
+
+    Fix multiple pairs inline (no file needed):
+
+      cm-colors fix --pairs '#777 #fff' --pairs '#888 #000' --json
+
+    Fix CSS files in a directory:
+
+      cm-colors fix ./styles/
+    """
+    from pathlib import Path as _Path
+
+    # --- pair / bulk mode ---
+    if pairs or pairs_file or bg is not None:
+        pairs_input = []
+
+        if pairs_file:
+            with open(pairs_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or (line.startswith("#") and len(line) > 1 and not line[1].isalnum()):
+                        continue
+                    parts = line.split()
+                    if len(parts) >= 2:
+                        pairs_input.append((parts[0], parts[1]))
+                    else:
+                        console.print(f"[yellow]Skipped malformed line:[/yellow] {line}")
+
+        for p in pairs:
+            parts = p.split()
+            if len(parts) >= 2:
+                pairs_input.append((parts[0], parts[1]))
+            else:
+                console.print(f"[yellow]Skipped malformed --pairs value:[/yellow] {p}")
+
+        if bg is not None:
+            pairs_input.insert(0, (fg_or_path, bg))
+
+        if not pairs_input:
+            click.echo("No valid pairs provided. See --help.", err=True)
+            sys.exit(2)
+
+        results = [_fix_pair_result(f, b, large, mode, very_readable) for f, b in pairs_input]
+        any_fail = any(not r["success"] for r in results)
+
+        if as_json:
+            if len(results) == 1:
+                click.echo(_json.dumps(results[0], indent=2))
+            else:
+                total = len(results)
+                succeeded = sum(1 for r in results if r["success"])
+                click.echo(_json.dumps({
+                    "results": results,
+                    "summary": {"total": total, "fixed": succeeded, "failed": total - succeeded},
+                }, indent=2))
+        else:
+            table = Table(show_header=True, header_style="bold")
+            table.add_column("FG", style="dim")
+            table.add_column("BG", style="dim")
+            table.add_column("Fixed")
+            table.add_column("Ratio", justify="right")
+            table.add_column("Level", justify="center")
+            table.add_column("Status", justify="center")
+
+            for r in results:
+                if "error" in r:
+                    table.add_row(r["fg"], r["bg"], "-", "-", "-", "[red]ERROR[/red]")
+                else:
+                    level_style = "green" if r["level"] == "AAA" else "yellow" if r["level"] == "AA" else "red"
+                    status = "[green]FIXED[/green]" if r["success"] else "[red]FAIL[/red]"
+                    table.add_row(
+                        r["fg"], r["bg"], r["fixed"],
+                        f"{r['ratio']:.2f}:1",
+                        f"[{level_style}]{r['level']}[/{level_style}]",
+                        status,
+                    )
+
+            console.print(table)
+
+            if len(results) > 1:
+                succeeded = sum(1 for r in results if r["success"])
+                total = len(results)
+                if any_fail:
+                    console.print(f"[red]{total - succeeded} of {total} pairs could not be fixed.[/red]")
+                else:
+                    console.print(f"[green]All {total} pairs fixed.[/green]")
+
+        sys.exit(1 if any_fail else 0)
+
+    # --- CSS file mode ---
+    path = fg_or_path
+    if not _Path(path).exists():
+        click.echo(f"Path '{path}' does not exist.", err=True)
+        sys.exit(2)
+
+    _run_css_fix(path, default_bg, mode, very_readable)
+
+
+@cli.command()
+@click.argument("fg", required=False)
+@click.argument("bg", required=False)
+@click.option("--pairs", multiple=True, help='Inline pair as "FG BG". Repeat for bulk.')
+@click.option(
+    "--file",
+    "pairs_file",
+    type=click.Path(exists=True),
+    default=None,
+    help="File with one 'FG BG' pair per line.",
+)
+@click.option("--large", is_flag=True, default=False, help="Large-text WCAG thresholds (AA>=3.0, AAA>=4.5).")
+@click.option("--json", "as_json", is_flag=True, default=False, help="JSON output for agents and scripts.")
+def contrast(fg, bg, pairs, pairs_file, large, as_json):
     """Check WCAG contrast ratio for a color pair or a bulk list.
 
     Single pair:
 
       cm-colors contrast '#777777' '#ffffff'
 
-    Bulk from file (one 'FG BG' pair per line):
+    Bulk inline (no file needed):
 
-      cm-colors contrast --file pairs.txt
+      cm-colors contrast --pairs '#777 #fff' --pairs '#888 #000' --json
 
-    JSON output for agents and scripts:
+    Bulk from file:
 
-      cm-colors contrast '#777777' '#ffffff' --json
+      cm-colors contrast --file pairs.txt --json
 
-    Exit code is 0 when all pairs pass, 1 when any fail.
+    Exit code 0 = all pass, 1 = any fail.
     """
     pairs_input = []
 
-    if pairs_file:
-        with open(pairs_file, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                # skip empty lines and comments (# followed by non-hex, e.g. "# note")
-                if not line or (line.startswith("#") and len(line) > 1 and not line[1].isalnum()):
-                    continue
-                parts = line.split()
-                if len(parts) >= 2:
-                    pairs_input.append((parts[0], parts[1]))
-                else:
-                    console.print(f"[yellow]Skipped malformed line:[/yellow] {line}")
-    elif fg and bg:
+    if fg and bg:
         pairs_input.append((fg, bg))
-    else:
-        click.echo(
-            "Provide FG and BG arguments, or use --file. See --help for usage.",
-            err=True,
-        )
+
+    for p in pairs:
+        parts = p.split()
+        if len(parts) >= 2:
+            pairs_input.append((parts[0], parts[1]))
+        else:
+            console.print(f"[yellow]Skipped malformed --pairs value:[/yellow] {p}")
+
+    if pairs_file:
+        pairs_input.extend(_pairs_from_file(pairs_file))
+
+    if not pairs_input:
+        click.echo("Provide FG and BG arguments, or use --pairs/--file. See --help.", err=True)
         sys.exit(2)
 
     results = [_check_pair(f, b, large) for f, b in pairs_input]
