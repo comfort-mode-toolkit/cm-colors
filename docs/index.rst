@@ -74,6 +74,7 @@ Deep Dive
    :maxdepth: 2
    :caption: Check & Automate
 
+   how-to-check-color-contrast-in-terminal
    how-to-use-color-contrast-linter
    how-to-add-linter-to-github-actions
 

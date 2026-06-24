@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="cm-colors",
-    version="0.5.0",
+    version="1.0.0",
     author="Lalitha A R",
     author_email="arlalithablogs@gmail.com",
     description="Automatically fix hard-to-read text colors by making your website readable without changing your original color theme—simple Python API and CLI.",
@@ -22,7 +22,7 @@ setup(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Software Development :: Quality Assurance",
@@ -39,7 +39,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "cm-colors=cm_colors.cli.main:main",
+            "cm-colors=cm_colors.cli.main:cli",
         ],
     },
     python_requires=">=3.7",

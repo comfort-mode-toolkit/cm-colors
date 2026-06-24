@@ -1,11 +1,17 @@
+import json as _json
+import sys
 import click
 import tinycss2
 from tinycss2.ast import QualifiedRule, Declaration, AtRule
 from pathlib import Path
-from cm_colors.core.colors import ColorPair
-from cm_colors.core.contrast import calculate_contrast_ratio, get_wcag_level
+from rich.console import Console
+from rich.table import Table
+from cm_colors.core.colors import Color, ColorPair
+from cm_colors.core.contrast import calculate_contrast_ratio, get_contrast_level, get_wcag_level
 
 from cm_colors.cli.html_report import generate_report
+
+console = Console()
 
 
 def get_css_files(path):
@@ -32,10 +38,6 @@ def update_decl_value(decl, new_value_str):
 
 
 def collect_variables(rules):
-    """
-    Collects CSS variables from :root and html blocks.
-    Returns a dict: { '--var-name': {'decl': Declaration, 'value': str} }
-    """
     variables = {}
     for rule in rules:
         if isinstance(rule, QualifiedRule):
@@ -54,19 +56,12 @@ def collect_variables(rules):
 
 
 def resolve_variable(value_str, variables, visited=None):
-    """
-    Recursively resolves a CSS variable value.
-    Handles var(--name) and var(--name, fallback).
-    Returns the resolved value string or None if unresolvable.
-    """
     if visited is None:
         visited = set()
 
     if not value_str or "var(" not in value_str:
         return value_str
 
-    # Simple parser for var() - this is a basic implementation
-    # It assumes the value is *just* a var() or simple chain, not complex calcs yet
     import re
 
     var_pattern = re.compile(r"var\((--[\w-]+)(?:\s*,\s*(.*))?\)")
@@ -79,16 +74,13 @@ def resolve_variable(value_str, variables, visited=None):
     fallback = match.group(2)
 
     if var_name in visited:
-        return fallback  # Cycle detected
+        return fallback
 
     visited.add(var_name)
 
     if var_name in variables:
         resolved = resolve_variable(variables[var_name]["value"], variables, visited)
         if resolved:
-            # Replace the var() call with the resolved value in the original string
-            # This handles cases like "1px solid var(--color)" -> "1px solid red"
-            # But for now, we assume the color property IS the variable
             return resolved
 
     if fallback:
@@ -111,7 +103,6 @@ def process_nodes_recursive(
 
     for node in node_list:
         if isinstance(node, QualifiedRule):
-            # Process declarations
             declarations = tinycss2.parse_declaration_list(
                 node.content, skip_whitespace=False, skip_comments=False
             )
@@ -133,7 +124,6 @@ def process_nodes_recursive(
                     extract_color_from_decl(bg_decl) if bg_decl else default_bg
                 )
 
-                # Resolve variables for checking
                 text_color_str = (
                     resolve_variable(raw_text_color, variables) or raw_text_color
                 )
@@ -155,10 +145,7 @@ def process_nodes_recursive(
                             }
                         )
                     else:
-                        # Determine target contrast based on premium flag
                         target_ratio = 7.0 if premium else 4.5
-
-                        # Calculate contrast ratio using internal method
                         contrast = calculate_contrast_ratio(pair.text.rgb, pair.bg.rgb)
 
                         if contrast >= target_ratio:
@@ -174,12 +161,7 @@ def process_nodes_recursive(
                             if is_accessible:
                                 stats["tuned"] += 1
 
-                                # Update logic:
-                                # 1. If it's a direct color, update usage.
-                                # 2. If it's a var(), update the definition.
-
                                 if "var(" in raw_text_color:
-                                    # Extract var name
                                     import re
 
                                     var_match = re.search(
@@ -188,20 +170,15 @@ def process_nodes_recursive(
                                     if var_match:
                                         var_name = var_match.group(1)
                                         if var_name in variables:
-                                            # Update the variable definition
                                             var_def = variables[var_name]
                                             update_decl_value(
                                                 var_def["decl"], tuned_rgb
                                             )
-                                            # Update our local map so future usages see the new value
                                             var_def["value"] = tuned_rgb
-                                    else:
-                                        pass  # Could not extract var name
                                 else:
                                     update_decl_value(color_decl, tuned_rgb)
                                     modified = True
 
-                                # Calculate new level
                                 new_pair = ColorPair(tuned_rgb, bg_color_str)
                                 new_level = get_wcag_level(
                                     new_pair.text.rgb,
@@ -245,9 +222,7 @@ def process_nodes_recursive(
                     )
 
             if modified:
-                # Reconstruct content tokens using tinycss2 serialization to preserve comments and !important
                 new_content_str = tinycss2.serialize(declarations)
-                # We need to parse this back into component values for the node content
                 node.content = tinycss2.parse_component_value_list(new_content_str)
 
         elif isinstance(node, AtRule):
@@ -270,7 +245,35 @@ def process_nodes_recursive(
                 node.content = new_content
 
 
-@click.command()
+def _check_pair(fg_str, bg_str, large):
+    fg_color = Color(fg_str)
+    bg_color = Color(bg_str)
+    if not fg_color.is_valid or not bg_color.is_valid:
+        errors = []
+        if not fg_color.is_valid:
+            errors.append(f"fg: {fg_color.error}")
+        if not bg_color.is_valid:
+            errors.append(f"bg: {bg_color.error}")
+        return {"fg": fg_str, "bg": bg_str, "error": "; ".join(errors), "pass": False}
+    ratio = calculate_contrast_ratio(fg_color.rgb, bg_color.rgb)
+    level = get_contrast_level(ratio, large)
+    return {
+        "fg": fg_color.to_hex(),
+        "bg": bg_color.to_hex(),
+        "ratio": round(ratio, 2),
+        "level": level,
+        "pass": level != "FAIL",
+        "large": large,
+    }
+
+
+@click.group()
+def cli():
+    """CM-Colors: Color accessibility toolkit."""
+    pass
+
+
+@cli.command()
 @click.argument("path", default=".", type=click.Path(exists=True))
 @click.option(
     "--default-bg",
@@ -289,8 +292,8 @@ def process_nodes_recursive(
     default=False,
     help="Aim for AAA compliance (Premium Standard).",
 )
-def main(path, default_bg, mode, premium):
-    """CM-Colors CLI: Automatically tune color contrast in CSS files."""
+def fix(path, default_bg, mode, premium):
+    """Automatically tune color contrast in CSS files."""
     stats = {
         "accessible": 0,
         "tuned": 0,
@@ -315,19 +318,13 @@ def main(path, default_bg, mode, premium):
                 css_content, skip_whitespace=False, skip_comments=False
             )
 
-            # Pre-process to find variables and parse their declaration lists
-            # We need to keep the parsed declaration lists attached to the rules so we can update them
-            # and then re-serialize the rules at the end.
-
             variables = {}
-            # We need a way to map rules to their parsed declarations if we modify them
             rule_declarations_map = {}
 
             for rule in rules:
                 if isinstance(rule, QualifiedRule):
                     selector = serialize_prelude(rule.prelude)
                     if selector in (":root", "html"):
-                        # Parse and store declarations for this rule
                         decls = tinycss2.parse_declaration_list(
                             rule.content,
                             skip_whitespace=False,
@@ -342,7 +339,7 @@ def main(path, default_bg, mode, premium):
                                 variables[decl.name] = {
                                     "decl": decl,
                                     "value": tinycss2.serialize(decl.value).strip(),
-                                    "rule": rule,  # Keep ref to rule
+                                    "rule": rule,
                                 }
 
             process_nodes_recursive(
@@ -355,12 +352,9 @@ def main(path, default_bg, mode, premium):
                 premium=premium,
             )
 
-            # Post-process: Update content of rules that had variables modified
-            # We can just iterate through all rules that we parsed declarations for
             for rule in rules:
                 if id(rule) in rule_declarations_map:
                     decls = rule_declarations_map[id(rule)]
-                    # Serialize back to component values
                     new_content_str = tinycss2.serialize(decls)
                     rule.content = tinycss2.parse_component_value_list(new_content_str)
 
@@ -376,10 +370,8 @@ def main(path, default_bg, mode, premium):
 
             traceback.print_exc()
 
-    # Report
     click.echo("")
 
-    # Summary List (moved to top)
     if stats["accessible"] > 0:
         click.secho(f"✓ {stats['accessible']} color pairs already readable", fg="cyan")
 
@@ -398,17 +390,9 @@ def main(path, default_bg, mode, premium):
         click.echo(f"Could not tune {stats['failed']} color pairs:")
         for fail in stats["failed_details"]:
             reason = fail.get("reason", "")
-            # Map technical reasons to user-friendly ones if needed, or just rely on the source providing good reasons.
-
             click.echo(f"  {fail['file']} -> {fail['selector']}")
 
-            # Colorize the failing pair details in red
-            # pair_details = f"{fail['text']} on {fail['bg']}"
-            # click.secho(f"    {pair_details}", fg='red', nl=False)
-            # click.echo(f" {contrast_info}")
-
             if reason:
-                # If reason is the generic "Could not tune...", replace it with the friendly one
                 if "Could not tune without too many changes" in reason:
                     reason = "Couldn't find a similar color that's easy to read"
                 elif "Invalid colors" in reason:
@@ -427,5 +411,132 @@ def main(path, default_bg, mode, premium):
         click.echo("Some colors could not be automatically tuned.")
 
 
+@cli.command()
+@click.argument("fg", required=False)
+@click.argument("bg", required=False)
+@click.option(
+    "--file",
+    "pairs_file",
+    type=click.Path(exists=True),
+    default=None,
+    help="Text file with one 'FG BG' pair per line. Use '-' for stdin.",
+)
+@click.option(
+    "--large",
+    is_flag=True,
+    default=False,
+    help="Use large-text WCAG thresholds (AA≥3.0, AAA≥4.5).",
+)
+@click.option(
+    "--json",
+    "as_json",
+    is_flag=True,
+    default=False,
+    help="Output results as JSON (machine-readable, for agents and scripts).",
+)
+def contrast(fg, bg, pairs_file, large, as_json):
+    """Check WCAG contrast ratio for a color pair or a bulk list.
+
+    Single pair:
+
+      cm-colors contrast '#777777' '#ffffff'
+
+    Bulk from file (one 'FG BG' pair per line):
+
+      cm-colors contrast --file pairs.txt
+
+    JSON output for agents and scripts:
+
+      cm-colors contrast '#777777' '#ffffff' --json
+
+    Exit code is 0 when all pairs pass, 1 when any fail.
+    """
+    pairs_input = []
+
+    if pairs_file:
+        with open(pairs_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                # skip empty lines and comments (# followed by non-hex, e.g. "# note")
+                if not line or (line.startswith("#") and len(line) > 1 and not line[1].isalnum()):
+                    continue
+                parts = line.split()
+                if len(parts) >= 2:
+                    pairs_input.append((parts[0], parts[1]))
+                else:
+                    console.print(f"[yellow]Skipped malformed line:[/yellow] {line}")
+    elif fg and bg:
+        pairs_input.append((fg, bg))
+    else:
+        click.echo(
+            "Provide FG and BG arguments, or use --file. See --help for usage.",
+            err=True,
+        )
+        sys.exit(2)
+
+    results = [_check_pair(f, b, large) for f, b in pairs_input]
+    any_fail = any(not r["pass"] for r in results)
+
+    if as_json:
+        if len(results) == 1:
+            click.echo(_json.dumps(results[0], indent=2))
+        else:
+            total = len(results)
+            passed = sum(1 for r in results if r["pass"])
+            click.echo(
+                _json.dumps(
+                    {
+                        "results": results,
+                        "summary": {
+                            "total": total,
+                            "pass": passed,
+                            "fail": total - passed,
+                        },
+                    },
+                    indent=2,
+                )
+            )
+    else:
+        table = Table(show_header=True, header_style="bold")
+        table.add_column("FG", style="dim")
+        table.add_column("BG", style="dim")
+        table.add_column("Ratio", justify="right")
+        table.add_column("Level", justify="center")
+        table.add_column("Status", justify="center")
+
+        for r in results:
+            if "error" in r:
+                table.add_row(r["fg"], r["bg"], "-", "-", "[red]ERROR[/red]")
+            else:
+                level_style = (
+                    "green" if r["level"] == "AAA" else
+                    "yellow" if r["level"] == "AA" else
+                    "red"
+                )
+                status = "[green]PASS[/green]" if r["pass"] else "[red]FAIL[/red]"
+                table.add_row(
+                    r["fg"],
+                    r["bg"],
+                    f"{r['ratio']:.2f}:1",
+                    f"[{level_style}]{r['level']}[/{level_style}]",
+                    status,
+                )
+
+        console.print(table)
+
+        if len(results) > 1:
+            passed = sum(1 for r in results if r["pass"])
+            total = len(results)
+            if any_fail:
+                console.print(f"[red]{total - passed} of {total} pairs failed.[/red]")
+            else:
+                console.print(f"[green]All {total} pairs passed.[/green]")
+
+    sys.exit(1 if any_fail else 0)
+
+
+# ponytail: tests import `main` expecting the fix command; entry point uses `cli`
+main = fix
+
 if __name__ == "__main__":
-    main()
+    cli()
