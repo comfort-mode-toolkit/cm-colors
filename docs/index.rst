@@ -69,6 +69,14 @@ Deep Dive
 * :doc:`what-makes-cm-colors-work` - The science of preserving your design
 * :doc:`accessibility-explained` - Mapping "Readable" to standards
 
+Research
+--------
+
+The algorithm is described in two papers:
+
+* `Context-Adaptive Color Optimization for Web Accessibility <https://arxiv.org/abs/2512.07623>`_ (arXiv:2512.07623) — 93.68% success across 10,000 random branding-representative pairs, 100% on pairs with initial contrast ratio > 2.0.
+* `Perceptually-Minimal Color Optimization for Web Accessibility <https://arxiv.org/abs/2512.05067>`_ (arXiv:2512.05067) — the multi-phase OKLCH + CIEDE2000 approach.
+
 .. toctree::
    :hidden:
    :maxdepth: 2

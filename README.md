@@ -67,19 +67,32 @@ for color, status in results:
     print(f"{color} is {status}")
 ```
 
-### Fix CSS files
-
-Run this in your terminal to fix all colors in a CSS file:
+### Check and fix from the terminal
 
 ```bash
-cm-colors styles.css
+# check a pair
+cm-colors contrast '#777777' '#ffffff' --json
+
+# fix a pair
+cm-colors fix '#777777' '#ffffff' --json
+
+# fix a CSS file
+cm-colors fix styles.css
 ```
 
-This creates `styles_cm.css` with readable colors which you can preview before you modify your original css
+`cm-colors fix styles.css` creates `styles_cm.css` with readable colors so you can preview before touching your original.
 
 ## Documentation
 
 For more details, see the [full documentation](https://cm-colors.readthedocs.io/en/latest/).
+
+## Research
+
+The optimization algorithm is described in two peer-reviewed papers:
+
+- **[Context-Adaptive Color Optimization for Web Accessibility](https://arxiv.org/abs/2512.07623)** (arXiv:2512.07623) — context-adaptive constraint strategies achieving 93.68% success across random color pairs and 100% on pairs with initial contrast ratio > 2.0, tested on 10,000 programmatically generated branding-representative pairs.
+
+- **[Perceptually-Minimal Color Optimization for Web Accessibility](https://arxiv.org/abs/2512.05067)** (arXiv:2512.05067) — the multi-phase OKLCH optimization approach that minimizes perceptual change (CIEDE2000) while meeting WCAG contrast requirements.
 
 ## License
 
